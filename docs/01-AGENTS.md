@@ -48,7 +48,6 @@ Encode these as Swift constants in `DesignSystem/Tokens.swift`. Never hardcode h
 - Fonts (bundled): **Fraunces** (money figures, titles), **Plus Jakarta Sans** (UI/body), **IBM Plex Mono** (tiny uppercase labels, dates, cadence). Money figures use tabular numerals.
 - Radii: cards 26, rows 17, buttons/fields 16, tiles 11, pills 20. Side margins 16–18. Soft warm low shadows; 1px `line` borders on cards.
 - **Liquid Glass only on the control layer:** floating tab bar, segmented control, floating bottom action bars, notification banner, sheets. Use native iOS 26 glass (`.glassEffect` / glass button styles — verify exact API). Content is always on solid `card` surfaces; never put text directly on glass.
-- Motion and glass behaviour are governed by `/docs/13-MOTION-AND-GLASS.md` — implement animations from its tokens; never hardcode durations.
 - No real brand logos: subscriptions render as single-letter monogram tiles in palette colors. No stock photos.
 
 ## Security & privacy guardrails (hard rules — never violate)

@@ -1,0 +1,46 @@
+included:
+  - ios/Sift
+  - ios/SiftTests
+
+excluded:
+  - ios/Sift/Resources/Fonts
+
+disabled_rules:
+  - trailing_comma
+
+line_length:
+  warning: 140
+  error: 180
+
+type_body_length:
+  warning: 320
+  error: 480
+
+file_length:
+  warning: 650
+  error: 900
+
+custom_rules:
+  no_raw_hex_outside_tokens:
+    name: "Raw Hex Outside Tokens"
+    regex: "#[0-9A-Fa-f]{6,8}"
+    included: ".*\\.swift"
+    excluded: "ios/Sift/DesignSystem/Tokens.swift"
+    message: "Use Palette tokens instead of raw hex literals outside Tokens.swift."
+    severity: error
+
+  no_font_literals_outside_typography:
+    name: "Font Literals Outside Typography"
+    regex: "\"(Fraunces|Fraunces-9pt|Fraunces-9ptSemiBold|Fraunces-9ptBold|Plus Jakarta Sans|PlusJakartaSans-Regular|PlusJakartaSans-Medium|PlusJakartaSans-SemiBold|PlusJakartaSans-Bold|IBM Plex Mono|IBMPlexMono-Regular|IBMPlexMono-Medium|IBMPlexMono-SemiBold|IBMPlexMono-Bold)\""
+    included: ".*\\.swift"
+    excluded: "ios/Sift/DesignSystem/Typography.swift"
+    message: "Route bundled font names through Typography.swift."
+    severity: error
+
+  no_inline_animation_duration:
+    name: "Inline Animation Duration"
+    regex: "\\b(duration|response|dampingFraction|extraBounce):\\s*[0-9]"
+    included: ".*\\.swift"
+    excluded: "ios/Sift/DesignSystem/Motion.swift"
+    message: "Use Motion tokens instead of hardcoded animation timing."
+    severity: error

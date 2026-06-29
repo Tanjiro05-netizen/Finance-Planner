@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sift — Complete Screen Set · Liquid Glass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A1612; --ink-soft:#6E6357; --ink-faint:#9C9285;
+    --bone:#F6F2EA; --card:#FFFDF8; --sand:#ECE4D6; --line:#E2D9C8;
+    --gold:#B68A4E; --gold-deep:#9A7238; --clay:#A8472F; --green:#3f6b3a;
+    --shadow:rgba(40,30,18,.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--ink);
+    background:radial-gradient(140% 50% at 50% 0%, #F3ECDD 0%, #E9DDC9 50%, #DDCDB3 100%);
+    -webkit-font-smoothing:antialiased;padding:0 0 100px;position:relative;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(28% 24% at 10% 22%, rgba(182,138,78,.18), transparent 70%),
+      radial-gradient(26% 22% at 90% 14%, rgba(168,71,47,.10), transparent 70%),
+      radial-gradient(28% 26% at 82% 70%, rgba(182,138,78,.14), transparent 70%),
+      radial-gradient(24% 22% at 14% 84%, rgba(168,71,47,.08), transparent 70%)}
+  .wrap{position:relative;z-index:1;max-width:1300px;margin:0 auto;padding:0 30px}
+
+  header.mast{padding:66px 0 18px}
+  .mast .brand{font-family:'Fraunces',serif;font-weight:600;font-size:60px;letter-spacing:-.03em;line-height:.9}
+  .mast .tag{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-top:12px}
+  .mast .lede{max-width:560px;font-size:14.5px;line-height:1.6;color:var(--ink-soft);font-weight:500;margin-top:18px}
+  .mast .lede b{color:var(--ink);font-weight:700}
+  .palette{display:flex;gap:8px;margin-top:22px}
+  .palette i{width:30px;height:30px;border-radius:9px;border:1px solid rgba(0,0,0,.06)}
+
+  .flow-h{margin:60px 0 30px;border-top:1px solid var(--line);padding-top:30px}
+  .flow-h .tagrow{display:flex;align-items:baseline;gap:14px}
+  .flow-h .tag{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);font-weight:500}
+  .flow-h h2{font-family:'Fraunces',serif;font-size:30px;font-weight:600;letter-spacing:-.01em}
+  .flow-h p{font-size:13.5px;color:var(--ink-soft);max-width:660px;margin-top:8px;line-height:1.55;font-weight:500}
+  .flow-h p b{color:var(--ink);font-weight:700}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(312px,1fr));gap:52px 34px;justify-items:center}
+  figure.frame{margin:0;width:330px;max-width:100%}
+  .cap{margin-top:18px}
+  .cap .n{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--gold-deep);letter-spacing:.1em}
+  .cap .t{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-top:3px;letter-spacing:-.01em}
+  .cap .d{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:5px;font-weight:500}
+
+  /* device */
+  .device{position:relative;width:330px;border-radius:52px;background:linear-gradient(150deg,#2B2620,#171310);
+    padding:10px;box-shadow:0 2px 2px rgba(255,255,255,.18) inset,0 36px 64px -28px rgba(40,28,12,.5),0 14px 30px -18px rgba(40,28,12,.4)}
+  .fi{position:relative;border-radius:43px;overflow:hidden;background:var(--bone);min-height:600px;display:flex;flex-direction:column}
+  .island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:90px;height:25px;border-radius:15px;background:#000;z-index:60}
+  .sb{position:absolute;top:0;left:0;right:0;height:46px;z-index:55;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 6px;font-size:12.5px;font-weight:600;pointer-events:none}
+  .sb .sig{font-size:10.5px}
+  .ct{padding:54px 16px 26px;flex:1;display:flex;flex-direction:column}
+  .ct.tabbed{padding-bottom:96px}
+  .ct.barred{padding-bottom:92px}
+
+  /* type */
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);font-weight:500}
+  .greet{font-size:14px;color:var(--ink-soft);font-weight:500;line-height:1.45}
+  .greet b{color:var(--ink);font-weight:700}
+  h1.figure{font-family:'Fraunces',serif;font-weight:500;font-size:50px;line-height:.95;letter-spacing:-.02em;font-feature-settings:"tnum" 1}
+  .figure .cents{font-size:.5em;color:var(--ink-soft);vertical-align:.55em;letter-spacing:0}
+  .figure .dollar{font-size:.5em;vertical-align:.55em;color:var(--ink-soft);margin-right:2px}
+  .htitle{font-family:'Fraunces',serif;font-weight:600;font-size:27px;line-height:1.08;letter-spacing:-.02em}
+  .sublede{font-size:13.5px;color:var(--ink-soft);font-weight:500;line-height:1.5;margin-top:12px}
+  .section-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin:22px 4px 10px;display:flex;justify-content:space-between;align-items:center}
+  .section-label .link{color:var(--gold-deep);font-weight:500}
+
+  /* cards / rows */
+  .hero{background:var(--card);border-radius:26px;padding:20px 18px 16px;border:1px solid var(--line);box-shadow:0 1px 0 #fff inset,0 14px 30px -22px var(--shadow)}
+  .hero .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+  .pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 9px;border-radius:18px}
+  .pill.up{background:rgba(168,71,47,.1);color:var(--clay)}
+  .hero .sub{margin-top:7px;color:var(--ink-soft);font-size:13px;font-weight:500}
+  .hero .sub b{color:var(--ink);font-weight:700}
+  .timeline{margin-top:18px;padding-top:15px;border-top:1px solid var(--line)}
+  .tl-head{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);margin-bottom:15px;font-weight:500}
+  .tl-track{position:relative;height:22px}
+  .tl-line{position:absolute;top:50%;left:0;right:0;height:2px;background:var(--sand)}
+  .tl-mark{position:absolute;top:50%;width:7px;height:7px;border-radius:50%;background:var(--ink-faint);transform:translate(-50%,-50%)}
+  .tl-mark.gold{background:var(--gold);width:10px;height:10px;box-shadow:0 0 0 4px rgba(182,138,78,.18)}
+  .tl-mark.clay{background:var(--clay)}
+  .tl-flag{position:absolute;top:-19px;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--gold-deep);white-space:nowrap;font-weight:500}
+  .tl-axis{display:flex;justify-content:space-between;margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--ink-faint)}
+
+  .row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:17px;padding:11px 13px;margin-bottom:8px;box-shadow:0 8px 20px -20px var(--shadow)}
+  .tile{flex:0 0 auto;width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:17px;color:#fff}
+  .row .meta{flex:1;min-width:0}
+  .row .name{font-weight:600;font-size:14px;letter-spacing:-.01em}
+  .row .when{font-size:11.5px;color:var(--ink-soft);font-weight:500;margin-top:1px}
+  .row .when.warn{color:var(--clay)}
+  .row .amt{text-align:right;font-family:'Fraunces',serif;font-weight:500;font-size:15.5px;font-feature-settings:"tnum" 1}
+  .row .cad{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase;text-align:right;margin-top:2px}
+
+  .nudge{background:linear-gradient(135deg,#FBF4E9,#F7EAD6);border:1px solid #EAD6B4;border-radius:20px;padding:16px;margin-top:10px;box-shadow:0 14px 30px -24px var(--shadow)}
+  .nudge .lab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);font-weight:500}
+  .nudge .txt{font-size:13.5px;margin-top:6px;line-height:1.45;font-weight:500}
+  .nudge .txt b{font-weight:700}
+  .nudge .act{margin-top:12px;display:flex;gap:8px}
+
+  .btn-sm{font-family:inherit;font-size:12px;font-weight:600;border:none;border-radius:12px;padding:8px 13px}
+  .btn-sm.primary{background:var(--ink);color:#fff}
+  .btn-sm.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
+
+  .cta{width:100%;border:none;border-radius:16px;padding:15px;font-family:inherit;font-size:14.5px;font-weight:700;cursor:default}
+  .cta.ink{background:var(--ink);color:#fff;box-shadow:0 12px 24px -14px rgba(26,22,18,.6)}
+  .cta.gold{background:var(--gold);color:#fff;box-shadow:0 12px 24px -14px rgba(182,138,78,.65)}
+  .cta.clay{background:var(--clay);color:#fff;box-shadow:0 12px 24px -14px rgba(168,71,47,.6)}
+  .cta.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);box-shadow:none}
+  .cta+.cta{margin-top:9px}
+
+  .field{margin-top:12px}
+  .field .fl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px}
+  .field .fb{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-size:13.5px;color:var(--ink-soft);font-weight:500}
+  .search{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13.5px;color:var(--ink-faint);font-weight:500}
+
+  .dots{display:flex;gap:6px;justify-content:center}
+  .dots i{width:7px;height:7px;border-radius:50%;background:var(--sand)}
+  .dots i.on{background:var(--gold);width:20px;border-radius:4px}
+
+  .checkc{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto}
+  .checkc.green{background:rgba(63,107,58,.15);color:var(--green)}
+  .checkc.gold{background:rgba(182,138,78,.18);color:var(--gold-deep)}
+  .checkc.ink{background:linear-gradient(150deg,var(--ink),#3a322a);color:var(--bone);font-family:'Fraunces',serif;font-weight:600}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:18px 0}
+  .chip{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 11px;font-size:12px;font-weight:600}
+  .chip i{width:18px;height:18px;border-radius:5px;display:inline-block}
+  .trust{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.05em;color:var(--ink-faint);text-align:center;line-height:1.6;margin-top:14px}
+
+  /* option cards (cancel fork) */
+  .opt{border:1.5px solid var(--line);border-radius:20px;padding:17px;margin-bottom:11px;background:var(--card);position:relative}
+  .opt.rec{border-color:var(--gold);background:linear-gradient(135deg,#FBF6EC,#F8EFDD)}
+  .opt .badge{position:absolute;top:-9px;left:16px;background:var(--gold);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:10px;font-weight:500}
+  .opt .oh{display:flex;align-items:center;gap:10px}
+  .opt .oicon{width:34px;height:34px;border-radius:10px;background:var(--bone);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto}
+  .opt .ot{font-family:'Fraunces',serif;font-size:17px;font-weight:600}
+  .opt .od{font-size:12.5px;color:var(--ink-soft);font-weight:500;line-height:1.45;margin-top:9px}
+
+  /* status timeline (concierge) */
+  .steps-v{margin-top:6px}
+  .sv{display:flex;gap:12px;align-items:flex-start;position:relative;padding-bottom:18px}
+  .sv:not(:last-child)::before{content:"";position:absolute;left:9px;top:20px;bottom:0;width:2px;background:var(--sand)}
+  .sv .dot{width:20px;height:20px;border-radius:50%;flex:0 0 auto;background:var(--sand);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;z-index:1}
+  .sv.done .dot{background:var(--green)}
+  .sv.now .dot{background:var(--gold);box-shadow:0 0 0 4px rgba(182,138,78,.2)}
+  .sv .st{font-size:13.5px;font-weight:600}
+  .sv .ss{font-size:11.5px;color:var(--ink-soft);font-weight:500;margin-top:1px}
+  .sv.pending .st{color:var(--ink-faint)}
+
+  /* numbered steps (guided) */
+  .stepn{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px;margin-bottom:8px}
+  .stepn .nu{width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-family:'Fraunces',serif;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .stepn .stx{font-size:13px;font-weight:500;line-height:1.4;padding-top:2px}
+  .stepn .stx b{font-weight:700}
+
+  /* stat grid + history (detail) */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:12px}
+  .stat .k{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+  .stat .val{font-family:'Fraunces',serif;font-size:19px;margin-top:5px;font-feature-settings:"tnum" 1}
+  .stat .val.warn{color:var(--clay)}
+  .hist{display:flex;align-items:flex-end;gap:6px;height:44px;margin-top:14px;padding:0 2px}
+  .hist .b{flex:1;background:var(--sand);border-radius:4px 4px 0 0}
+  .hist .b.last{background:var(--gold)}
+  .hist-cap{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--ink-faint);margin-top:6px}
+
+  /* bars / alerts (insights) */
+  .bars{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:18px;box-shadow:0 14px 30px -24px var(--shadow)}
+  .bar-row{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;margin:11px 0;font-size:12px;font-weight:500}
+  .bar-track{height:9px;background:var(--sand);border-radius:6px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--gold-deep))}
+  .bar-row .v{font-family:'Fraunces',serif;font-size:13px;font-feature-settings:"tnum" 1}
+  .alert-row{display:flex;gap:11px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:8px}
+  .alert-dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--clay);margin-top:5px}
+  .alert-row .at{font-size:13px;font-weight:600}
+  .alert-row .ad{font-size:11.5px;color:var(--ink-soft);font-weight:500;margin-top:2px;line-height:1.4}
+
+  /* settings + toggles + bank rows */
+  .profile{display:flex;align-items:center;gap:13px;margin-bottom:6px}
+  .profile .ava{width:50px;height:50px;border-radius:50%;background:linear-gradient(150deg,var(--gold),var(--clay));display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Fraunces',serif;font-size:22px;font-weight:600}
+  .profile .pn{font-family:'Fraunces',serif;font-size:19px;font-weight:600}
+  .profile .pp{font-size:12px;color:var(--gold-deep);font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em}
+  .set-row{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px;margin-bottom:8px}
+  .set-row .si{width:30px;height:30px;border-radius:9px;background:var(--bone);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto}
+  .set-row .slab{flex:1;font-size:13.5px;font-weight:600}
+  .set-row .chev{color:var(--ink-faint);font-size:15px}
+  .tog-row{display:flex;align-items:flex-start;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px;margin-bottom:8px}
+  .tog-row .tl{flex:1}
+  .tog-row .tt{font-size:13.5px;font-weight:600}
+  .tog-row .td{font-size:11.5px;color:var(--ink-soft);font-weight:500;margin-top:2px;line-height:1.4}
+  .toggle{width:42px;height:25px;border-radius:14px;background:var(--sand);flex:0 0 auto;position:relative;transition:background .2s}
+  .toggle.on{background:var(--gold)}
+  .toggle::after{content:"";position:absolute;width:21px;height:21px;border-radius:50%;background:#fff;top:2px;left:2px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .toggle.on::after{left:19px}
+  .bank-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px;margin-bottom:8px}
+  .bank-row .bn{flex:1;font-size:13.5px;font-weight:600}
+  .bank-row .bs{font-size:11px;color:var(--ink-soft);font-weight:500;margin-top:1px}
+  .sdot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:0 0 auto}
+  .req-row{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:8px}
+  .req-row .rn{flex:1;font-size:13px;font-weight:600}
+  .statp{font-size:9px;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border-radius:10px;font-weight:500}
+  .statp.done{background:rgba(63,107,58,.14);color:var(--green)}
+  .statp.prog{background:rgba(182,138,78,.16);color:var(--gold-deep)}
+  .statp.act{background:rgba(168,71,47,.12);color:var(--clay)}
+
+  .savebar{background:linear-gradient(135deg,var(--ink),#322b22);border-radius:18px;padding:15px 17px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .savebar .sl{font-size:11.5px;color:rgba(246,242,234,.7);font-weight:500}
+  .savebar .sv2{font-family:'Fraunces',serif;font-size:22px;color:var(--bone);font-weight:600;margin-top:2px}
+  .savebar .sg{color:var(--gold);font-size:22px}
+
+  /* scanning */
+  .ring{width:96px;height:96px;border-radius:50%;margin:8px auto 0;position:relative;background:conic-gradient(var(--gold) 0deg 250deg,var(--sand) 250deg 360deg);display:flex;align-items:center;justify-content:center;animation:spin 2.4s linear infinite}
+  .ring .inner{width:78px;height:78px;border-radius:50%;background:var(--bone);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:26px;font-weight:600}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .scanbar{height:7px;background:var(--sand);border-radius:5px;overflow:hidden;margin-top:6px}
+  .scanbar i{display:block;height:100%;width:64%;background:linear-gradient(90deg,var(--gold),var(--gold-deep));border-radius:5px}
+
+  /* welcome hero motif */
+  .wmotif{height:150px;border-radius:22px;background:linear-gradient(150deg,#F4ECDD,#EADDC6);border:1px solid var(--line);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px -22px var(--shadow)}
+  .wmotif .c1,.wmotif .c2,.wmotif .c3{position:absolute;border-radius:13px;box-shadow:0 12px 24px -14px var(--shadow);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;color:#fff;font-weight:600;font-size:18px}
+  .wmotif .c1{width:66px;height:66px;background:var(--clay);transform:rotate(-9deg) translate(-46px,8px)}
+  .wmotif .c2{width:66px;height:66px;background:var(--ink);transform:translateY(-14px);z-index:2}
+  .wmotif .c3{width:66px;height:66px;background:var(--gold);transform:rotate(9deg) translate(46px,8px)}
+
+  /* notification preview (glass banner) */
+  .notif{border-radius:20px;padding:14px;display:flex;gap:11px;align-items:center;margin-top:4px}
+  .notif .nic{width:34px;height:34px;border-radius:9px;background:var(--ink);color:var(--bone);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;flex:0 0 auto}
+  .notif .ntt{font-size:12.5px;font-weight:700}
+  .notif .nbb{font-size:11.5px;color:var(--ink-soft);font-weight:500;margin-top:1px}
+
+  /* ---------- LIQUID GLASS ---------- */
+  .glass{background:linear-gradient(150deg,rgba(255,253,248,.62),rgba(246,242,234,.42));
+    backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid rgba(255,255,255,.65);
+    box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 -1px 0 rgba(120,100,70,.06) inset,0 18px 40px -20px rgba(40,28,12,.45);
+    position:relative;overflow:hidden}
+  .glass::after{content:"";position:absolute;top:0;left:-60%;width:55%;height:100%;
+    background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);
+    transform:skewX(-18deg);animation:sheen 8s ease-in-out infinite;pointer-events:none}
+  @keyframes sheen{0%,72%{left:-60%}88%,100%{left:140%}}
+
+  .tabbar{position:absolute;left:14px;right:14px;bottom:16px;z-index:50;height:58px;border-radius:22px;
+    display:flex;align-items:center;justify-content:space-around;padding:0 6px}
+  .tab{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+    color:var(--ink-soft);font-family:inherit;font-size:8.5px;font-weight:600;padding:6px 0;letter-spacing:.02em}
+  .tab svg{width:21px;height:21px;stroke:var(--ink-soft);fill:none;stroke-width:1.7}
+  .tab.on{color:var(--gold-deep)}
+  .tab.on svg{stroke:var(--gold-deep)}
+  .actionbar{position:absolute;left:12px;right:12px;bottom:14px;z-index:50;border-radius:24px;padding:13px}
+  .actionbar .cta{box-shadow:none}
+
+  /* segmented control (glass) */
+  .segmented{display:flex;gap:4px;padding:4px;border-radius:15px;margin-bottom:16px}
+  .seg{flex:1;border:none;background:transparent;font-family:inherit;font-size:11.5px;font-weight:600;color:var(--ink-soft);padding:8px;border-radius:11px}
+  .seg.on{background:var(--card);color:var(--ink);box-shadow:0 4px 10px -4px var(--shadow)}
+
+  .spacer{flex:1}
+
+  @media (prefers-reduced-motion:reduce){.glass::after{display:none}.ring{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mast">
+    <div class="brand">Sift</div>
+    <div class="tag">Complete screen set · 22 screens</div>
+    <p class="lede">Every screen the app needs, in full Liquid Glass. <b>Setting up</b> through <b>daily use</b>, <b>cancelling</b>, and <b>managing</b> — the wireframe inventory, fully designed. Glass stays on the controls; content rests on warm solid surfaces.</p>
+    <div class="palette">
+      <i style="background:#1A1612"></i><i style="background:#F6F2EA"></i><i style="background:#ECE4D6"></i><i style="background:#B68A4E"></i><i style="background:#A8472F"></i>
+    </div>
+  </header>
+
+  <!-- ===================== FLOW A : SETTING UP ===================== -->
+  <div class="flow-h"><div class="tagrow"><span class="tag">Flow A</span><h2>Setting up</h2></div>
+    <p>First run, once. Earn trust fast, get one account linked, let the engine find what recurs.</p></div>
+  <div class="grid">
+
+    <!-- A1 Splash -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct" style="justify-content:center;align-items:center;text-align:center;gap:18px">
+        <div class="checkc ink" style="width:74px;height:74px;font-size:40px;border-radius:22px">S</div>
+        <div><div style="font-family:'Fraunces',serif;font-size:40px;font-weight:600;letter-spacing:-.02em">Sift</div>
+        <div class="trust" style="margin-top:8px">EVERY RECURRING CHARGE, SURFACED</div></div>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">A1</div><div class="t">Splash</div><div class="d">Quiet brand moment while the session loads.</div></figcaption></figure>
+
+    <!-- A2 Welcome -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <div class="wmotif"><div class="c1">R</div><div class="c2">S</div><div class="c3">T</div></div>
+        <h2 class="htitle" style="margin-top:24px">See every subscription you forgot about.</h2>
+        <p class="sublede">Sift reads your accounts and finds the charges that quietly repeat — so nothing renews behind your back.</p>
+        <div class="spacer"></div>
+        <div class="dots" style="margin-bottom:18px"><i class="on"></i><i></i><i></i></div>
+        <button class="cta ink">Get started</button>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">A2</div><div class="t">Welcome</div><div class="d">One sharp value promise. The card motif previews what the app collects.</div></figcaption></figure>
+
+    <!-- A3 Connect intro -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <h2 class="htitle">Link an account once.</h2>
+        <p class="sublede">Sift connects read-only through Plaid and finds your subscriptions automatically. No spreadsheets.</p>
+        <div class="chips">
+          <span class="chip"><i style="background:#A8472F"></i>Chase</span>
+          <span class="chip"><i style="background:#2b2620"></i>Amex</span>
+          <span class="chip"><i style="background:#4a6b8a"></i>Wells Fargo</span>
+          <span class="chip"><i style="background:#B68A4E"></i>+12k more</span>
+        </div>
+        <div class="spacer"></div>
+        <button class="cta ink">Connect an account</button>
+        <div class="trust">READ-ONLY · BANK-LEVEL ENCRYPTION<br>SECURED BY PLAID · CREDENTIALS NEVER STORED</div>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">A3</div><div class="t">Connect intro</div><div class="d">Trust front-loaded — the make-or-break screen for a finance app.</div></figcaption></figure>
+
+    <!-- A4 Bank picker -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <h2 class="htitle" style="font-size:23px">Choose your bank</h2>
+        <div class="search" style="margin-top:14px">⌕ &nbsp;Search 12,000+ institutions</div>
+        <div class="section-label">Popular</div>
+        <div class="row"><div class="tile" style="background:#A8472F">C</div><div class="meta"><div class="name">Chase</div></div><span style="color:var(--ink-faint)">›</span></div>
+        <div class="row"><div class="tile" style="background:#2b2620">A</div><div class="meta"><div class="name">American Express</div></div><span style="color:var(--ink-faint)">›</span></div>
+        <div class="row"><div class="tile" style="background:#4a6b8a">W</div><div class="meta"><div class="name">Wells Fargo</div></div><span style="color:var(--ink-faint)">›</span></div>
+        <div class="row"><div class="tile" style="background:#3f6b3a">B</div><div class="meta"><div class="name">Bank of America</div></div><span style="color:var(--ink-faint)">›</span></div>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">A4</div><div class="t">Bank picker</div><div class="d">Search-first, popular banks surfaced. Standard material — glass stays off content.</div></figcaption></figure>
+
+    <!-- A5 Secure login -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <div class="checkc gold" style="width:48px;height:48px;font-size:22px">🔒</div>
+        <h2 class="htitle" style="font-size:22px;text-align:center;margin-top:14px">Sign in to Chase</h2>
+        <div class="field"><div class="fl">Username</div><div class="fb">alex.rivera</div></div>
+        <div class="field"><div class="fl">Password</div><div class="fb">••••••••••</div></div>
+        <button class="cta ink" style="margin-top:18px">Sign in securely</button>
+        <div class="trust" style="margin-top:16px">Plaid encrypts and verifies your login.<br>Sift never sees or stores your password.</div>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">A5</div><div class="t">Secure login</div><div class="d">The Plaid handoff. Credentials bypass your servers entirely — a hard legal + trust requirement.</div></figcaption></figure>
+
+    <!-- A6 Scanning -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct" style="justify-content:center;text-align:center;gap:14px">
+        <div class="ring"><div class="inner">9</div></div>
+        <h2 class="htitle" style="font-size:23px;margin-top:8px">Finding your subscriptions</h2>
+        <p class="sublede" style="margin-top:4px">Scanning 6 months of transactions for charges that repeat.</p>
+        <div style="width:100%;margin-top:6px"><div class="scanbar"><i></i></div></div>
+        <div class="trust">9 FOUND SO FAR · GROUPING BY MERCHANT</div>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">A6</div><div class="t">Scanning</div><div class="d">The detection engine at work, made visible. Live count turns waiting into anticipation.</div></figcaption></figure>
+
+    <!-- A7 Review found -->
+    <figure class="frame"><div class="device"><div class="fi barred">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct barred">
+        <h2 class="htitle" style="font-size:22px">We found 14 recurring charges</h2>
+        <p class="sublede" style="margin-top:6px">Toggle off anything that isn't a subscription.</p>
+        <div class="section-label">Detected</div>
+        <div class="row"><div class="toggle on"></div><div class="tile" style="background:#A8472F;width:32px;height:32px;font-size:14px">S</div><div class="meta"><div class="name">Streamline+</div></div><div class="amt">$15.49</div></div>
+        <div class="row"><div class="toggle on"></div><div class="tile" style="background:#3f6b3a;width:32px;height:32px;font-size:14px">T</div><div class="meta"><div class="name">Tonebox</div></div><div class="amt">$10.99</div></div>
+        <div class="row"><div class="toggle" style="background:var(--sand)"></div><div class="tile" style="background:#7a5a8a;width:32px;height:32px;font-size:14px">G</div><div class="meta"><div class="name">Corner Grocer</div></div><div class="amt">$42.10</div></div>
+      </div>
+      <div class="actionbar glass"><button class="cta gold">Confirm 13 subscriptions</button></div>
+    </div></div><figcaption class="cap"><div class="n">A7</div><div class="t">Review found</div><div class="d">Detection is never perfect — the user confirms. Glass action bar floats the commit button.</div></figcaption></figure>
+
+    <!-- A8 Notifications -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <div class="checkc gold" style="font-size:28px">🔔</div>
+        <h2 class="htitle" style="text-align:center;font-size:23px;margin-top:14px">Stay ahead of renewals</h2>
+        <p class="sublede" style="text-align:center">We'll warn you before charges hit, when prices rise, and when free trials are about to convert.</p>
+        <div class="notif glass" style="margin-top:18px">
+          <div class="nic">S</div><div><div class="ntt">Streamline+ renews tomorrow</div><div class="nbb">$15.49 · tap to cancel first</div></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="cta ink">Allow notifications</button>
+        <button class="cta ghost">Maybe later</button>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">A8</div><div class="t">Notifications</div><div class="d">Shows the payoff before asking permission. The preview banner is genuine iOS 26 glass.</div></figcaption></figure>
+
+    <!-- A9 All set -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct" style="justify-content:center;text-align:center;gap:16px">
+        <div class="checkc green">✓</div>
+        <h2 class="htitle">You're all set, Alex.</h2>
+        <div class="savebar" style="margin-top:6px;text-align:left">
+          <div><div class="sl">Now tracking</div><div class="sv2">14 subs · $247.83<span style="font-size:14px">/mo</span></div></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="cta ink">Go to dashboard</button>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">A9</div><div class="t">All set</div><div class="d">Closes setup with the headline number — the reason they're here.</div></figcaption></figure>
+
+  </div>
+
+  <!-- ===================== FLOW B : DAILY USE ===================== -->
+  <div class="flow-h"><div class="tagrow"><span class="tag">Flow B</span><h2>Daily use</h2></div>
+    <p>The tabbed core. Home, Subscriptions, Insights — with detail reachable from any row.</p></div>
+  <div class="grid">
+
+    <!-- B1 Dashboard -->
+    <figure class="frame"><div class="device"><div class="fi tabbed">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct tabbed">
+        <div class="eyebrow">Tuesday · June</div>
+        <p class="greet" style="margin:5px 0 14px"><b>Good morning, Alex.</b> Here's what's recurring.</p>
+        <div class="hero">
+          <div class="top"><div><div class="eyebrow">Recurring this month</div>
+            <h1 class="figure" style="margin-top:7px"><span class="dollar">$</span>247<span class="cents">.83</span></h1></div>
+            <span class="pill up">▲ $18.49</span></div>
+          <p class="sub">Across <b>14 subscriptions</b> · 3 renew this week</p>
+          <div class="timeline"><div class="tl-head"><span>Renewal timeline</span><span>June</span></div>
+            <div class="tl-track"><div class="tl-line"></div>
+              <div class="tl-mark" style="left:8%"></div><div class="tl-mark" style="left:20%"></div>
+              <div class="tl-mark gold" style="left:34%"><div class="tl-flag">tomorrow</div></div>
+              <div class="tl-mark" style="left:46%"></div><div class="tl-mark clay" style="left:58%"></div>
+              <div class="tl-mark" style="left:70%"></div><div class="tl-mark" style="left:82%"></div><div class="tl-mark" style="left:94%"></div></div>
+            <div class="tl-axis"><span>1</span><span>15</span><span>30</span></div></div>
+        </div>
+        <div class="nudge"><div class="lab">Flagged · likely unused</div>
+          <p class="txt">No activity on <b>Creative Cloud</b> for 3 months — still <b>$59.99/mo</b>.</p>
+          <div class="act"><button class="btn-sm primary">Review</button><button class="btn-sm ghost">Keep</button></div></div>
+      </div>
+      <nav class="tabbar glass">
+        <button class="tab on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/></svg>Home</button>
+        <button class="tab"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="M4 10h16"/></svg>Subs</button>
+        <button class="tab"><svg viewBox="0 0 24 24"><path d="M5 19V11"/><path d="M12 19V5"/><path d="M19 19v-6"/></svg>Insights</button>
+      </nav>
+    </div></div><figcaption class="cap"><div class="n">B1</div><div class="t">Dashboard</div><div class="d">Monthly total as hero; timeline shows when money leaves.</div></figcaption></figure>
+
+    <!-- B2 Subscriptions -->
+    <figure class="frame"><div class="device"><div class="fi tabbed">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct tabbed">
+        <div class="segmented glass"><button class="seg on">All 14</button><button class="seg">Active</button><button class="seg">Unused 3</button></div>
+        <div class="eyebrow">Total monthly</div>
+        <h1 class="figure" style="margin:5px 0 3px"><span class="dollar">$</span>247<span class="cents">.83</span></h1>
+        <p class="greet" style="margin-bottom:2px">Detected from your linked accounts.</p>
+        <div class="section-label">Entertainment</div>
+        <div class="row"><div class="tile" style="background:#A8472F">S</div><div class="meta"><div class="name">Streamline+</div><div class="when">Used yesterday</div></div><div><div class="amt">$15.49</div><div class="cad">Monthly</div></div></div>
+        <div class="row"><div class="tile" style="background:#3f6b3a">T</div><div class="meta"><div class="name">Tonebox Music</div><div class="when">Used today</div></div><div><div class="amt">$10.99</div><div class="cad">Monthly</div></div></div>
+        <div class="section-label">Software</div>
+        <div class="row"><div class="tile" style="background:#c2502e">C</div><div class="meta"><div class="name">Creative Cloud</div><div class="when warn">Unused · 3 months</div></div><div><div class="amt">$59.99</div><div class="cad">Monthly</div></div></div>
+      </div>
+      <nav class="tabbar glass">
+        <button class="tab"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/></svg>Home</button>
+        <button class="tab on"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="M4 10h16"/></svg>Subs</button>
+        <button class="tab"><svg viewBox="0 0 24 24"><path d="M5 19V11"/><path d="M12 19V5"/><path d="M19 19v-6"/></svg>Insights</button>
+      </nav>
+    </div></div><figcaption class="cap"><div class="n">B2</div><div class="t">Subscriptions</div><div class="d">Grouped, filterable. Glass segment control surfaces the unused.</div></figcaption></figure>
+
+    <!-- B3 Detail -->
+    <figure class="frame"><div class="device"><div class="fi barred">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct barred">
+        <div style="display:flex;gap:13px;align-items:center"><div class="tile" style="background:#A8472F;width:46px;height:46px;font-size:21px">S</div>
+          <div><h2 style="font-family:'Fraunces',serif;font-size:21px;font-weight:600">Streamline+</h2><div style="font-size:12px;color:var(--ink-soft);font-weight:500">Monthly · Visa ••4417</div></div></div>
+        <div class="stat-grid">
+          <div class="stat"><div class="k">Per month</div><div class="val">$15.49</div></div>
+          <div class="stat"><div class="k">Annual cost</div><div class="val warn">$185.88</div></div>
+          <div class="stat"><div class="k">Next charge</div><div class="val">Jun 11</div></div>
+          <div class="stat"><div class="k">Last opened</div><div class="val">Yesterday</div></div>
+        </div>
+        <div class="eyebrow" style="margin-top:16px">Charge history</div>
+        <div class="hist"><div class="b" style="height:60%"></div><div class="b" style="height:60%"></div><div class="b" style="height:60%"></div><div class="b" style="height:78%"></div><div class="b" style="height:78%"></div><div class="b last" style="height:78%"></div></div>
+        <div class="hist-cap"><span>JAN</span><span>JUN</span></div>
+      </div>
+      <div class="actionbar glass"><button class="cta clay">Cancel subscription</button></div>
+    </div></div><figcaption class="cap"><div class="n">B3</div><div class="t">Detail</div><div class="d">Annual cost is the gut-punch. Opens as a glass sheet; cancel sits in a floating glass bar.</div></figcaption></figure>
+
+    <!-- B4 Insights -->
+    <figure class="frame"><div class="device"><div class="fi tabbed">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct tabbed">
+        <div class="eyebrow">Potential savings</div>
+        <h1 class="figure" style="margin:5px 0 3px;color:var(--gold-deep)"><span class="dollar">$</span>146<span class="cents">/mo</span></h1>
+        <p class="greet" style="margin-bottom:2px">From 3 flagged subscriptions you rarely open.</p>
+        <div class="section-label">Where your money goes</div>
+        <div class="bars">
+          <div class="bar-row"><span>Software</span><div class="bar-track"><div class="bar-fill" style="width:82%"></div></div><span class="v">$156</span></div>
+          <div class="bar-row"><span>Streaming</span><div class="bar-track"><div class="bar-fill" style="width:54%"></div></div><span class="v">$54</span></div>
+          <div class="bar-row"><span>Cloud</span><div class="bar-track"><div class="bar-fill" style="width:22%"></div></div><span class="v">$22</span></div>
+        </div>
+        <div class="section-label">Price changes</div>
+        <div class="alert-row"><div class="alert-dot"></div><div><div class="at">Reelhouse went up $2.00</div><div class="ad">$11.99 → $13.99 in March.</div></div></div>
+      </div>
+      <nav class="tabbar glass">
+        <button class="tab"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/></svg>Home</button>
+        <button class="tab"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="M4 10h16"/></svg>Subs</button>
+        <button class="tab on"><svg viewBox="0 0 24 24"><path d="M5 19V11"/><path d="M12 19V5"/><path d="M19 19v-6"/></svg>Insights</button>
+      </nav>
+    </div></div><figcaption class="cap"><div class="n">B4</div><div class="t">Insights</div><div class="d">Savings as a positive number; price-hike detection is the retention hook.</div></figcaption></figure>
+
+  </div>
+
+  <!-- ===================== FLOW C : CANCELLING ===================== -->
+  <div class="flow-h"><div class="tagrow"><span class="tag">Flow C</span><h2>Cancelling</h2></div>
+    <p>The hard part, and where the product branches: <b>concierge</b> (we cancel for you) or <b>guided</b> (we show you how). Both end in confirmation; concierge requests get tracked.</p></div>
+  <div class="grid">
+
+    <!-- C1 Cancel options -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <h2 class="htitle" style="font-size:22px">Cancel Streamline+?</h2>
+        <p class="sublede" style="margin-top:6px;margin-bottom:18px">$15.49/mo · saves you $185.88 a year.</p>
+        <div class="opt rec"><span class="badge">Recommended</span>
+          <div class="oh"><div class="oicon">✦</div><div class="ot">Cancel for me</div></div>
+          <div class="od">Sift's team contacts the provider, cancels, and emails you confirmation — usually within 1 business day.</div>
+        </div>
+        <div class="opt">
+          <div class="oh"><div class="oicon">☰</div><div class="ot">Show me how</div></div>
+          <div class="od">Step-by-step instructions tailored to this provider, with a reminder before your next charge.</div>
+        </div>
+        <p class="trust" style="text-align:left;margin-top:10px">There's no universal cancel button — these are the two real paths.</p>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">C1</div><div class="t">Cancel options</div><div class="d">The single biggest product + ops decision, rendered as a choice.</div></figcaption></figure>
+
+    <!-- C2 Concierge submitted -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <div class="checkc gold" style="font-size:26px">◴</div>
+        <h2 class="htitle" style="text-align:center;font-size:22px;margin-top:14px">We're on it</h2>
+        <p class="sublede" style="text-align:center;margin-bottom:20px">Cancelling Streamline+ for you.</p>
+        <div class="steps-v">
+          <div class="sv done"><div class="dot">✓</div><div><div class="st">Request received</div><div class="ss">Just now</div></div></div>
+          <div class="sv now"><div class="dot"></div><div><div class="st">Contacting Streamline+</div><div class="ss">In progress</div></div></div>
+          <div class="sv pending"><div class="dot"></div><div><div class="st">Confirmed cancelled</div><div class="ss">We'll email you</div></div></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="cta ghost">Track in Requests</button>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">C2</div><div class="t">Concierge · submitted</div><div class="d">Concierge path. A live status timeline keeps trust while staff work the cancellation.</div></figcaption></figure>
+
+    <!-- C3 Guided steps -->
+    <figure class="frame"><div class="device"><div class="fi barred">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct barred">
+        <h2 class="htitle" style="font-size:22px">Cancel it yourself</h2>
+        <p class="sublede" style="margin:6px 0 16px">Three steps for Streamline+.</p>
+        <div class="stepn"><div class="nu">1</div><div class="stx">Open <b>Account → Membership</b> on streamline.com.</div></div>
+        <div class="stepn"><div class="nu">2</div><div class="stx">Tap <b>Cancel plan</b>, then skip the retention offers.</div></div>
+        <div class="stepn"><div class="nu">3</div><div class="stx">Confirm. You'll get an email — forward it to Sift to verify.</div></div>
+        <div class="tog-row" style="margin-top:4px"><div class="tl"><div class="tt">Remind me before renewal</div><div class="td">In case it doesn't go through.</div></div><div class="toggle on"></div></div>
+      </div>
+      <div class="actionbar glass"><button class="cta ink">Open Streamline+ site</button></div>
+    </div></div><figcaption class="cap"><div class="n">C3</div><div class="t">Guided · steps</div><div class="d">Guided path. Free to ship — the realistic v1 if you skip concierge ops.</div></figcaption></figure>
+
+    <!-- C4 Confirmed -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct" style="justify-content:center;text-align:center;gap:14px">
+        <div class="checkc green">✓</div>
+        <h2 class="htitle">Cancelled</h2>
+        <p class="sublede">Streamline+ won't charge you again. We've removed it from your tracker.</p>
+        <div class="savebar" style="text-align:left"><div><div class="sl">You just saved</div><div class="sv2"><span class="sg">$185.88</span>/yr</div></div></div>
+        <div class="spacer"></div>
+        <button class="cta ink">Done</button>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">C4</div><div class="t">Confirmed</div><div class="d">Concrete and calm: the amount you won't pay, framed as annual savings.</div></figcaption></figure>
+
+    <!-- C5 Requests tracker -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <h2 class="htitle" style="font-size:22px">Cancellation requests</h2>
+        <div class="savebar" style="margin:16px 0 18px"><div><div class="sl">Saved with Sift so far</div><div class="sv2"><span class="sg">$146</span>/mo</div></div></div>
+        <div class="req-row"><div class="tile" style="background:#A8472F;width:30px;height:30px;font-size:13px">S</div><div class="rn">Streamline+</div><span class="statp prog">In progress</span></div>
+        <div class="req-row"><div class="tile" style="background:#c2502e;width:30px;height:30px;font-size:13px">C</div><div class="rn">Creative Cloud</div><span class="statp done">Confirmed</span></div>
+        <div class="req-row"><div class="tile" style="background:#7a5a8a;width:30px;height:30px;font-size:13px">R</div><div class="rn">Reelhouse</div><span class="statp act">Needs you</span></div>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">C5</div><div class="t">Requests tracker</div><div class="d">Where concierge cancellations live until confirmed. "Needs you" flags retention walls.</div></figcaption></figure>
+
+  </div>
+
+  <!-- ===================== FLOW D : MANAGING ===================== -->
+  <div class="flow-h"><div class="tagrow"><span class="tag">Flow D</span><h2>Managing</h2></div>
+    <p>Settings and account control — linked banks, what gets an alert, how charges are categorised.</p></div>
+  <div class="grid">
+
+    <!-- D1 Profile & settings -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <div class="profile"><div class="ava">A</div><div><div class="pn">Alex Rivera</div><div class="pp">SIFT PLUS</div></div></div>
+        <div class="section-label">Account</div>
+        <div class="set-row"><div class="si">🏦</div><div class="slab">Linked accounts</div><span class="chev">›</span></div>
+        <div class="set-row"><div class="si">🔔</div><div class="slab">Notifications</div><span class="chev">›</span></div>
+        <div class="set-row"><div class="si">⊞</div><div class="slab">Categories &amp; rules</div><span class="chev">›</span></div>
+        <div class="set-row"><div class="si">↺</div><div class="slab">Cancellation requests</div><span class="chev">›</span></div>
+        <div class="set-row"><div class="si">🛡</div><div class="slab">Privacy &amp; data</div><span class="chev">›</span></div>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">D1</div><div class="t">Profile &amp; settings</div><div class="d">The hub. Plan status visible; privacy given its own row, as a finance app demands.</div></figcaption></figure>
+
+    <!-- D2 Linked accounts -->
+    <figure class="frame"><div class="device"><div class="fi barred">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct barred">
+        <h2 class="htitle" style="font-size:22px">Linked accounts</h2>
+        <p class="sublede" style="margin:6px 0 16px">Synced read-only. Last updated 2h ago.</p>
+        <div class="bank-row"><div class="tile" style="background:#A8472F;width:34px;height:34px;font-size:15px">C</div><div style="flex:1"><div class="bn">Chase</div><div class="bs">2 accounts · checking, credit</div></div><div class="sdot"></div></div>
+        <div class="bank-row"><div class="tile" style="background:#2b2620;width:34px;height:34px;font-size:15px">A</div><div style="flex:1"><div class="bn">American Express</div><div class="bs">1 account · credit</div></div><div class="sdot"></div></div>
+      </div>
+      <div class="actionbar glass"><button class="cta ink">+ Add account</button></div>
+    </div></div><figcaption class="cap"><div class="n">D2</div><div class="t">Linked accounts</div><div class="d">Green dots = healthy sync. Each connection has per-account cost in your aggregator bill.</div></figcaption></figure>
+
+    <!-- D3 Alert settings -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <h2 class="htitle" style="font-size:22px">Alerts</h2>
+        <div class="section-label">Notify me about</div>
+        <div class="tog-row"><div class="tl"><div class="tt">Renewal reminders</div><div class="td">2 days before a charge.</div></div><div class="toggle on"></div></div>
+        <div class="tog-row"><div class="tl"><div class="tt">Price-change alerts</div><div class="td">When a subscription costs more.</div></div><div class="toggle on"></div></div>
+        <div class="tog-row"><div class="tl"><div class="tt">Free-trial endings</div><div class="td">Before a trial converts to paid.</div></div><div class="toggle on"></div></div>
+        <div class="tog-row"><div class="tl"><div class="tt">Unused nudges</div><div class="td">When you stop opening something.</div></div><div class="toggle"></div></div>
+        <div class="tog-row"><div class="tl"><div class="tt">Weekly summary</div><div class="td">Sundays.</div></div><div class="toggle on"></div></div>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">D3</div><div class="t">Alert settings</div><div class="d">Granular control. Each toggle maps to one detection signal in the engine.</div></figcaption></figure>
+
+    <!-- D4 Categories -->
+    <figure class="frame"><div class="device"><div class="fi">
+      <div class="island"></div><div class="sb"><span>9:41</span><span class="sig">●●● 􀙇 100%</span></div>
+      <div class="ct">
+        <h2 class="htitle" style="font-size:22px">Categories &amp; rules</h2>
+        <div class="tog-row" style="margin-top:14px"><div class="tl"><div class="tt">Auto-categorise</div><div class="td">Sift sorts new subscriptions for you.</div></div><div class="toggle on"></div></div>
+        <div class="section-label">Your categories</div>
+        <div class="set-row"><div class="si">🎬</div><div class="slab">Entertainment</div><span class="chev" style="font-family:'IBM Plex Mono';font-size:11px">4</span></div>
+        <div class="set-row"><div class="si">⌨</div><div class="slab">Software &amp; tools</div><span class="chev" style="font-family:'IBM Plex Mono';font-size:11px">3</span></div>
+        <div class="set-row"><div class="si">☁</div><div class="slab">Cloud &amp; storage</div><span class="chev" style="font-family:'IBM Plex Mono';font-size:11px">2</span></div>
+        <div class="set-row"><div class="si">📰</div><div class="slab">News</div><span class="chev" style="font-family:'IBM Plex Mono';font-size:11px">2</span></div>
+      </div>
+    </div></div><figcaption class="cap"><div class="n">D4</div><div class="t">Categories &amp; rules</div><div class="d">Auto-detect with manual override — users can recategorise or merge duplicates.</div></figcaption></figure>
+
+  </div>
+
+  <footer style="margin-top:70px;border-top:1px solid var(--line);padding-top:26px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);line-height:1.7">
+    22 screens · A1–A9 setting up · B1–B4 daily use · C1–C5 cancelling · D1–D4 managing.<br>
+    Liquid Glass on controls only (tab bars, segment control, action bars, notification, sheets). Content on solid bone. Fraunces / Plus Jakarta Sans / IBM Plex Mono.
+  </footer>
+
+</div>
+</body>
+</html>
