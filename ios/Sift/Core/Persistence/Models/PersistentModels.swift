@@ -1,0 +1,239 @@
+import Foundation
+import SwiftData
+
+@Model
+final class LinkedAccount {
+    var id: String
+    var userID: String
+    var plaidItemID: String?
+    var institutionName: String
+    var mask: String
+    var type: String
+    var status: LinkedAccountStatus
+    var lastSyncedAt: Date?
+
+    init(
+        id: String,
+        userID: String,
+        plaidItemID: String? = nil,
+        institutionName: String,
+        mask: String,
+        type: String,
+        status: LinkedAccountStatus,
+        lastSyncedAt: Date? = nil
+    ) {
+        self.id = id
+        self.userID = userID
+        self.plaidItemID = plaidItemID
+        self.institutionName = institutionName
+        self.mask = mask
+        self.type = type
+        self.status = status
+        self.lastSyncedAt = lastSyncedAt
+    }
+}
+
+@Model
+final class Transaction {
+    var id: String
+    var userID: String
+    var accountID: String
+    var merchantRaw: String
+    var merchantKey: MerchantKey
+    var amount: Money
+    var date: Date
+    var pending: Bool
+    var categoryHint: String?
+
+    init(
+        id: String,
+        userID: String,
+        accountID: String,
+        merchantRaw: String,
+        merchantKey: MerchantKey,
+        amount: Money,
+        date: Date,
+        pending: Bool = false,
+        categoryHint: String? = nil
+    ) {
+        self.id = id
+        self.userID = userID
+        self.accountID = accountID
+        self.merchantRaw = merchantRaw
+        self.merchantKey = merchantKey
+        self.amount = amount
+        self.date = date
+        self.pending = pending
+        self.categoryHint = categoryHint
+    }
+}
+
+@Model
+final class Subscription {
+    var id: String
+    var userID: String
+    var name: String
+    var merchantKey: MerchantKey
+    var monogramLetter: String
+    var tileColorToken: ColorToken
+    var amount: Money
+    var cadence: Cadence
+    var nextRenewal: Date?
+    var lastUsed: Date?
+    var categoryID: String?
+    var categoryManuallySet: Bool
+    var isTrialEnding: Bool = false
+    var status: SubscriptionStatus
+    var detectionConfidence: Double
+    var firstSeen: Date
+    var lastCharge: Date
+
+    init(
+        id: String,
+        userID: String,
+        name: String,
+        merchantKey: MerchantKey,
+        monogramLetter: String,
+        tileColorToken: ColorToken,
+        amount: Money,
+        cadence: Cadence,
+        nextRenewal: Date? = nil,
+        lastUsed: Date? = nil,
+        categoryID: String? = nil,
+        categoryManuallySet: Bool = false,
+        isTrialEnding: Bool = false,
+        status: SubscriptionStatus,
+        detectionConfidence: Double,
+        firstSeen: Date,
+        lastCharge: Date
+    ) {
+        self.id = id
+        self.userID = userID
+        self.name = name
+        self.merchantKey = merchantKey
+        self.monogramLetter = monogramLetter
+        self.tileColorToken = tileColorToken
+        self.amount = amount
+        self.cadence = cadence
+        self.nextRenewal = nextRenewal
+        self.lastUsed = lastUsed
+        self.categoryID = categoryID
+        self.categoryManuallySet = categoryManuallySet
+        self.isTrialEnding = isTrialEnding
+        self.status = status
+        self.detectionConfidence = detectionConfidence
+        self.firstSeen = firstSeen
+        self.lastCharge = lastCharge
+    }
+
+    var monthlyEquivalent: Money {
+        cadence.monthlyEquivalent(for: amount)
+    }
+}
+
+@Model
+final class CancellationRequest {
+    var id: String
+    var userID: String
+    var subscriptionID: String
+    var method: CancellationMethod
+    var status: CancellationStatus
+    var createdAt: Date
+    var updatedAt: Date
+    var note: String?
+
+    init(
+        id: String,
+        userID: String,
+        subscriptionID: String,
+        method: CancellationMethod,
+        status: CancellationStatus,
+        createdAt: Date,
+        updatedAt: Date,
+        note: String? = nil
+    ) {
+        self.id = id
+        self.userID = userID
+        self.subscriptionID = subscriptionID
+        self.method = method
+        self.status = status
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.note = note
+    }
+}
+
+@Model
+final class Category {
+    var id: String
+    var userID: String
+    var name: String
+    var iconToken: String
+    var isAuto: Bool
+
+    init(id: String, userID: String, name: String, iconToken: String, isAuto: Bool) {
+        self.id = id
+        self.userID = userID
+        self.name = name
+        self.iconToken = iconToken
+        self.isAuto = isAuto
+    }
+}
+
+@Model
+final class PriceChange {
+    var id: String
+    var userID: String
+    var subscriptionID: String
+    var oldAmount: Money
+    var newAmount: Money
+    var changedAt: Date
+
+    init(
+        id: String,
+        userID: String,
+        subscriptionID: String,
+        oldAmount: Money,
+        newAmount: Money,
+        changedAt: Date
+    ) {
+        self.id = id
+        self.userID = userID
+        self.subscriptionID = subscriptionID
+        self.oldAmount = oldAmount
+        self.newAmount = newAmount
+        self.changedAt = changedAt
+    }
+}
+
+@Model
+final class AlertSettings {
+    var id: String
+    var userID: String
+    var renewalReminders: Bool
+    var priceChanges: Bool
+    var trialEndings: Bool
+    var unusedNudges: Bool
+    var weeklySummary: Bool
+    var autoCategorizeSubscriptions: Bool
+
+    init(
+        id: String,
+        userID: String,
+        renewalReminders: Bool,
+        priceChanges: Bool,
+        trialEndings: Bool,
+        unusedNudges: Bool,
+        weeklySummary: Bool,
+        autoCategorizeSubscriptions: Bool = true
+    ) {
+        self.id = id
+        self.userID = userID
+        self.renewalReminders = renewalReminders
+        self.priceChanges = priceChanges
+        self.trialEndings = trialEndings
+        self.unusedNudges = unusedNudges
+        self.weeklySummary = weeklySummary
+        self.autoCategorizeSubscriptions = autoCategorizeSubscriptions
+    }
+}

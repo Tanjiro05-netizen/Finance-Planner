@@ -1,6 +1,6 @@
 # Sift — Codex Build Pack · START HERE
 
-This pack builds **Sift**, an iOS app that auto-detects subscriptions from a user's bank transactions and helps them cancel. It is split into one foundation file (`AGENTS.md`) and **11 phase specs**. Feed them to Codex **one at a time, in order**, each as its **own fresh task/thread** (Codex degrades when one thread carries a whole project).
+This pack builds **Sift**, an iOS app that auto-detects subscriptions from a user's bank transactions and helps them cancel. It is split into one foundation file (`AGENTS.md`) and **12 phase specs**. Feed them to Codex **one at a time, in order**, each as its **own fresh task/thread** (Codex degrades when one thread carries a whole project).
 
 ---
 
@@ -57,5 +57,6 @@ Each phase is already written in this structure — keep it if you rewrite anyth
 | 9 | `10-PHASE-9-settings-management.md` | Settings, linked accounts, alerts, categories (D1–D4) |
 | 10 | `11-PHASE-10-notifications.md` | Renewal / price / trial notifications |
 | 11 | `12-PHASE-11-testing-polish-release.md` | Tests, a11y, performance, App Store prep |
+| 12 | `14-PHASE-12-testflight-launch-ops.md` | TestFlight, launch runbooks, support, ops health |
 
 > **Legal note baked into the build:** the Plaid client secret stays server-side; the app stores no bank credentials; "cancel" is implemented as the two real paths (concierge request + guided steps), never as a fake universal cancel API. These are enforced in AGENTS.md guardrails.

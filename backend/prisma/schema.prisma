@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlaidItemStatus {
+  active
+  needs_sync
+  error
+}
+
+enum CancellationMethod {
+  concierge
+  guided
+}
+
+enum CancellationStatus {
+  requested
+  contacting
+  confirmed
+  needsUser
+  cancelledByUser
+}
+
+model User {
+  id                    String                @id @default(cuid())
+  createdAt             DateTime              @default(now())
+  plaidItems            PlaidItem[]
+  accounts              Account[]
+  transactions          Transaction[]
+  cancellationRequests  CancellationRequest[]
+}
+
+model PlaidItem {
+  id                String          @id @default(cuid())
+  userId            String
+  accessTokenEnc    String
+  itemId            String          @unique
+  institutionName   String
+  cursor            String?
+  status            PlaidItemStatus @default(active)
+  createdAt         DateTime        @default(now())
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts          Account[]
+
+  @@index([userId])
+}
+
+model Account {
+  id              String        @id @default(cuid())
+  userId          String
+  plaidItemId     String
+  plaidAccountId  String
+  mask            String?
+  name            String
+  type            String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidItem       PlaidItem     @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+  transactions    Transaction[]
+
+  @@unique([plaidItemId, plaidAccountId])
+  @@index([userId])
+}
+
+model Transaction {
+  id            String    @id @default(cuid())
+  userId        String
+  accountId     String
+  plaidTxnId    String    @unique
+  merchantName  String
+  amountMinor   Int
+  isoCurrency   String
+  date          DateTime
+  pending       Boolean   @default(false)
+  category      String?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account       Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([date])
+}
+
+model CancellationRequest {
+  id               String              @id @default(cuid())
+  userId           String
+  subscriptionRef  String
+  merchantName     String
+  method           CancellationMethod
+  status           CancellationStatus  @default(requested)
+  note             String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

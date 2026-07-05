@@ -142,9 +142,9 @@ struct ComponentGalleryView: View {
 
                 SiftCard {
                     StatusTimeline(items: [
-                        StatusTimelineItem(title: "Request received", subtitle: "Just now", state: .done),
-                        StatusTimelineItem(title: "Contacting Streamline+", subtitle: "In progress", state: .current),
-                        StatusTimelineItem(title: "Confirmed cancelled", subtitle: "We'll email you", state: .pending),
+                        StatusTimelineItem(id: "received", title: "Request received", subtitle: "Just now", state: .done),
+                        StatusTimelineItem(id: "contacting", title: "Contacting Streamline+", subtitle: "In progress", state: .current),
+                        StatusTimelineItem(id: "confirmed", title: "Confirmed cancelled", subtitle: "We'll email you", state: .pending),
                     ])
                 }
 

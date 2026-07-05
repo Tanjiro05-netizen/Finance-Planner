@@ -1,0 +1,400 @@
+openapi: 3.1.0
+info:
+  title: Sift Backend API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3000
+security:
+  - bearerAuth: []
+paths:
+  /v1/auth/bootstrap:
+    post:
+      security: []
+      summary: Create a Sift user session token
+      responses:
+        "201":
+          description: Bootstrap token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenResponse"
+  /v1/plaid/link-token:
+    post:
+      summary: Create a Plaid Link token
+      requestBody:
+        $ref: "#/components/requestBodies/EmptyJson"
+      responses:
+        "200":
+          description: Plaid Link token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkTokenResponse"
+  /v1/plaid/exchange:
+    post:
+      summary: Exchange a Plaid public token for encrypted server-side storage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [public_token]
+              properties:
+                public_token:
+                  type: string
+      responses:
+        "200":
+          description: Exchange complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+  /v1/plaid/item/{id}:
+    delete:
+      summary: Revoke one linked Plaid item and remove its local accounts and transactions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Item removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+  /v1/transactions/sync:
+    post:
+      summary: Sync Plaid transactions for the authenticated user
+      requestBody:
+        $ref: "#/components/requestBodies/EmptyJson"
+      responses:
+        "200":
+          description: Sync counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncResponse"
+  /v1/accounts:
+    get:
+      summary: List safe linked account fields
+      responses:
+        "200":
+          description: Accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Account"
+  /v1/privacy/data:
+    delete:
+      summary: Delete the authenticated user's Sift data and revoke linked Plaid items
+      responses:
+        "200":
+          description: User data deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+  /v1/transactions:
+    get:
+      summary: List synced transactions
+      parameters:
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        "200":
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Transaction"
+  /v1/webhook/plaid:
+    post:
+      security: []
+      summary: Plaid webhook receiver
+      parameters:
+        - name: Plaid-Verification
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              properties:
+                item_id:
+                  type: string
+      responses:
+        "200":
+          description: Webhook accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+  /v1/cancellations:
+    post:
+      summary: Create a cancellation request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCancellation"
+      responses:
+        "201":
+          description: Cancellation request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CancellationResponse"
+        "403":
+          description: Concierge disabled by launch flag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  code: feature_disabled
+                  message: Concierge cancellation is coming soon.
+    get:
+      summary: List cancellation requests
+      responses:
+        "200":
+          description: Cancellation requests
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Cancellation"
+  /v1/cancellations/{id}:
+    patch:
+      summary: Advance a cancellation request status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [contacting, confirmed, needsUser, cancelledByUser]
+                note:
+                  type: string
+                  maxLength: 2000
+      responses:
+        "200":
+          description: Updated cancellation request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CancellationResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  requestBodies:
+    EmptyJson:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+  schemas:
+    AuthTokenResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [token]
+          properties:
+            token:
+              type: string
+    LinkTokenResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [link_token]
+          properties:
+            link_token:
+              type: string
+    OkResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [ok]
+          properties:
+            ok:
+              type: boolean
+              const: true
+    SyncResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [added, modified, removed, hasMore]
+          properties:
+            added:
+              type: integer
+            modified:
+              type: integer
+            removed:
+              type: integer
+            hasMore:
+              type: boolean
+    Account:
+      type: object
+      required: [id, plaidItemId, institutionName, name, type, status]
+      properties:
+        id:
+          type: string
+        plaidItemId:
+          type: string
+        institutionName:
+          type: string
+        mask:
+          type: string
+          nullable: true
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+          enum: [active, needs_sync, error]
+    Transaction:
+      type: object
+      required: [id, userId, accountId, plaidTxnId, merchantName, amountMinor, isoCurrency, date, pending]
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        accountId:
+          type: string
+        plaidTxnId:
+          type: string
+        merchantName:
+          type: string
+        amountMinor:
+          type: integer
+        isoCurrency:
+          type: string
+        date:
+          type: string
+          format: date-time
+        pending:
+          type: boolean
+        category:
+          type: string
+          nullable: true
+    CreateCancellation:
+      type: object
+      required: [subscriptionRef, merchantName, method]
+      properties:
+        subscriptionRef:
+          type: string
+          maxLength: 128
+        merchantName:
+          type: string
+          maxLength: 160
+        method:
+          type: string
+          enum: [concierge, guided]
+    Cancellation:
+      allOf:
+        - $ref: "#/components/schemas/CreateCancellation"
+        - type: object
+          required: [id, userId, status, createdAt, updatedAt]
+          properties:
+            id:
+              type: string
+            userId:
+              type: string
+            status:
+              type: string
+              enum: [requested, contacting, confirmed, needsUser, cancelledByUser]
+            note:
+              type: string
+              nullable: true
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    CancellationResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Cancellation"
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string

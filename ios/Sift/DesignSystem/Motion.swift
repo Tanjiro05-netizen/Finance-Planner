@@ -14,7 +14,23 @@ enum Motion {
     static let sheenPeriod: TimeInterval = 8.0
     static let scanSpin = Animation.linear(duration: 2.4).repeatForever(autoreverses: false)
 
-    static func reduced(_ animation: Animation, reduceMotion: Bool) -> Animation? {
-        reduceMotion ? nil : animation
+    static func reduced(_ animation: Animation, reduceMotion: Bool, fallback: Animation? = nil) -> Animation? {
+        reduceMotion ? fallback : animation
+    }
+
+    static func staggered(_ animation: Animation = gentle, index: Int, reduceMotion: Bool) -> Animation? {
+        guard !reduceMotion else {
+            return nil
+        }
+
+        return animation.delay(Double(min(index, 8)) * staggerStep)
+    }
+
+    static func stepTransition(reduceMotion: Bool) -> AnyTransition {
+        reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .trailing))
+    }
+
+    static func rowTransition(reduceMotion: Bool) -> AnyTransition {
+        reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity)
     }
 }

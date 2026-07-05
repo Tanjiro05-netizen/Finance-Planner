@@ -32,7 +32,10 @@ One thread per task. Do not attempt multiple phases in a single session.
 - Dev: `npm run dev`
 - Test: `npm test` (vitest)
 - Lint/typecheck: `npm run lint && npm run typecheck`
+- DB validation: `npm run db:validate`
 - DB: `npm run db:migrate` (Prisma)
+
+**CI / coverage:** GitHub Actions runs iOS build/test/lint and backend typecheck/lint/vitest/Prisma validation on PRs. The iOS coverage floor is 80% for `ios/Sift/Core/` and `*ViewModel.swift` files, enforced from `xccov` JSON by `scripts/check-ios-coverage.js`.
 
 **Codex must run the relevant build + tests before declaring a task done.** A task is not complete if the build is red or tests fail.
 

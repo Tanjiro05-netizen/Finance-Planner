@@ -17,6 +17,42 @@ struct SiftCard<Content: View>: View {
     }
 }
 
+struct StateMessageCard: View {
+    let title: String
+    let message: String
+    let systemImage: String
+    var actionTitle: String?
+    var action: (() -> Void)?
+
+    var body: some View {
+        SiftCard {
+            Image(systemName: systemImage)
+                .font(.system(size: 22, weight: .medium))
+                .foregroundStyle(Palette.goldDeep)
+                .frame(width: 42, height: 42)
+                .background(Palette.bone, in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
+                        .stroke(Palette.line, lineWidth: 1)
+                )
+                .accessibilityHidden(true)
+
+            Text(title)
+                .font(.cardTitle)
+                .foregroundStyle(Palette.ink)
+
+            Text(message)
+                .font(.siftBody)
+                .foregroundStyle(Palette.inkSoft)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let actionTitle, let action {
+                SecondaryButton(title: actionTitle, action: action)
+            }
+        }
+    }
+}
+
 struct MonogramTile: View {
     let letter: String
     var color: Color = Palette.ink
@@ -167,6 +203,9 @@ struct SiftButtonStyle: ButtonStyle {
             .opacity(configuration.isPressed && reduceMotion ? 0.85 : 1)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
             .animation(Motion.reduced(Motion.press, reduceMotion: reduceMotion), value: configuration.isPressed)
+            .sensoryFeedback(.impact(weight: .medium), trigger: configuration.isPressed) { _, isPressed in
+                isPressed
+            }
     }
 }
 
@@ -219,6 +258,9 @@ struct GlassTabItem: Identifiable, Equatable {
 struct GlassTabBar: View {
     var selectedID: String = "home"
 
+    @Namespace private var namespace
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private let tabs = [
         GlassTabItem(id: "home", title: "Home", symbol: SiftIcon.home),
         GlassTabItem(id: "subscriptions", title: "Subs", symbol: SiftIcon.subscriptions),
@@ -229,11 +271,20 @@ struct GlassTabBar: View {
         GlassEffectContainer(spacing: 20) {
             HStack(spacing: Spacing.sm) {
                 ForEach(tabs) { tab in
-                    VStack(spacing: 3) {
-                        Image(systemName: tab.symbol)
-                            .font(.system(size: 20, weight: .regular))
-                        Text(tab.title)
-                            .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 9, relativeTo: .caption2))
+                    ZStack {
+                        if tab.id == selectedID {
+                            RoundedRectangle(cornerRadius: Radius.pill, style: .continuous)
+                                .fill(Palette.card.opacity(0.78))
+                                .glassEffectID("activeTab", in: namespace)
+                        }
+
+                        VStack(spacing: 3) {
+                            Image(systemName: tab.symbol)
+                                .font(.system(size: 20, weight: .regular))
+                                .contentTransition(.symbolEffect(.replace))
+                            Text(tab.title)
+                                .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 9, relativeTo: .caption2))
+                        }
                     }
                     .foregroundStyle(tab.id == selectedID ? Palette.goldDeep : Palette.inkSoft)
                     .frame(maxWidth: .infinity, minHeight: 48)
@@ -244,6 +295,7 @@ struct GlassTabBar: View {
             .padding(.vertical, 5)
             .glassSurface(radius: Radius.tabBar, interactive: true, showsSheen: true)
         }
+        .animation(Motion.reduced(Motion.glassMorph, reduceMotion: reduceMotion), value: selectedID)
     }
 }
 
@@ -347,6 +399,7 @@ struct SiftToggleStyle: ToggleStyle {
             }
         }
         .buttonStyle(.plain)
+        .sensoryFeedback(.impact(weight: .light), trigger: configuration.isOn)
         .accessibilityValue(configuration.isOn ? "On" : "Off")
     }
 }
@@ -393,7 +446,7 @@ struct SettingsRow: View {
     }
 }
 
-enum StatusTimelineState {
+enum StatusTimelineState: Equatable {
     case done
     case current
     case pending
@@ -407,11 +460,18 @@ enum StatusTimelineState {
     }
 }
 
-struct StatusTimelineItem: Identifiable {
-    let id = UUID()
+struct StatusTimelineItem: Identifiable, Equatable {
+    let id: String
     let title: String
     let subtitle: String
     let state: StatusTimelineState
+
+    init(id: String, title: String, subtitle: String, state: StatusTimelineState) {
+        self.id = id
+        self.title = title
+        self.subtitle = subtitle
+        self.state = state
+    }
 }
 
 struct StatusTimeline: View {
@@ -419,36 +479,89 @@ struct StatusTimeline: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(items) { item in
-                HStack(alignment: .top, spacing: Spacing.md) {
-                    VStack(spacing: 0) {
-                        Circle()
-                            .fill(item.state.color)
-                            .frame(width: 20, height: 20)
-                            .overlay {
-                                if item.state == .done {
-                                    Image(systemName: SiftIcon.check)
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundStyle(Palette.card)
-                                }
-                            }
-                        if item.id != items.last?.id {
-                            Rectangle()
-                                .fill(Palette.sand)
-                                .frame(width: 2, height: 26)
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                StatusTimelineRow(item: item, isLast: index == items.count - 1)
+            }
+        }
+    }
+}
+
+private struct StatusTimelineRow: View {
+    let item: StatusTimelineItem
+    let isLast: Bool
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            VStack(spacing: 0) {
+                Circle()
+                    .fill(item.state.color)
+                    .frame(width: 20, height: 20)
+                    .scaleEffect(item.state == .current && !reduceMotion ? 1.08 : 1)
+                    .overlay {
+                        if item.state == .done {
+                            Image(systemName: SiftIcon.check)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(Palette.card)
+                                .transition(.opacity)
                         }
                     }
+                    .animation(Motion.reduced(Motion.snappy, reduceMotion: reduceMotion), value: item.state)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(item.title)
-                            .font(.bodyEmphasis)
-                            .foregroundStyle(item.state == .pending ? Palette.inkFaint : Palette.ink)
-                        Text(item.subtitle)
-                            .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
-                            .foregroundStyle(Palette.inkSoft)
-                    }
+                if !isLast {
+                    TimelineConnector(state: item.state)
                 }
             }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.title)
+                    .font(.bodyEmphasis)
+                    .foregroundStyle(item.state == .pending ? Palette.inkFaint : Palette.ink)
+                Text(item.subtitle)
+                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .foregroundStyle(Palette.inkSoft)
+            }
+        }
+    }
+}
+
+private struct TimelineConnector: View {
+    let state: StatusTimelineState
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            Rectangle()
+                .fill(Palette.sand)
+            Rectangle()
+                .fill(connectorColor)
+                .scaleEffect(y: connectorProgress, anchor: .top)
+        }
+        .frame(width: 2, height: 26)
+        .animation(Motion.reduced(Motion.gentle, reduceMotion: reduceMotion), value: state)
+    }
+
+    private var connectorColor: Color {
+        switch state {
+        case .done:
+            Palette.green
+        case .current:
+            Palette.gold
+        case .pending:
+            Palette.sand
+        }
+    }
+
+    private var connectorProgress: CGFloat {
+        switch state {
+        case .done:
+            1
+        case .current:
+            0.5
+        case .pending:
+            0
         }
     }
 }
@@ -483,16 +596,17 @@ struct OptionCard: View {
     let title: String
     let detail: String
     var recommended: Bool = false
+    var badgeText: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            if recommended {
-                Text("RECOMMENDED")
+            if recommended || badgeText != nil {
+                Text(badgeText ?? "RECOMMENDED")
                     .font(.siftLabel)
-                    .foregroundStyle(Palette.card)
+                    .foregroundStyle(recommended ? Palette.card : Palette.inkSoft)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 4)
-                    .background(Palette.gold, in: Capsule())
+                    .background(recommended ? Palette.gold : Palette.sand, in: Capsule())
                     .offset(y: -Spacing.md)
                     .padding(.bottom, -Spacing.md)
             }
@@ -536,6 +650,7 @@ struct RenewalMark: Identifiable {
 
 struct RenewalTimelineStrip: View {
     let marks: [RenewalMark]
+    var monthLabel = "JUNE"
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -544,7 +659,7 @@ struct RenewalTimelineStrip: View {
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkSoft)
                 Spacer()
-                Text("JUNE")
+                Text(monthLabel)
                     .font(.cadence)
                     .foregroundStyle(Palette.inkFaint)
             }

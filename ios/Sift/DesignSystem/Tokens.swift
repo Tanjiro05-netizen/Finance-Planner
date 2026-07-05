@@ -7,7 +7,7 @@ struct RGBAComponents: Equatable, Sendable {
     let alpha: Double
 }
 
-enum ColorToken: String, CaseIterable, Sendable {
+enum ColorToken: String, Codable, CaseIterable, Sendable {
     case ink
     case inkSoft
     case inkFaint

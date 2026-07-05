@@ -19,4 +19,11 @@ struct TokensTests {
             _ = token.color
         }
     }
+
+    @Test func reducedMotionHelpersDisableMovementAnimations() {
+        #expect(Motion.reduced(Motion.gentle, reduceMotion: true) == nil)
+        #expect(Motion.staggered(index: 3, reduceMotion: true) == nil)
+        #expect(Motion.reduced(Motion.gentle, reduceMotion: false) != nil)
+        #expect(Motion.staggered(index: 3, reduceMotion: false) != nil)
+    }
 }

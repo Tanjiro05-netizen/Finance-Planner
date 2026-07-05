@@ -1,0 +1,326 @@
+import SwiftUI
+
+struct SplashView: View {
+    let isWorking: Bool
+    let errorMessage: String?
+    let onRetry: () -> Void
+
+    var body: some View {
+        OnboardingScreen {
+            Spacer()
+            VStack(spacing: 18) {
+                Text("S")
+                    .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 40, relativeTo: .largeTitle))
+                    .foregroundStyle(Palette.bone)
+                    .frame(width: 74, height: 74)
+                    .background(Palette.ink, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+
+                VStack(spacing: Spacing.sm) {
+                    Text("Sift")
+                        .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 40, relativeTo: .largeTitle))
+                        .foregroundStyle(Palette.ink)
+                    Text("EVERY RECURRING CHARGE, SURFACED")
+                        .font(.siftLabel)
+                        .foregroundStyle(Palette.inkFaint)
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            if let errorMessage {
+                ErrorCallout(message: errorMessage, actionTitle: "Try again", action: onRetry)
+            } else if isWorking {
+                ProgressView()
+                    .tint(Palette.gold)
+                    .accessibilityLabel("Preparing secure session")
+            }
+            Spacer()
+        }
+        .accessibilityIdentifier("onboarding-splash")
+    }
+}
+
+struct WelcomeView: View {
+    let onContinue: () -> Void
+
+    var body: some View {
+        OnboardingScreen {
+            SubscriptionMotif()
+                .padding(.top, Spacing.xxl)
+
+            OnboardingHeadline(
+                title: "See every subscription you forgot about.",
+                subtitle: "Sift reads your accounts and finds the charges that quietly repeat, so nothing renews behind your back."
+            )
+
+            Spacer()
+            PageDots(currentIndex: 0, count: 3)
+            PrimaryButton(title: "Get started", action: onContinue)
+                .accessibilityIdentifier("onboarding-get-started")
+        }
+    }
+}
+
+struct ConnectIntroView: View {
+    let errorMessage: String?
+    let onConnect: () -> Void
+
+    var body: some View {
+        OnboardingScreen {
+            OnboardingHeadline(
+                title: "Link an account once.",
+                subtitle: "Sift connects read-only through Plaid and finds your subscriptions automatically. No spreadsheets."
+            )
+
+            BankChipCloud()
+            Spacer()
+
+            if let errorMessage {
+                ErrorCallout(message: errorMessage)
+            }
+
+            PrimaryButton(title: "Connect an account", action: onConnect)
+                .accessibilityIdentifier("onboarding-connect-account")
+            TrustText()
+        }
+    }
+}
+
+struct BankPickerView: View {
+    let institutions: [BankInstitution]
+    let onSelect: (BankInstitution) -> Void
+
+    @State private var searchText = ""
+
+    var body: some View {
+        OnboardingScreen {
+            Text("Choose your bank")
+                .font(.screenTitle)
+                .foregroundStyle(Palette.ink)
+                .padding(.top, Spacing.md)
+
+            SearchField(text: $searchText)
+
+            Text("POPULAR")
+                .font(.siftLabel)
+                .foregroundStyle(Palette.inkFaint)
+                .padding(.top, Spacing.lg)
+
+            VStack(spacing: Spacing.md) {
+                ForEach(filteredInstitutions) { institution in
+                    Button {
+                        onSelect(institution)
+                    } label: {
+                        BankRow(institution: institution)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("bank-\(institution.id)")
+                }
+            }
+            Spacer()
+        }
+    }
+
+    private var filteredInstitutions: [BankInstitution] {
+        guard !searchText.isEmpty else {
+            return institutions
+        }
+
+        return institutions.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+    }
+}
+
+struct SecureLeadInView: View {
+    let institution: BankInstitution?
+    let isWorking: Bool
+    let errorMessage: String?
+    let onContinue: () -> Void
+
+    var body: some View {
+        OnboardingScreen {
+            Spacer()
+
+            VStack(spacing: Spacing.lg) {
+                Image(systemName: "lock.shield")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(Palette.bone)
+                    .frame(width: 54, height: 54)
+                    .background(Palette.gold, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+
+                OnboardingHeadline(
+                    title: "Continue with \(institution?.name ?? "your bank")",
+                    subtitle: "Plaid opens next for secure sign-in. Sift never sees or stores your username or password.",
+                    alignment: .center
+                )
+            }
+
+            Spacer()
+
+            if let errorMessage {
+                ErrorCallout(message: errorMessage)
+            }
+
+            PrimaryButton(title: isWorking ? "Opening Plaid" : "Continue to Plaid", action: onContinue)
+                .disabled(isWorking)
+                .accessibilityIdentifier("onboarding-continue-plaid")
+
+            Text("Plaid encrypts and verifies your login.\nSift only receives a read-only confirmation.")
+                .font(.siftLabel)
+                .foregroundStyle(Palette.inkFaint)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+struct ScanningView: View {
+    let scanState: ScanState
+
+    var body: some View {
+        OnboardingScreen {
+            Spacer()
+            VStack(spacing: Spacing.lg) {
+                ScanRing(progress: scanState.progress, count: scanState.foundCount)
+                OnboardingHeadline(
+                    title: "Finding your subscriptions",
+                    subtitle: "Scanning 6 months of transactions for charges that repeat.",
+                    alignment: .center
+                )
+                ProgressView(value: scanState.progress)
+                    .tint(Palette.gold)
+                    .accessibilityLabel("Scanning progress")
+                Text(scanState.status.uppercased())
+                    .font(.siftLabel)
+                    .foregroundStyle(Palette.inkFaint)
+            }
+            Spacer()
+        }
+        .accessibilityIdentifier("onboarding-scanning")
+    }
+}
+
+struct ReviewFoundView: View {
+    let items: [ReviewSubscriptionItem]
+    let errorMessage: String?
+    let onToggle: (String) -> Void
+    let onConfirm: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Spacing.lg) {
+                    OnboardingHeadline(
+                        title: "We found \(items.count) recurring charges",
+                        subtitle: "Toggle off anything that isn't a subscription."
+                    )
+                    Text("DETECTED")
+                        .font(.siftLabel)
+                        .foregroundStyle(Palette.inkFaint)
+
+                    VStack(spacing: Spacing.md) {
+                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                            ReviewSubscriptionRow(item: item) {
+                                onToggle(item.id)
+                            }
+                            .opacity(item.isSelected ? 1 : 0.42)
+                            .transition(Motion.rowTransition(reduceMotion: reduceMotion))
+                            .animation(Motion.staggered(index: index, reduceMotion: reduceMotion), value: items.count)
+                            .animation(Motion.reduced(Motion.snappy, reduceMotion: reduceMotion), value: item.isSelected)
+                        }
+                    }
+
+                    if let errorMessage {
+                        ErrorCallout(message: errorMessage)
+                    }
+                }
+                .padding(.horizontal, Spacing.screenHorizontal)
+                .padding(.top, Spacing.xl)
+                .padding(.bottom, 116)
+            }
+
+            FloatingActionBar {
+                GoldButton(title: "Confirm \(selectedCount) subscriptions", action: onConfirm)
+                    .accessibilityIdentifier("onboarding-confirm-subscriptions")
+            }
+            .padding(.horizontal, Spacing.screenHorizontal)
+            .padding(.bottom, Spacing.lg)
+        }
+        .background(Palette.bone)
+    }
+
+    private var selectedCount: Int {
+        items.filter(\.isSelected).count
+    }
+}
+
+struct NotificationsOptInView: View {
+    let onAllow: () -> Void
+    let onSkip: () -> Void
+
+    var body: some View {
+        OnboardingScreen {
+            Spacer()
+            VStack(spacing: Spacing.lg) {
+                Image(systemName: "bell.badge")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(Palette.bone)
+                    .frame(width: 56, height: 56)
+                    .background(Palette.gold, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+
+                OnboardingHeadline(
+                    title: "Stay ahead of renewals",
+                    subtitle: "We'll warn you before charges hit, when prices rise, and when free trials are about to convert.",
+                    alignment: .center
+                )
+                NotificationPreviewBanner()
+            }
+            Spacer()
+            PrimaryButton(title: "Allow notifications", action: onAllow)
+                .accessibilityIdentifier("onboarding-allow-notifications")
+            SecondaryButton(title: "Maybe later", action: onSkip)
+        }
+    }
+}
+
+struct AllSetView: View {
+    let count: Int
+    let monthlyTotal: Money
+    let onDashboard: () -> Void
+
+    var body: some View {
+        OnboardingScreen {
+            Spacer()
+            VStack(spacing: Spacing.lg) {
+                Image(systemName: SiftIcon.check)
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(Palette.bone)
+                    .frame(width: 64, height: 64)
+                    .background(Palette.green, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+
+                OnboardingHeadline(
+                    title: "You're all set.",
+                    subtitle: "Sift will keep watch from here.",
+                    alignment: .center
+                )
+
+                SiftCard {
+                    Text("NOW TRACKING")
+                        .font(.siftLabel)
+                        .foregroundStyle(Palette.inkFaint)
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text("\(count) subs")
+                            .font(.cardTitle)
+                            .foregroundStyle(Palette.ink)
+                        Text("·")
+                            .foregroundStyle(Palette.inkFaint)
+                        MoneyText(value: "\(monthlyTotal.formatted())/mo", size: 28)
+                    }
+                }
+            }
+            Spacer()
+            PrimaryButton(title: "Go to dashboard", action: onDashboard)
+                .accessibilityIdentifier("onboarding-go-dashboard")
+        }
+    }
+}

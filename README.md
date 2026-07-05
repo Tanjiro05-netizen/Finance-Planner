@@ -6,9 +6,9 @@ Sift is a SwiftUI finance app that detects recurring subscription charges from r
 
 - `docs/` contains the build pack, visual mockup, and phase specs.
 - `ios/` contains the SwiftUI app and design system.
-- `backend/` is reserved for the Phase 4 Plaid service.
+- `backend/` contains the Plaid, transaction sync, privacy, and cancellation API.
 
-## Phase 1 Commands
+## Verification Commands
 
 From `ios/`:
 
@@ -17,6 +17,17 @@ xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
 xcodebuild test -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
 swiftformat --lint .
 swiftlint
+```
+
+CI also enforces an 80% scoped iOS coverage floor for `Core/` and view model files from Xcode coverage reports.
+
+From `backend/`:
+
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run db:validate
 ```
 
 ## Notes

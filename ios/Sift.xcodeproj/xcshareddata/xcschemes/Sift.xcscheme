@@ -41,6 +41,17 @@
                ReferencedContainer = "container:Sift.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "100000000000000000000012"
+               BuildableName = "SiftUITests.xctest"
+               BlueprintName = "SiftUITests"
+               ReferencedContainer = "container:Sift.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

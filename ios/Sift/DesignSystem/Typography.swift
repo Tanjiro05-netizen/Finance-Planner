@@ -126,8 +126,15 @@ struct MoneyText: View {
     var color: Color = Palette.ink
     var secondaryColor: Color = Palette.inkSoft
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private var parts: MoneyTextParts {
         MoneyTextFormatter.parts(from: value)
+    }
+
+    private var numericTransitionValue: Double {
+        let digits = value.filter { $0.isNumber || $0 == "." || $0 == "-" }
+        return Double(digits) ?? 0
     }
 
     var body: some View {
@@ -158,6 +165,8 @@ struct MoneyText: View {
             }
         }
         .monospacedDigit()
+        .contentTransition(.numericText(value: numericTransitionValue))
+        .animation(Motion.reduced(Motion.count, reduceMotion: reduceMotion), value: value)
         .accessibilityLabel(parts.accessibilityText)
     }
 }
