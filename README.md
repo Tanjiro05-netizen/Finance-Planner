@@ -11,9 +11,12 @@ Sift is a fully on-device SwiftUI finance app. It reads recurring subscription c
 
 The app is 100% Swift and runs entirely on device:
 
-- **Data source:** `FinanceKit` reads the user's real Apple Card, Apple Cash, and Apple Pay transactions on device (`ios/Sift/Integrations/FinanceKitStore.swift`). Nothing leaves the phone.
-- **Ingestion:** A framework-free layer (`ios/Sift/Core/FinanceKit/`) maps those transactions into the domain model and feeds the existing recurring-charge detection engine.
+- **Data source:** `FinanceKit` reads the user's real Apple Card, Apple Cash, and Apple Pay transactions and accounts on device (`ios/Sift/Integrations/FinanceKitStore.swift`). Nothing leaves the phone.
+- **Ingestion:** A framework-free layer (`ios/Sift/Core/FinanceKit/`) maps those transactions and accounts into the domain model (currency-aware, so JPY and other non-cent currencies convert correctly) and feeds the existing recurring-charge detection engine.
+- **Incremental sync:** the live store fetches only transactions since the last successful sync (with a month of overlap), and a `BGAppRefreshTask` refreshes in the background.
 - **Persistence:** `SwiftData` stores accounts, transactions, and detected subscriptions locally.
+- **App lock:** Face ID / Touch ID / passcode gates the app before any balances are shown (`LocalAuthentication`).
+- **Insights:** category spend renders with **Swift Charts**.
 - **No server:** there is no backend, no API keys, and no bank credentials anywhere in the app or repo.
 
 ## FinanceKit requirements

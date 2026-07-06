@@ -103,6 +103,12 @@ struct OnboardingFlowView: View {
                 viewModel.completeOnboarding()
                 onComplete()
             }
+        case .connectUnavailable:
+            ConnectUnavailableView(
+                reason: viewModel.unavailableReason ?? .accessDenied,
+                onRetry: { viewModel.retryConnect() },
+                onSkip: { viewModel.skipConnect() }
+            )
         }
     }
 

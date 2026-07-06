@@ -23,23 +23,27 @@ final class DefaultSubscriptionRefreshService: SubscriptionRefreshing, @unchecke
     private let detectionService: any DetectionServing
     private let notificationScheduler: any NotificationScheduling
     private let repositories: RepositoryContainer
+    private let userID: String
 
     init(
         apiClient: any SiftAPIClient,
         detectionService: any DetectionServing,
         repositories: RepositoryContainer,
-        notificationScheduler: any NotificationScheduling = NoopNotificationScheduler()
+        notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
+        userID: String = SeedData.defaultUserID
     ) {
         self.apiClient = apiClient
         self.detectionService = detectionService
         self.repositories = repositories
         self.notificationScheduler = notificationScheduler
+        self.userID = userID
     }
 
     @MainActor
     func refresh(referenceDate: Date) async throws -> SubscriptionRefreshResult {
         let synced = try await apiClient.syncTransactions()
         let importedCount = try await importSyncedTransactions()
+        try await importAccounts()
         let result = try await detectionService.recompute(referenceDate: referenceDate)
         try await notificationScheduler.reconcile(referenceDate: referenceDate)
 
@@ -48,6 +52,18 @@ final class DefaultSubscriptionRefreshService: SubscriptionRefreshing, @unchecke
             importedTransactionCount: importedCount,
             detectionResult: result
         )
+    }
+
+    @MainActor
+    private func importAccounts() async throws {
+        let accounts = try await apiClient.listAccounts().map {
+            LinkedAccount(remote: $0, userID: userID)
+        }
+        // Skip when empty so a transient unauthorized state can't wipe stored accounts.
+        guard !accounts.isEmpty else {
+            return
+        }
+        try repositories.accounts.replaceAll(with: accounts)
     }
 
     private func importSyncedTransactions() async throws -> Int {

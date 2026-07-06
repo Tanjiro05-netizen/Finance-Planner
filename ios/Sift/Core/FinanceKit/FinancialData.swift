@@ -55,11 +55,24 @@ protocol FinancialDataStore: Sendable {
 /// shapes (`RemoteTransaction` / `RemoteAccount`) that Sift's existing detection and
 /// import pipeline already consumes. Keeping this pure keeps it fully unit-testable.
 enum FinancialDataMapper {
-    /// Converts a decimal money amount into integer minor units (e.g. cents).
-    ///
-    /// Uses two fraction digits, which covers USD and the other Wallet currencies Sift
-    /// supports today. The magnitude is always taken so sign lives with `isDebit`.
-    static func minorUnits(from amount: Decimal, fractionDigits: Int16 = 2) -> Int {
+    /// The number of minor-unit digits for an ISO 4217 currency (2 for most, 0 for
+    /// zero-decimal currencies like JPY, 3 for a few Gulf currencies). Defaults to 2.
+    static func fractionDigits(for currencyCode: String) -> Int16 {
+        switch currencyCode.uppercased() {
+        case "BIF", "CLP", "DJF", "GNF", "ISK", "JPY", "KMF", "KRW",
+             "PYG", "RWF", "UGX", "UYI", "VND", "VUV", "XAF", "XOF", "XPF":
+            return 0
+        case "BHD", "IQD", "JOD", "KWD", "LYD", "OMR", "TND":
+            return 3
+        default:
+            return 2
+        }
+    }
+
+    /// Converts a decimal money amount into integer minor units for its currency
+    /// (e.g. cents for USD, whole yen for JPY). The magnitude is always taken so sign
+    /// lives with `isDebit`.
+    static func minorUnits(from amount: Decimal, currencyCode: String = "USD") -> Int {
         let handler = NSDecimalNumberHandler(
             roundingMode: .plain,
             scale: 0,
@@ -70,7 +83,7 @@ enum FinancialDataMapper {
         )
         let magnitude = NSDecimalNumber(decimal: abs(amount))
         return magnitude
-            .multiplying(byPowerOf10: fractionDigits)
+            .multiplying(byPowerOf10: fractionDigits(for: currencyCode))
             .rounding(accordingToBehavior: handler)
             .intValue
     }
@@ -84,7 +97,7 @@ enum FinancialDataMapper {
             userId: userID,
             accountId: snapshot.accountID,
             merchantName: snapshot.merchantName,
-            amountMinor: minorUnits(from: snapshot.amount),
+            amountMinor: minorUnits(from: snapshot.amount, currencyCode: snapshot.currencyCode),
             isoCurrency: snapshot.currencyCode,
             date: snapshot.date,
             pending: snapshot.isPending,
@@ -172,4 +185,45 @@ struct MockFinancialDataStore: FinancialDataStore {
 enum FinancialDataError: Error, Equatable, Sendable {
     case unavailable
     case notAuthorized
+}
+
+/// Records the last successful FinanceKit sync so the live store can fetch only recent
+/// transactions instead of the full history each time.
+protocol FinancialSyncStateStoring: Sendable {
+    var lastSyncDate: Date? { get }
+    func recordSync(at date: Date)
+}
+
+struct UserDefaultsFinancialSyncState: FinancialSyncStateStoring {
+    private let defaults: UserDefaults
+    private let key = "sift.financekit.lastSync"
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    var lastSyncDate: Date? {
+        let timestamp = defaults.double(forKey: key)
+        return timestamp > 0 ? Date(timeIntervalSince1970: timestamp) : nil
+    }
+
+    func recordSync(at date: Date) {
+        defaults.set(date.timeIntervalSince1970, forKey: key)
+    }
+}
+
+/// Pure calculation of the earliest transaction date to fetch on a sync.
+enum FinancialSyncWindow {
+    /// Re-fetch a month of overlap on incremental syncs; combined with upsert de-duping
+    /// this guards against gaps if an earlier sync failed after advancing the marker.
+    static let overlap: TimeInterval = 31 * 86_400
+    /// First-ever sync looks back roughly six months (Sift's detection horizon).
+    static let fullLookback: TimeInterval = 182 * 86_400
+
+    static func startDate(lastSync: Date?, now: Date) -> Date {
+        guard let lastSync else {
+            return now.addingTimeInterval(-fullLookback)
+        }
+        return min(lastSync.addingTimeInterval(-overlap), now)
+    }
 }

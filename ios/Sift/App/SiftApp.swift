@@ -17,6 +17,9 @@ struct SiftApp: App {
     private let tokenStore: any TokenStoring
     private let featureFlags: SiftFeatureFlags
     private let analyticsRecorder: any AnalyticsRecording
+    private let biometricAuthenticator: any BiometricAuthenticating
+    private let appLockEnabled: Bool
+    private let backgroundRefreshController: BackgroundRefreshController?
 
     init() {
         let launchOptions = SiftLaunchOptions.current
@@ -79,6 +82,8 @@ struct SiftApp: App {
             plaidLinkPresenter = MockPlaidLinkPresenter()
             detectionService = MockDetectionService()
             notificationAuthorizer = MockNotificationAuthorizer()
+            biometricAuthenticator = MockBiometricAuthenticator(available: false)
+            appLockEnabled = false
         } else {
             configuredRepositories = RepositoryContainer.live(modelContext: container.mainContext)
             let financeStore: any FinancialDataStore = FinanceKitStore()
@@ -86,11 +91,30 @@ struct SiftApp: App {
             plaidLinkPresenter = FinanceKitLinkPresenter(store: financeStore)
             detectionService = LiveDetectionService(modelContainer: container)
             notificationAuthorizer = UserNotificationAuthorizer()
+            biometricAuthenticator = LocalAuthenticationGate()
+            appLockEnabled = AppLockPreference().isEnabled
         }
 
         repositories = configuredRepositories
         notificationScheduler = NotificationScheduler(repositories: configuredRepositories)
         notificationRouter = NotificationRouter(center: .current())
+
+        if launchOptions.useMockServices {
+            backgroundRefreshController = nil
+        } else {
+            let refreshService = DefaultSubscriptionRefreshService(
+                apiClient: apiClient,
+                detectionService: detectionService,
+                repositories: configuredRepositories,
+                notificationScheduler: notificationScheduler
+            )
+            let controller = BackgroundRefreshController { [refreshService] in
+                _ = try? await refreshService.refresh()
+            }
+            controller.register()
+            backgroundRefreshController = controller
+        }
+
         _appModel = State(initialValue: AppModel(isOnboardingComplete: stateStore.isComplete()))
     }
 
@@ -109,7 +133,10 @@ struct SiftApp: App {
                 .environment(\.plaidLinkPresenter, plaidLinkPresenter)
                 .environment(\.featureFlags, featureFlags)
                 .environment(\.analyticsRecorder, analyticsRecorder)
+                .environment(\.biometricAuthenticator, biometricAuthenticator)
+                .environment(\.appLockEnabled, appLockEnabled)
                 .modelContainer(modelContainer)
+                .task { backgroundRefreshController?.schedule() }
         }
     }
 }

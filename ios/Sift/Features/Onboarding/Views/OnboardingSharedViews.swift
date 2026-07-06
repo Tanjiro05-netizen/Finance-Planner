@@ -115,7 +115,7 @@ struct WalletSourceCloud: View {
     }
 }
 
-// Retained for a future Android/Plaid port.
+/// Retained for a future Android/Plaid port.
 struct BankChipCloud: View {
     private let chips = BankInstitution.popular
 

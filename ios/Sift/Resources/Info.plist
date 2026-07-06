@@ -20,6 +20,15 @@
 	<string>1</string>
 	<key>NSFinancialDataUsageDescription</key>
 	<string>Sift reads your Apple Card, Apple Cash, and Apple Pay transactions on your device to find recurring subscriptions. Your data never leaves your iPhone.</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.sift.app.refresh</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchScreen</key>

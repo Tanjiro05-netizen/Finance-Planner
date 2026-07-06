@@ -63,6 +63,54 @@ struct FinanceKitAdaptersTests {
         #expect(liability.name == "Apple Card")
     }
 
+    @Test func minorUnitsRespectsCurrencyScale() {
+        #expect(FinancialDataMapper.minorUnits(from: Decimal(string: "1500")!, currencyCode: "JPY") == 1500)
+        #expect(FinancialDataMapper.minorUnits(from: Decimal(string: "15.49")!, currencyCode: "USD") == 1549)
+        #expect(FinancialDataMapper.minorUnits(from: Decimal(string: "1.234")!, currencyCode: "BHD") == 1234)
+        #expect(FinancialDataMapper.fractionDigits(for: "jpy") == 0)
+        #expect(FinancialDataMapper.fractionDigits(for: "kwd") == 3)
+        #expect(FinancialDataMapper.fractionDigits(for: "eur") == 2)
+    }
+
+    @Test func linkedAccountFromRemoteCarriesFields() {
+        let remote = RemoteAccount(
+            id: "a1", plaidItemId: "a1", institutionName: "Apple",
+            mask: nil, name: "Apple Card", type: "credit", status: "active"
+        )
+        let account = LinkedAccount(remote: remote, userID: "user-1")
+
+        #expect(account.id == "a1")
+        #expect(account.userID == "user-1")
+        #expect(account.institutionName == "Apple")
+        #expect(account.mask == "")
+        #expect(account.status == .connected)
+    }
+
+    // MARK: - Incremental sync window
+
+    @Test func syncWindowFullLookbackWhenNoPriorSync() {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let start = FinancialSyncWindow.startDate(lastSync: nil, now: now)
+        #expect(start == now.addingTimeInterval(-FinancialSyncWindow.fullLookback))
+    }
+
+    @Test func syncWindowUsesOverlapAfterPriorSync() {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        let last = now.addingTimeInterval(-10 * 86_400)
+        let start = FinancialSyncWindow.startDate(lastSync: last, now: now)
+        #expect(start == last.addingTimeInterval(-FinancialSyncWindow.overlap))
+    }
+
+    @Test func userDefaultsSyncStateRoundTrips() {
+        let defaults = UserDefaults(suiteName: "sift-test-\(UUID().uuidString)")!
+        let state = UserDefaultsFinancialSyncState(defaults: defaults)
+
+        #expect(state.lastSyncDate == nil)
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        state.recordSync(at: now)
+        #expect(state.lastSyncDate == now)
+    }
+
     @Test func spendTransactionsDropCreditsAndSortNewestFirst() {
         let charges = FinancialDataMapper.spendTransactions(from: [
             snapshot(id: "old", merchant: "A", amount: 5, daysAgo: 10),

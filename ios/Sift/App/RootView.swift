@@ -16,8 +16,13 @@ struct RootView: View {
     @Environment(\.featureFlags) private var featureFlags
     @Environment(\.analyticsRecorder) private var analyticsRecorder
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.biometricAuthenticator) private var biometricAuthenticator
+    @Environment(\.appLockEnabled) private var appLockEnabled
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showNotificationPermissionBanner = false
     @State private var dismissedNotificationPermissionBanner = false
+    @State private var isUnlocked = false
+    @State private var isAuthenticating = false
 
     var body: some View {
         @Bindable var model = appModel
@@ -58,6 +63,51 @@ struct RootView: View {
                 appModel.handle(deepLink)
             }
             await updateNotificationPermissionBanner(isOnboardingComplete: model.isOnboardingComplete)
+        }
+        .overlay {
+            if lockActive, !isUnlocked {
+                LockView(isAuthenticating: isAuthenticating) {
+                    Task { await authenticate() }
+                }
+                .transition(.opacity)
+            }
+        }
+        .animation(Motion.reduced(Motion.gentle, reduceMotion: reduceMotion), value: isUnlocked)
+        .task { await authenticateIfNeeded() }
+        .onChange(of: scenePhase) { _, phase in
+            switch phase {
+            case .background:
+                isUnlocked = false
+            case .active:
+                Task { await authenticateIfNeeded() }
+            default:
+                break
+            }
+        }
+    }
+
+    private var lockActive: Bool {
+        appLockEnabled && biometricAuthenticator.canAuthenticate()
+    }
+
+    private func authenticateIfNeeded() async {
+        guard lockActive, !isUnlocked, !isAuthenticating else {
+            return
+        }
+        await authenticate()
+    }
+
+    private func authenticate() async {
+        guard !isAuthenticating else {
+            return
+        }
+        isAuthenticating = true
+        let unlocked = await biometricAuthenticator.authenticate(
+            reason: "Unlock Sift to see your subscriptions and balances."
+        )
+        isAuthenticating = false
+        if unlocked {
+            isUnlocked = true
         }
     }
 
@@ -180,4 +230,61 @@ struct RootView: View {
     RootView()
         .environment(AppModel())
         .environment(\.repositories, .mock())
+}
+
+/// Full-screen gate shown until the person authenticates with Face ID, Touch ID, or
+/// their device passcode. Covers all content so balances aren't visible while locked.
+struct LockView: View {
+    let isAuthenticating: Bool
+    let onUnlock: () -> Void
+
+    var body: some View {
+        ZStack {
+            Palette.bone.ignoresSafeArea()
+
+            VStack(spacing: Spacing.lg) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 30, weight: .semibold))
+                    .foregroundStyle(Palette.bone)
+                    .frame(width: 64, height: 64)
+                    .background(Palette.ink, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+
+                VStack(spacing: Spacing.sm) {
+                    Text("Sift is locked")
+                        .font(.screenTitle)
+                        .foregroundStyle(Palette.ink)
+                    Text("Authenticate to see your subscriptions and balances.")
+                        .font(.siftBody)
+                        .foregroundStyle(Palette.inkSoft)
+                        .multilineTextAlignment(.center)
+                }
+
+                PrimaryButton(title: isAuthenticating ? "Unlocking" : "Unlock", action: onUnlock)
+                    .disabled(isAuthenticating)
+                    .padding(.horizontal, Spacing.xl)
+            }
+            .padding(Spacing.xl)
+        }
+        .accessibilityIdentifier("app-lock")
+    }
+}
+
+private struct BiometricAuthenticatorKey: EnvironmentKey {
+    static let defaultValue: any BiometricAuthenticating = MockBiometricAuthenticator(available: false)
+}
+
+private struct AppLockEnabledKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var biometricAuthenticator: any BiometricAuthenticating {
+        get { self[BiometricAuthenticatorKey.self] }
+        set { self[BiometricAuthenticatorKey.self] = newValue }
+    }
+
+    var appLockEnabled: Bool {
+        get { self[AppLockEnabledKey.self] }
+        set { self[AppLockEnabledKey.self] = newValue }
+    }
 }

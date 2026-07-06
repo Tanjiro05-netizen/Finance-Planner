@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 
 struct InsightsView: View {
@@ -138,13 +139,35 @@ private struct CategorySpendCard: View {
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
             } else {
-                VStack(spacing: Spacing.md) {
-                    ForEach(rows) { row in
-                        CategorySpendBar(row: row, maxSpend: maxSpend)
+                Chart(rows) { row in
+                    BarMark(
+                        x: .value("Spend", dollars(row.total)),
+                        y: .value("Category", row.name)
+                    )
+                    .foregroundStyle(Palette.gold)
+                    .cornerRadius(6)
+                    .annotation(position: .trailing, alignment: .leading, spacing: 6) {
+                        Text(row.total.formatted())
+                            .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 13, relativeTo: .caption))
+                            .foregroundStyle(Palette.ink)
+                            .monospacedDigit()
                     }
+                    .accessibilityLabel(row.name)
+                    .accessibilityValue("\(row.total.formatted()) per month")
                 }
+                .chartXAxis(.hidden)
+                .chartXScale(domain: 0...domainMax)
+                .frame(height: CGFloat(rows.count) * 44 + 8)
             }
         }
+    }
+
+    private func dollars(_ money: Money) -> Double {
+        Double(money.amountMinor) / 100
+    }
+
+    private var domainMax: Double {
+        max(1, dollars(maxSpend) * 1.18)
     }
 }
 

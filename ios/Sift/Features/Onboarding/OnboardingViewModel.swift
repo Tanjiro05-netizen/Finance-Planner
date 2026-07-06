@@ -12,6 +12,15 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
     case reviewFound
     case notifications
     case allSet
+    case connectUnavailable
+}
+
+/// Why the Apple Wallet connection produced nothing to scan.
+enum ConnectUnavailableReason: Sendable {
+    /// The person declined the FinanceKit permission prompt.
+    case accessDenied
+    /// Access was granted but there is no Apple Card / Cash / Pay activity to read.
+    case noWalletData
 }
 
 struct ReviewSubscriptionItem: Identifiable, Equatable {
@@ -76,6 +85,7 @@ final class OnboardingViewModel {
     var notificationsAuthorized = false
     var confirmedCount = 0
     var confirmedMonthlyTotal = Money.zeroUSD
+    var unavailableReason: ConnectUnavailableReason?
 
     init(
         apiClient: any SiftAPIClient,
@@ -128,13 +138,27 @@ final class OnboardingViewModel {
                 step = .scanning
                 try await scan()
             case .cancelled:
-                step = .connectIntro
-                errorMessage = "Apple Wallet access wasn't granted. You can try again whenever you're ready."
+                unavailableReason = .accessDenied
+                step = .connectUnavailable
             }
         }
     }
 
-    // Plaid path (retained for a future Android port and covered by tests).
+    /// Retry the Apple Wallet permission after an unavailable state.
+    func retryConnect() {
+        unavailableReason = nil
+        move(to: .secureLeadIn)
+    }
+
+    /// Continue onboarding without connected data (nothing to review yet).
+    func skipConnect() {
+        unavailableReason = nil
+        confirmedCount = 0
+        confirmedMonthlyTotal = .zeroUSD
+        move(to: .notifications)
+    }
+
+    /// Plaid path (retained for a future Android port and covered by tests).
     func showBankPicker() {
         move(to: .bankPicker)
     }
@@ -222,6 +246,7 @@ final class OnboardingViewModel {
         )
 
         let importedCount = try await importSyncedTransactions()
+        try await importAccounts()
         scanState = ScanState(
             progress: 0.72,
             foundCount: 0,
@@ -229,6 +254,13 @@ final class OnboardingViewModel {
         )
 
         let detections = try await detectionService.detect()
+
+        if detections.isEmpty, importedCount == 0 {
+            unavailableReason = .noWalletData
+            step = .connectUnavailable
+            return
+        }
+
         reviewItems = detections.map { ReviewSubscriptionItem(detection: $0, isSelected: true) }
         scanState = ScanState(
             progress: 1,
@@ -236,6 +268,16 @@ final class OnboardingViewModel {
             status: "\(detections.count) found · grouping by merchant"
         )
         step = .reviewFound
+    }
+
+    private func importAccounts() async throws {
+        let accounts = try await apiClient.listAccounts().map {
+            LinkedAccount(remote: $0, userID: userID)
+        }
+        guard !accounts.isEmpty else {
+            return
+        }
+        try repositories.accounts.replaceAll(with: accounts)
     }
 
     private func importSyncedTransactions() async throws -> Int {

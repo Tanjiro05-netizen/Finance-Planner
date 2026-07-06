@@ -123,6 +123,21 @@ extension LinkedAccountStatus {
     }
 }
 
+extension LinkedAccount {
+    convenience init(remote: RemoteAccount, userID: String, syncedAt: Date = Date()) {
+        self.init(
+            id: remote.id,
+            userID: userID,
+            plaidItemID: remote.plaidItemId,
+            institutionName: remote.institutionName,
+            mask: remote.mask ?? "",
+            type: remote.type,
+            status: LinkedAccountStatus(remoteStatus: remote.status),
+            lastSyncedAt: syncedAt
+        )
+    }
+}
+
 struct TransactionSyncResponse: Codable, Equatable, Sendable {
     let added: Int
     let modified: Int

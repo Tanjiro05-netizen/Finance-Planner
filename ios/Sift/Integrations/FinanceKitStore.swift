@@ -1,4 +1,9 @@
 import Foundation
+import LocalAuthentication
+
+#if canImport(BackgroundTasks)
+@preconcurrency import BackgroundTasks
+#endif
 
 #if canImport(FinanceKit)
 import FinanceKit
@@ -11,6 +16,12 @@ import FinanceKit
 /// `NSFinancialDataUsageDescription` string in Info.plist. On the Simulator
 /// `isDataAvailable()` returns `false`, and every fetch degrades to an empty result.
 struct FinanceKitStore: FinancialDataStore {
+    private let syncState: any FinancialSyncStateStoring
+
+    init(syncState: any FinancialSyncStateStoring = UserDefaultsFinancialSyncState()) {
+        self.syncState = syncState
+    }
+
     func isDataAvailable() -> Bool {
         FinanceStore.isDataAvailable(.financialData)
     }
@@ -28,14 +39,24 @@ struct FinanceKitStore: FinancialDataStore {
         return try await FinanceStore.shared.accounts(query: query).map(Self.snapshot(from:))
     }
 
+    /// Incremental fetch: only transactions since the last successful sync (with a
+    /// month of overlap), instead of the full history each time. On the first sync this
+    /// looks back roughly six months.
     func fetchTransactions() async throws -> [FinancialTransactionSnapshot] {
+        let now = Date()
+        let start = FinancialSyncWindow.startDate(lastSync: syncState.lastSyncDate, now: now)
+        let predicate = #Predicate<FinanceKit.Transaction> { transaction in
+            transaction.transactionDate >= start
+        }
         let query = TransactionQuery(
             sortDescriptors: [SortDescriptor(\.transactionDate, order: .reverse)],
-            predicate: nil,
+            predicate: predicate,
             limit: nil,
             offset: nil
         )
-        return try await FinanceStore.shared.transactions(query: query).map(Self.snapshot(from:))
+        let snapshots = try await FinanceStore.shared.transactions(query: query).map(Self.snapshot(from:))
+        syncState.recordSync(at: now)
+        return snapshots
     }
 
     private static func map(_ status: AuthorizationStatus) -> FinancialAuthorization {
@@ -87,4 +108,71 @@ struct FinanceKitStore: FinancialDataStore {
     func fetchTransactions() async throws -> [FinancialTransactionSnapshot] { [] }
 }
 
+#endif
+
+/// Live device-owner authentication (Face ID / Touch ID / passcode). Lives here rather
+/// than in `Core/` because `LAContext` can't run under unit tests.
+struct LocalAuthenticationGate: BiometricAuthenticating {
+    func canAuthenticate() -> Bool {
+        var error: NSError?
+        // deviceOwnerAuthentication includes passcode, so the person can never be locked out.
+        return LAContext().canEvaluatePolicy(.deviceOwnerAuthentication, error: &error)
+    }
+
+    func authenticate(reason: String) async -> Bool {
+        do {
+            return try await LAContext().evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
+        } catch {
+            return false
+        }
+    }
+}
+
+#if canImport(BackgroundTasks)
+/// Registers and schedules a background app-refresh task so Sift can pull new on-device
+/// transactions while closed. The identifier must also appear under
+/// `BGTaskSchedulerPermittedIdentifiers` in Info.plist.
+@MainActor
+final class BackgroundRefreshController {
+    static let taskIdentifier = "com.sift.app.refresh"
+
+    private let refresh: @MainActor () async -> Void
+    private let interval: TimeInterval
+
+    init(interval: TimeInterval = 6 * 3600, refresh: @escaping @MainActor () async -> Void) {
+        self.interval = interval
+        self.refresh = refresh
+    }
+
+    /// Call once during launch, before the app finishes launching.
+    func register() {
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: Self.taskIdentifier,
+            using: .main
+        ) { task in
+            MainActor.assumeIsolated {
+                self.handle(task)
+            }
+        }
+    }
+
+    func schedule() {
+        let request = BGAppRefreshTaskRequest(identifier: Self.taskIdentifier)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: interval)
+        try? BGTaskScheduler.shared.submit(request)
+    }
+
+    private func handle(_ task: BGTask) {
+        schedule()
+
+        let work = Task { @MainActor in
+            await refresh()
+            task.setTaskCompleted(success: true)
+        }
+
+        task.expirationHandler = {
+            work.cancel()
+        }
+    }
+}
 #endif

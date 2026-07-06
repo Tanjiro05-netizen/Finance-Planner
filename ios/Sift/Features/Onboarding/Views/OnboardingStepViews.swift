@@ -168,8 +168,8 @@ struct SecureLeadInView: View {
         }
     }
 
-    // Apple Wallet flow when no institution is selected; Plaid copy is kept for the
-    // retained bank-picker path.
+    /// Apple Wallet flow when no institution is selected; Plaid copy is kept for the
+    /// retained bank-picker path.
     private var isAppleWallet: Bool {
         institution == nil
     }
@@ -347,6 +347,65 @@ struct AllSetView: View {
             Spacer()
             PrimaryButton(title: "Go to dashboard", action: onDashboard)
                 .accessibilityIdentifier("onboarding-go-dashboard")
+        }
+    }
+}
+
+struct ConnectUnavailableView: View {
+    let reason: ConnectUnavailableReason
+    let onRetry: () -> Void
+    let onSkip: () -> Void
+
+    var body: some View {
+        OnboardingScreen {
+            Spacer()
+
+            VStack(spacing: Spacing.lg) {
+                Image(systemName: iconName)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(Palette.bone)
+                    .frame(width: 56, height: 56)
+                    .background(Palette.clay, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+
+                OnboardingHeadline(title: title, subtitle: message, alignment: .center)
+            }
+
+            Spacer()
+
+            PrimaryButton(title: "Try again", action: onRetry)
+                .accessibilityIdentifier("onboarding-connect-retry")
+            SecondaryButton(title: "Skip for now", action: onSkip)
+                .accessibilityIdentifier("onboarding-connect-skip")
+        }
+        .accessibilityIdentifier("onboarding-connect-unavailable")
+    }
+
+    private var iconName: String {
+        switch reason {
+        case .accessDenied:
+            "lock.slash"
+        case .noWalletData:
+            "creditcard"
+        }
+    }
+
+    private var title: String {
+        switch reason {
+        case .accessDenied:
+            "Apple Wallet access is off"
+        case .noWalletData:
+            "No Wallet transactions yet"
+        }
+    }
+
+    private var message: String {
+        switch reason {
+        case .accessDenied:
+            "Sift needs permission to read your Apple Card, Apple Cash, and Apple Pay "
+                + "transactions. You can allow it in Settings › Privacy & Security › Wallet, or try again."
+        case .noWalletData:
+            "We couldn't find Apple Card, Apple Cash, or Apple Pay activity to scan. Once you've "
+                + "spent with Apple Pay, come back and Sift will find your subscriptions."
         }
     }
 }
