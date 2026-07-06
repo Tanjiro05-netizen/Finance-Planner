@@ -53,6 +53,10 @@
 		30000000000000000000B008 /* MockRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000F008 /* MockRepositories.swift */; };
 		30000000000000000000B009 /* RepositoryContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000F009 /* RepositoryContainer.swift */; };
 		30000000000000000000B010 /* SubscriptionRefreshService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000F010 /* SubscriptionRefreshService.swift */; };
+		B0000000000000000000B001 /* FinancialData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000F001 /* FinancialData.swift */; };
+		B0000000000000000000B002 /* FinanceKitAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000F002 /* FinanceKitAdapters.swift */; };
+		B0000000000000000000B003 /* FinanceKitStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000F003 /* FinanceKitStore.swift */; };
+		B0000000000000000000C001 /* FinanceKitAdaptersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T001 /* FinanceKitAdaptersTests.swift */; };
 		60000000000000000000B001 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F001 /* Models.swift */; };
 		60000000000000000000B002 /* MerchantNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F002 /* MerchantNormalizer.swift */; };
 		60000000000000000000B003 /* DetectionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F003 /* DetectionEngine.swift */; };
@@ -176,6 +180,11 @@
 		30000000000000000000F008 /* MockRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockRepositories.swift; sourceTree = "<group>"; };
 		30000000000000000000F009 /* RepositoryContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryContainer.swift; sourceTree = "<group>"; };
 		30000000000000000000F010 /* SubscriptionRefreshService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRefreshService.swift; sourceTree = "<group>"; };
+		B0000000000000000000F001 /* FinancialData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialData.swift; sourceTree = "<group>"; };
+		B0000000000000000000F002 /* FinanceKitAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceKitAdapters.swift; sourceTree = "<group>"; };
+		B0000000000000000000F003 /* FinanceKitStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceKitStore.swift; sourceTree = "<group>"; };
+		B0000000000000000000F004 /* Sift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sift.entitlements; sourceTree = "<group>"; };
+		B0000000000000000000T001 /* FinanceKitAdaptersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceKitAdaptersTests.swift; sourceTree = "<group>"; };
 		60000000000000000000F001 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		60000000000000000000F002 /* MerchantNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantNormalizer.swift; sourceTree = "<group>"; };
 		60000000000000000000F003 /* DetectionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionEngine.swift; sourceTree = "<group>"; };
@@ -284,6 +293,7 @@
 				10000000000000000000000C /* Navigation */,
 				900000000000000000000001 /* Notifications */,
 				300000000000000000000001 /* Core */,
+				B0000000000000000000G002 /* Integrations */,
 				10000000000000000000000D /* Features */,
 				100000000000000000000006 /* DesignSystem */,
 				100000000000000000000009 /* Resources */,
@@ -315,6 +325,7 @@
 				40000000000000000000T003 /* OnboardingViewModelTests.swift */,
 				60000000000000000000T001 /* DetectionEngineTests.swift */,
 				60000000000000000000T002 /* DetectionServiceTests.swift */,
+				B0000000000000000000T001 /* FinanceKitAdaptersTests.swift */,
 				70000000000000000000T001 /* CancellationViewModelTests.swift */,
 				70000000000000000000T002 /* CancellationGuideProviderTests.swift */,
 				70000000000000000000T003 /* SavingsTests.swift */,
@@ -357,6 +368,7 @@
 			isa = PBXGroup;
 			children = (
 				10000000000000000000F009 /* Info.plist */,
+				B0000000000000000000F004 /* Sift.entitlements */,
 				A1100000000000000000F001 /* PrivacyInfo.xcprivacy */,
 				A1100000000000000000F002 /* Assets.xcassets */,
 				10000000000000000000000A /* Fonts */,
@@ -424,6 +436,7 @@
 				600000000000000000000001 /* Detection */,
 				400000000000000000000001 /* Networking */,
 				400000000000000000000002 /* Security */,
+				B0000000000000000000G001 /* FinanceKit */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -442,6 +455,23 @@
 				40000000000000000000F002 /* TokenStore.swift */,
 			);
 			path = Security;
+			sourceTree = "<group>";
+		};
+		B0000000000000000000G001 /* FinanceKit */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000000000000000F001 /* FinancialData.swift */,
+				B0000000000000000000F002 /* FinanceKitAdapters.swift */,
+			);
+			path = FinanceKit;
+			sourceTree = "<group>";
+		};
+		B0000000000000000000G002 /* Integrations */ = {
+			isa = PBXGroup;
+			children = (
+				B0000000000000000000F003 /* FinanceKitStore.swift */,
+			);
+			path = Integrations;
 			sourceTree = "<group>";
 		};
 		300000000000000000000002 /* Domain */ = {
@@ -837,6 +867,9 @@
 				10000000000000000000B063 /* CancellationRequestsView.swift in Sources */,
 				10000000000000000000B050 /* SettingsView.swift in Sources */,
 				10000000000000000000B051 /* SavingsBreakdownView.swift in Sources */,
+				B0000000000000000000B001 /* FinancialData.swift in Sources */,
+				B0000000000000000000B002 /* FinanceKitAdapters.swift in Sources */,
+				B0000000000000000000B003 /* FinanceKitStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -868,6 +901,7 @@
 				90000000000000000000C010 /* NotificationContentBuilderTests.swift in Sources */,
 				90000000000000000000C011 /* NotificationSchedulerTests.swift in Sources */,
 				90000000000000000000C012 /* NotificationRouterTests.swift in Sources */,
+				B0000000000000000000C001 /* FinanceKitAdaptersTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1040,6 +1074,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
+				CODE_SIGN_ENTITLEMENTS = Sift/Resources/Sift.entitlements;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sift/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -1069,6 +1104,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
+				CODE_SIGN_ENTITLEMENTS = Sift/Resources/Sift.entitlements;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sift/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;

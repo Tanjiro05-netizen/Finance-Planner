@@ -81,15 +81,41 @@ struct PageDots: View {
 
 struct TrustText: View {
     var body: some View {
-        Text("READ-ONLY · BANK-LEVEL ENCRYPTION\nSECURED BY PLAID · CREDENTIALS NEVER STORED")
+        Text("READ-ONLY · ON DEVICE\nPOWERED BY APPLE WALLET · NOTHING LEAVES YOUR IPHONE")
             .font(.siftLabel)
             .foregroundStyle(Palette.inkFaint)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
-            .accessibilityLabel("Read-only. Bank-level encryption. Secured by Plaid. Credentials never stored.")
+            .accessibilityLabel("Read-only. On device. Powered by Apple Wallet. Nothing leaves your iPhone.")
     }
 }
 
+/// Chips for the Apple Wallet data sources Sift reads through FinanceKit.
+struct WalletSourceCloud: View {
+    private let sources = ["Apple Card", "Apple Cash", "Apple Pay"]
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 128), spacing: Spacing.sm)], spacing: Spacing.sm) {
+            ForEach(sources, id: \.self) { source in
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "wallet.pass")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Palette.goldDeep)
+                    Text(source)
+                        .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 13, relativeTo: .caption))
+                        .foregroundStyle(Palette.ink)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, 10)
+                .background(Palette.card, in: Capsule())
+                .overlay(Capsule().stroke(Palette.line, lineWidth: 1))
+            }
+        }
+    }
+}
+
+// Retained for a future Android/Plaid port.
 struct BankChipCloud: View {
     private let chips = BankInstitution.popular
 

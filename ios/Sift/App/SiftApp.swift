@@ -81,11 +81,9 @@ struct SiftApp: App {
             notificationAuthorizer = MockNotificationAuthorizer()
         } else {
             configuredRepositories = RepositoryContainer.live(modelContext: container.mainContext)
-            apiClient = DefaultSiftAPIClient(
-                tokenStore: authTokenStore,
-                analyticsRecorder: analyticsRecorder
-            )
-            plaidLinkPresenter = LinkKitPlaidLinkPresenter()
+            let financeStore: any FinancialDataStore = FinanceKitStore()
+            apiClient = FinanceKitAPIClient(store: financeStore)
+            plaidLinkPresenter = FinanceKitLinkPresenter(store: financeStore)
             detectionService = LiveDetectionService(modelContainer: container)
             notificationAuthorizer = UserNotificationAuthorizer()
         }
