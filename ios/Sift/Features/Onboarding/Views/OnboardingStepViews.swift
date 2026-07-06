@@ -49,7 +49,7 @@ struct WelcomeView: View {
 
             OnboardingHeadline(
                 title: "See every subscription you forgot about.",
-                subtitle: "Sift reads your accounts and finds the charges that quietly repeat, so nothing renews behind your back."
+                subtitle: "Sift reads your Apple Wallet and finds the charges that quietly repeat, so nothing renews behind your back."
             )
 
             Spacer()
@@ -67,18 +67,19 @@ struct ConnectIntroView: View {
     var body: some View {
         OnboardingScreen {
             OnboardingHeadline(
-                title: "Link an account once.",
-                subtitle: "Sift connects read-only through Plaid and finds your subscriptions automatically. No spreadsheets."
+                title: "Connect Apple Wallet.",
+                subtitle: "Sift reads your Apple Card, Apple Cash, and Apple Pay transactions right on your iPhone — "
+                    + "read-only — and finds your subscriptions automatically. No spreadsheets."
             )
 
-            BankChipCloud()
+            WalletSourceCloud()
             Spacer()
 
             if let errorMessage {
                 ErrorCallout(message: errorMessage)
             }
 
-            PrimaryButton(title: "Connect an account", action: onConnect)
+            PrimaryButton(title: "Connect Apple Wallet", action: onConnect)
                 .accessibilityIdentifier("onboarding-connect-account")
             TrustText()
         }
@@ -146,11 +147,7 @@ struct SecureLeadInView: View {
                     .frame(width: 54, height: 54)
                     .background(Palette.gold, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
-                OnboardingHeadline(
-                    title: "Continue with \(institution?.name ?? "your bank")",
-                    subtitle: "Plaid opens next for secure sign-in. Sift never sees or stores your username or password.",
-                    alignment: .center
-                )
+                OnboardingHeadline(title: headline, subtitle: subtitle, alignment: .center)
             }
 
             Spacer()
@@ -159,16 +156,45 @@ struct SecureLeadInView: View {
                 ErrorCallout(message: errorMessage)
             }
 
-            PrimaryButton(title: isWorking ? "Opening Plaid" : "Continue to Plaid", action: onContinue)
+            PrimaryButton(title: buttonTitle, action: onContinue)
                 .disabled(isWorking)
                 .accessibilityIdentifier("onboarding-continue-plaid")
 
-            Text("Plaid encrypts and verifies your login.\nSift only receives a read-only confirmation.")
+            Text(footer)
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
         }
+    }
+
+    // Apple Wallet flow when no institution is selected; Plaid copy is kept for the
+    // retained bank-picker path.
+    private var isAppleWallet: Bool {
+        institution == nil
+    }
+
+    private var headline: String {
+        isAppleWallet ? "Connect Apple Wallet" : "Continue with \(institution?.name ?? "your bank")"
+    }
+
+    private var subtitle: String {
+        isAppleWallet
+            ? "Apple asks your permission next. Sift only reads your transactions on this iPhone — never your passwords or card numbers."
+            : "Plaid opens next for secure sign-in. Sift never sees or stores your username or password."
+    }
+
+    private var buttonTitle: String {
+        if isAppleWallet {
+            return isWorking ? "Connecting" : "Continue"
+        }
+        return isWorking ? "Opening Plaid" : "Continue to Plaid"
+    }
+
+    private var footer: String {
+        isAppleWallet
+            ? "Your financial data stays on your iPhone.\nSift only reads Wallet transactions."
+            : "Plaid encrypts and verifies your login.\nSift only receives a read-only confirmation."
     }
 }
 
@@ -182,7 +208,7 @@ struct ScanningView: View {
                 ScanRing(progress: scanState.progress, count: scanState.foundCount)
                 OnboardingHeadline(
                     title: "Finding your subscriptions",
-                    subtitle: "Scanning 6 months of transactions for charges that repeat.",
+                    subtitle: "Scanning your recent Apple Wallet transactions for charges that repeat.",
                     alignment: .center
                 )
                 ProgressView(value: scanState.progress)

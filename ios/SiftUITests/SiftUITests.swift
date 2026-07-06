@@ -104,7 +104,6 @@ final class SiftUITests: XCTestCase {
 
         app.buttons["onboarding-get-started"].tap()
         app.buttons["onboarding-connect-account"].tap()
-        app.buttons["bank-ins_56"].tap()
         app.buttons["onboarding-continue-plaid"].tap()
 
         XCTAssertTrue(app.buttons["onboarding-confirm-subscriptions"].waitForExistence(timeout: 5))

@@ -112,6 +112,29 @@ final class OnboardingViewModel {
         move(to: .connectIntro)
     }
 
+    /// Apple Wallet path: move to the permission lead-in before prompting FinanceKit.
+    func showConnectLeadIn() {
+        move(to: .secureLeadIn)
+    }
+
+    /// Apple Wallet path: request FinanceKit access and, on success, scan on-device
+    /// transactions. No institution is chosen — the source is the user's Wallet.
+    func connectAppleWallet() async {
+        await run {
+            let outcome = try await linkCoordinator.linkAccount(institution: nil)
+
+            switch outcome {
+            case .linked:
+                step = .scanning
+                try await scan()
+            case .cancelled:
+                step = .connectIntro
+                errorMessage = "Apple Wallet access wasn't granted. You can try again whenever you're ready."
+            }
+        }
+    }
+
+    // Plaid path (retained for a future Android port and covered by tests).
     func showBankPicker() {
         move(to: .bankPicker)
     }

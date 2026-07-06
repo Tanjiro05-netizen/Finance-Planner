@@ -65,9 +65,10 @@ struct OnboardingFlowView: View {
             }
         case .connectIntro:
             ConnectIntroView(errorMessage: viewModel.errorMessage) {
-                viewModel.showBankPicker()
+                viewModel.showConnectLeadIn()
             }
         case .bankPicker:
+            // Retained for a future Android/Plaid port; not reached in the Apple Wallet flow.
             BankPickerView(institutions: BankInstitution.popular) { institution in
                 viewModel.selectInstitution(institution)
             }
@@ -77,7 +78,7 @@ struct OnboardingFlowView: View {
                 isWorking: viewModel.isWorking,
                 errorMessage: viewModel.errorMessage
             ) {
-                Task { await viewModel.connectSelectedInstitution() }
+                Task { await viewModel.connectAppleWallet() }
             }
         case .scanning:
             ScanningView(scanState: viewModel.scanState)
