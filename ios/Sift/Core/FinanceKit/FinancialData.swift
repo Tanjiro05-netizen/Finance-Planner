@@ -195,7 +195,8 @@ protocol FinancialSyncStateStoring: Sendable {
 }
 
 struct UserDefaultsFinancialSyncState: FinancialSyncStateStoring {
-    private let defaults: UserDefaults
+    // UserDefaults is thread-safe but not marked Sendable.
+    private nonisolated(unsafe) let defaults: UserDefaults
     private let key = "sift.financekit.lastSync"
 
     init(defaults: UserDefaults = .standard) {

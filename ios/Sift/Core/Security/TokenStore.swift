@@ -142,7 +142,8 @@ struct MockBiometricAuthenticator: BiometricAuthenticating {
 
 /// Persisted preference for requiring authentication when Sift opens. Defaults on.
 struct AppLockPreference: Sendable {
-    private let defaults: UserDefaults
+    // UserDefaults is thread-safe but not marked Sendable.
+    private nonisolated(unsafe) let defaults: UserDefaults
     private let key = "sift.appLock.enabled"
 
     init(defaults: UserDefaults = .standard) {
