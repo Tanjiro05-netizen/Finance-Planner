@@ -23,8 +23,8 @@ One thread per task. Do not attempt multiple phases in a single session.
 
 ## Build, run, test commands
 **iOS** (run from `/ios`):
-- Build: `xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build`
-- Test: `xcodebuild test -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 16 Pro'`
+- Build: `xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build`
+- Test: `xcodebuild test -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 17 Pro'`
 - Lint/format: `swiftformat .` and `swiftlint` (configs committed in Phase 1).
 
 There is no backend; the app is entirely on device.

@@ -20,13 +20,13 @@ jobs:
       - name: Toolchain
         run: xcodebuild -version
       - name: Build
-        run: xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
+        run: xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
       - name: Test with coverage
         run: |
           mkdir -p ../build
           xcodebuild test \
             -scheme Sift \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             -enableCodeCoverage YES \
             -resultBundlePath ../build/SiftTests.xcresult
       - name: Enforce coverage floor

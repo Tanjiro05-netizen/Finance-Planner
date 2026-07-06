@@ -34,8 +34,8 @@ Where FinanceKit is unavailable (Simulator, unentitled builds, no Wallet data) t
 From `ios/`:
 
 ```sh
-xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
-xcodebuild test -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
+xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+xcodebuild test -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 swiftformat --lint .
 swiftlint
 ```
