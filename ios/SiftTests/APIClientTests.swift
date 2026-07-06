@@ -291,42 +291,6 @@ struct APIClientTests {
         Issue.record("Expected unauthorized error")
     }
 
-    @Test func openAPIContractCoversClientEndpointsAndFields() throws {
-        let openAPI = try String(
-            contentsOf: repositoryRoot().appending(path: "backend/openapi.yaml"),
-            encoding: .utf8
-        )
-
-        for path in [
-            "/v1/auth/bootstrap",
-            "/v1/plaid/link-token",
-            "/v1/plaid/exchange",
-            "/v1/plaid/item/{id}",
-            "/v1/accounts",
-            "/v1/transactions/sync",
-            "/v1/transactions",
-            "/v1/cancellations",
-            "/v1/cancellations/{id}",
-            "/v1/privacy/data",
-        ] {
-            #expect(openAPI.contains(path))
-        }
-
-        for field in [
-            "link_token",
-            "public_token",
-            "plaidItemId",
-            "institutionName",
-            "status",
-            "userId",
-            "amountMinor",
-            "subscriptionRef",
-            "cancelledByUser",
-            "feature_disabled",
-        ] {
-            #expect(openAPI.contains(field))
-        }
-    }
 }
 
 private final class CapturingHTTPDataLoader: HTTPDataLoading, @unchecked Sendable {
@@ -365,13 +329,6 @@ private final class AnalyticsRecorderSpy: AnalyticsRecording, @unchecked Sendabl
 
 private func jsonResponse(_ json: String, statusCode: Int = 200) -> HTTPDataResponse {
     HTTPDataResponse(data: Data(json.utf8), statusCode: statusCode)
-}
-
-private func repositoryRoot() -> URL {
-    URL(fileURLWithPath: #filePath)
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
 }
 
 private extension NSLock {

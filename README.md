@@ -15,7 +15,7 @@ The app is 100% Swift and runs entirely on device:
 - **Ingestion:** A framework-free layer (`ios/Sift/Core/FinanceKit/`) maps those transactions and accounts into the domain model (currency-aware, so JPY and other non-cent currencies convert correctly) and feeds the existing recurring-charge detection engine.
 - **Incremental sync:** the live store fetches only transactions since the last successful sync (with a month of overlap), and a `BGAppRefreshTask` refreshes in the background.
 - **Persistence:** `SwiftData` stores accounts, transactions, and detected subscriptions locally.
-- **App lock:** Face ID / Touch ID / passcode gates the app before any balances are shown (`LocalAuthentication`).
+- **App lock:** an opt-in Face ID / Touch ID / passcode gate (`LocalAuthentication`) hides balances until the user authenticates. Off by default until a Settings toggle ships to control it.
 - **Insights:** category spend renders with **Swift Charts**.
 - **No server:** there is no backend, no API keys, and no bank credentials anywhere in the app or repo.
 

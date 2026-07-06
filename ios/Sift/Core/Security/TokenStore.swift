@@ -150,8 +150,9 @@ struct AppLockPreference: Sendable {
         self.defaults = defaults
     }
 
+    // Opt-in until a Settings toggle exists to turn it off; the gate itself is fully wired.
     var isEnabled: Bool {
-        get { defaults.object(forKey: key) as? Bool ?? true }
+        get { defaults.object(forKey: key) as? Bool ?? false }
         nonmutating set { defaults.set(newValue, forKey: key) }
     }
 }
