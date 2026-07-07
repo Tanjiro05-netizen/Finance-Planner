@@ -1,7 +1,7 @@
 import Foundation
+@testable import Sift
 import SwiftData
 import Testing
-@testable import Sift
 
 @MainActor
 struct DetectionServiceTests {
@@ -10,7 +10,7 @@ struct DetectionServiceTests {
         try insertTransactions(
             monthlyPersistentSeries(
                 merchant: "STREAMLINE PLUS",
-                amountByIndex: { index in index < 3 ? 1_199 : 1_399 },
+                amountByIndex: { index in index < 3 ? 1199 : 1399 },
                 firstCharge: date(2026, 1, 1),
                 count: 6
             ),
@@ -24,10 +24,10 @@ struct DetectionServiceTests {
         let priceChanges = try fetchPriceChanges(in: container)
         #expect(result.candidates.count == 1)
         #expect(subscriptions.count == 1)
-        #expect(subscriptions[0].amount == .usd(1_399))
+        #expect(subscriptions[0].amount == .usd(1399))
         #expect(priceChanges.count == 1)
-        #expect(priceChanges[0].oldAmount == .usd(1_199))
-        #expect(priceChanges[0].newAmount == .usd(1_399))
+        #expect(priceChanges[0].oldAmount == .usd(1199))
+        #expect(priceChanges[0].newAmount == .usd(1399))
     }
 
     @Test func rerunUpdatesExistingSubscriptionWithoutDuplicate() async throws {
@@ -35,7 +35,7 @@ struct DetectionServiceTests {
         try insertTransactions(
             monthlyPersistentSeries(
                 merchant: "NETFLIX",
-                amountByIndex: { _ in 1_549 },
+                amountByIndex: { _ in 1549 },
                 firstCharge: date(2026, 1, 15),
                 count: 3
             ),
@@ -48,7 +48,7 @@ struct DetectionServiceTests {
             transaction(
                 id: "netflix-3",
                 merchant: "NETFLIX",
-                amount: 1_549,
+                amount: 1549,
                 date: date(2026, 4, 15)
             ),
         ], into: container)
@@ -98,7 +98,7 @@ private func monthlyPersistentSeries(
     firstCharge: Date,
     count: Int
 ) -> [Transaction] {
-    (0..<count).map { index in
+    (0 ..< count).map { index in
         transaction(
             id: "\(merchant)-\(index)",
             merchant: merchant,

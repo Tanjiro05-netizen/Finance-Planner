@@ -477,7 +477,7 @@ final class LinkedAccountsViewModel {
 
     private func rebuildRows() {
         do {
-            rows = makeRows(from: try repositories.accounts.all())
+            rows = try makeRows(from: repositories.accounts.all())
         } catch {
             errorMessage = userFacingMessage(for: error)
         }
@@ -709,7 +709,7 @@ private struct LinkedAccountRow: View {
 private struct LinkedAccountsLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.sm) {
-            ForEach(0..<2, id: \.self) { _ in
+            ForEach(0 ..< 2, id: \.self) { _ in
                 LinkedAccountRow(
                     row: LinkedAccountRowModel(
                         id: UUID().uuidString,
@@ -930,15 +930,15 @@ struct CategoryRowModel: Identifiable, Equatable {
 
 @MainActor
 final class CategoryService {
-    struct KeywordRule: Sendable {
+    struct KeywordRule {
         let name: String
         let iconToken: String
         let keywords: [String]
     }
 
-    // Keyword map: merchant keys and Plaid categories are lowercased, then matched
-    // against these stable terms. Manual category overrides set categoryManuallySet
-    // and are never changed by automatic categorisation.
+    /// Keyword map: merchant keys and Plaid categories are lowercased, then matched
+    /// against these stable terms. Manual category overrides set categoryManuallySet
+    /// and are never changed by automatic categorisation.
     static let keywordRules: [KeywordRule] = [
         KeywordRule(name: "Streaming", iconToken: "play.rectangle", keywords: ["stream", "netflix", "hulu", "video", "reel", "entertainment"]),
         KeywordRule(name: "Audio", iconToken: "waveform", keywords: ["audio", "music", "spotify", "tonebox", "podcast"]),
@@ -1468,7 +1468,7 @@ struct PrivacyDataView: View {
             switch confirmation {
             case .some(.first):
                 Button("Continue", role: .destructive) {
-                    self.confirmation = .second
+                    confirmation = .second
                 }
                 Button("Cancel", role: .cancel) {}
             case .some(.second):

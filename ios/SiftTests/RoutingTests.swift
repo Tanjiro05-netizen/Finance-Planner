@@ -1,7 +1,7 @@
+@testable import Sift
 import SwiftUI
 import Testing
 import UIKit
-@testable import Sift
 
 @MainActor
 struct RoutingTests {
@@ -49,7 +49,7 @@ struct RoutingTests {
         }
     }
 
-    private func assertBuilds<V: View>(_ view: V) {
+    private func assertBuilds(_ view: some View) {
         let controller = UIHostingController(rootView: view)
         controller.loadViewIfNeeded()
 

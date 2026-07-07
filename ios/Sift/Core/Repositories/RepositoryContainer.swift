@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-struct RepositoryContainer: Sendable {
+struct RepositoryContainer {
     let subscriptions: any SubscriptionRepository
     let accounts: any AccountRepository
     let transactions: any TransactionRepository
@@ -82,105 +82,28 @@ struct RepositoryContainer: Sendable {
     }
 }
 
-private struct RepositoryContainerKey: EnvironmentKey {
-    static let defaultValue = RepositoryContainer.mock()
+extension EnvironmentValues {
+    @Entry var repositories: RepositoryContainer = .mock()
 }
 
 extension EnvironmentValues {
-    var repositories: RepositoryContainer {
-        get { self[RepositoryContainerKey.self] }
-        set { self[RepositoryContainerKey.self] = newValue }
-    }
-}
+    @Entry var apiClient: any SiftAPIClient = MockSiftAPIClient()
 
-private struct APIClientKey: EnvironmentKey {
-    static let defaultValue: any SiftAPIClient = MockSiftAPIClient()
-}
+    @Entry var plaidLinkPresenter: any PlaidLinkPresenting = MockPlaidLinkPresenter(result: .cancelled)
 
-private struct PlaidLinkPresenterKey: EnvironmentKey {
-    static let defaultValue: any PlaidLinkPresenting = MockPlaidLinkPresenter(result: .cancelled)
-}
+    @Entry var detectionService: any DetectionServing = MockDetectionService()
 
-private struct DetectionServiceKey: EnvironmentKey {
-    static let defaultValue: any DetectionServing = MockDetectionService()
-}
+    @Entry var notificationAuthorizer: any NotificationAuthorizing = MockNotificationAuthorizer()
 
-private struct NotificationAuthorizerKey: EnvironmentKey {
-    static let defaultValue: any NotificationAuthorizing = MockNotificationAuthorizer()
-}
+    @Entry var notificationScheduler: any NotificationScheduling = NoopNotificationScheduler()
 
-private struct NotificationSchedulerKey: EnvironmentKey {
-    static let defaultValue: any NotificationScheduling = NoopNotificationScheduler()
-}
+    @Entry var notificationRouter: NotificationRouter = .init()
 
-private struct NotificationRouterKey: EnvironmentKey {
-    static let defaultValue = NotificationRouter()
-}
+    @Entry var onboardingStateStore: any OnboardingStateStoring = InMemoryOnboardingStateStore()
 
-private struct OnboardingStateStoreKey: EnvironmentKey {
-    static let defaultValue: any OnboardingStateStoring = InMemoryOnboardingStateStore()
-}
+    @Entry var tokenStore: any TokenStoring = KeychainTokenStore()
 
-private struct TokenStoreKey: EnvironmentKey {
-    static let defaultValue: any TokenStoring = KeychainTokenStore()
-}
+    @Entry var featureFlags: SiftFeatureFlags = .launchDefault
 
-private struct FeatureFlagsKey: EnvironmentKey {
-    static let defaultValue = SiftFeatureFlags.launchDefault
-}
-
-private struct AnalyticsRecorderKey: EnvironmentKey {
-    static let defaultValue: any AnalyticsRecording = NoopAnalyticsRecorder()
-}
-
-extension EnvironmentValues {
-    var apiClient: any SiftAPIClient {
-        get { self[APIClientKey.self] }
-        set { self[APIClientKey.self] = newValue }
-    }
-
-    var plaidLinkPresenter: any PlaidLinkPresenting {
-        get { self[PlaidLinkPresenterKey.self] }
-        set { self[PlaidLinkPresenterKey.self] = newValue }
-    }
-
-    var detectionService: any DetectionServing {
-        get { self[DetectionServiceKey.self] }
-        set { self[DetectionServiceKey.self] = newValue }
-    }
-
-    var notificationAuthorizer: any NotificationAuthorizing {
-        get { self[NotificationAuthorizerKey.self] }
-        set { self[NotificationAuthorizerKey.self] = newValue }
-    }
-
-    var notificationScheduler: any NotificationScheduling {
-        get { self[NotificationSchedulerKey.self] }
-        set { self[NotificationSchedulerKey.self] = newValue }
-    }
-
-    var notificationRouter: NotificationRouter {
-        get { self[NotificationRouterKey.self] }
-        set { self[NotificationRouterKey.self] = newValue }
-    }
-
-    var onboardingStateStore: any OnboardingStateStoring {
-        get { self[OnboardingStateStoreKey.self] }
-        set { self[OnboardingStateStoreKey.self] = newValue }
-    }
-
-    var tokenStore: any TokenStoring {
-        get { self[TokenStoreKey.self] }
-        set { self[TokenStoreKey.self] = newValue }
-    }
-
-    var featureFlags: SiftFeatureFlags {
-        get { self[FeatureFlagsKey.self] }
-        set { self[FeatureFlagsKey.self] = newValue }
-    }
-
-    var analyticsRecorder: any AnalyticsRecording {
-        get { self[AnalyticsRecorderKey.self] }
-        set { self[AnalyticsRecorderKey.self] = newValue }
-    }
+    @Entry var analyticsRecorder: any AnalyticsRecording = NoopAnalyticsRecorder()
 }

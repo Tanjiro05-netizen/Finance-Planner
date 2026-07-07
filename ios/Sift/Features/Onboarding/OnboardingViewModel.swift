@@ -2,7 +2,7 @@ import Foundation
 import Observation
 import UserNotifications
 
-enum OnboardingStep: Int, CaseIterable, Sendable {
+enum OnboardingStep: Int, CaseIterable {
     case splash
     case welcome
     case connectIntro
@@ -16,7 +16,7 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
 }
 
 /// Why the Apple Wallet connection produced nothing to scan.
-enum ConnectUnavailableReason: Sendable {
+enum ConnectUnavailableReason {
     /// The person declined the FinanceKit permission prompt.
     case accessDenied
     /// Access was granted but there is no Apple Card / Cash / Pay activity to read.

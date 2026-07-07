@@ -1,6 +1,6 @@
 import Foundation
 
-struct DetectionEngine: Sendable {
+struct DetectionEngine {
     var confidenceThreshold = 0.60
     var normalizer = MerchantNormalizer()
 
@@ -184,10 +184,10 @@ struct DetectionEngine: Sendable {
         }
 
         let tolerance = amountTolerance(for: currentAmount)
-        let stableCount = amounts.filter { amount in
+        let stableCount = amounts.count(where: { amount in
             amount.currency == currentAmount.currency
                 && abs(amount.amountMinor - currentAmount.amountMinor) <= tolerance
-        }.count
+        })
         let rawScore = Double(stableCount) / Double(amounts.count)
 
         if hasPriceChange {
@@ -274,11 +274,11 @@ struct DetectionEngine: Sendable {
         }
 
         let trialCeiling = max(100, standardAmount.amountMinor / 5)
-        let laterStandardChargeCount = transactions.dropFirst().filter { transaction in
+        let laterStandardChargeCount = transactions.dropFirst().count(where: { transaction in
             let amount = transaction.transaction.amount
             return amount.currency == standardAmount.currency
                 && abs(amount.amountMinor - standardAmount.amountMinor) <= amountTolerance(for: standardAmount)
-        }.count
+        })
 
         return first.amountMinor <= trialCeiling && laterStandardChargeCount >= 2
     }
@@ -352,26 +352,26 @@ struct DetectionEngine: Sendable {
     }
 }
 
-private struct NormalizedTransaction: Sendable {
+private struct NormalizedTransaction {
     let transaction: Txn
     let merchant: NormalizedMerchant
 }
 
-private struct CadenceMatch: Sendable {
+private struct CadenceMatch {
     let cadence: Cadence
     let regularity: Double
 }
 
-private struct AmountObservation: Sendable {
+private struct AmountObservation {
     let date: Date
     let amount: Money
 }
 
-private struct AmountSegment: Sendable {
+private struct AmountSegment {
     var observations: [AmountObservation]
 }
 
-private struct MerchantAnalysis: Sendable {
+private struct MerchantAnalysis {
     let candidate: SubscriptionCandidate
     let priceChanges: [DetectedPriceChange]
 }

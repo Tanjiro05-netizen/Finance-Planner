@@ -1,13 +1,13 @@
 import SwiftUI
 
-struct RGBAComponents: Equatable, Sendable {
+struct RGBAComponents: Equatable {
     let red: UInt8
     let green: UInt8
     let blue: UInt8
     let alpha: Double
 }
 
-enum ColorToken: String, Codable, CaseIterable, Sendable {
+enum ColorToken: String, Codable, CaseIterable {
     case ink
     case inkSoft
     case inkFaint
@@ -46,17 +46,49 @@ enum ColorToken: String, Codable, CaseIterable, Sendable {
 }
 
 enum Palette {
-    static var ink: Color { ColorToken.ink.color }
-    static var inkSoft: Color { ColorToken.inkSoft.color }
-    static var inkFaint: Color { ColorToken.inkFaint.color }
-    static var bone: Color { ColorToken.bone.color }
-    static var card: Color { ColorToken.card.color }
-    static var sand: Color { ColorToken.sand.color }
-    static var line: Color { ColorToken.line.color }
-    static var gold: Color { ColorToken.gold.color }
-    static var goldDeep: Color { ColorToken.goldDeep.color }
-    static var clay: Color { ColorToken.clay.color }
-    static var green: Color { ColorToken.green.color }
+    static var ink: Color {
+        ColorToken.ink.color
+    }
+
+    static var inkSoft: Color {
+        ColorToken.inkSoft.color
+    }
+
+    static var inkFaint: Color {
+        ColorToken.inkFaint.color
+    }
+
+    static var bone: Color {
+        ColorToken.bone.color
+    }
+
+    static var card: Color {
+        ColorToken.card.color
+    }
+
+    static var sand: Color {
+        ColorToken.sand.color
+    }
+
+    static var line: Color {
+        ColorToken.line.color
+    }
+
+    static var gold: Color {
+        ColorToken.gold.color
+    }
+
+    static var goldDeep: Color {
+        ColorToken.goldDeep.color
+    }
+
+    static var clay: Color {
+        ColorToken.clay.color
+    }
+
+    static var green: Color {
+        ColorToken.green.color
+    }
 
     static func rgba(_ token: ColorToken) -> RGBAComponents {
         token.components
@@ -134,10 +166,10 @@ private func parseHex(_ hex: String) -> RGBAComponents {
         )
     case 8:
         return RGBAComponents(
-            red: UInt8((value & 0xFF000000) >> 24),
-            green: UInt8((value & 0x00FF0000) >> 16),
-            blue: UInt8((value & 0x0000FF00) >> 8),
-            alpha: Double(value & 0x000000FF) / 255.0
+            red: UInt8((value & 0xFF00_0000) >> 24),
+            green: UInt8((value & 0x00FF_0000) >> 16),
+            blue: UInt8((value & 0x0000_FF00) >> 8),
+            alpha: Double(value & 0x0000_00FF) / 255.0
         )
     default:
         assertionFailure("Invalid color token")

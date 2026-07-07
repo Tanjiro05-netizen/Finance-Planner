@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Sift
+import Testing
 
 struct SettingsSupportTests {
     @Test func metadataBuildsVersionSummaryAndSafeFeedbackURL() throws {

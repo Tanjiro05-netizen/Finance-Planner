@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Sift
+import Testing
 
 struct FinanceKitAdaptersTests {
     private let referenceDate = Date(timeIntervalSince1970: 1_735_000_000)
@@ -20,7 +20,7 @@ struct FinanceKitAdaptersTests {
             merchantName: merchant,
             amount: amount,
             currencyCode: currency,
-            date: referenceDate.addingTimeInterval(TimeInterval(-daysAgo * 86_400)),
+            date: referenceDate.addingTimeInterval(TimeInterval(-daysAgo * 86400)),
             isPending: isPending,
             isDebit: isDebit
         )
@@ -28,16 +28,16 @@ struct FinanceKitAdaptersTests {
 
     // MARK: - Mapper
 
-    @Test func minorUnitsRoundsToCents() {
-        #expect(FinancialDataMapper.minorUnits(from: Decimal(string: "15.49")!) == 1549)
-        #expect(FinancialDataMapper.minorUnits(from: Decimal(string: "9.999")!) == 1000)
-        #expect(FinancialDataMapper.minorUnits(from: Decimal(string: "-12.30")!) == 1230)
+    @Test func minorUnitsRoundsToCents() throws {
+        #expect(try FinancialDataMapper.minorUnits(from: #require(Decimal(string: "15.49"))) == 1549)
+        #expect(try FinancialDataMapper.minorUnits(from: #require(Decimal(string: "9.999"))) == 1000)
+        #expect(try FinancialDataMapper.minorUnits(from: #require(Decimal(string: "-12.30"))) == 1230)
         #expect(FinancialDataMapper.minorUnits(from: Decimal(0)) == 0)
     }
 
-    @Test func remoteTransactionCarriesUserAndMagnitude() {
-        let mapped = FinancialDataMapper.remoteTransaction(
-            from: snapshot(id: "t1", merchant: "Tonebox", amount: Decimal(string: "-9.99")!, daysAgo: 0),
+    @Test func remoteTransactionCarriesUserAndMagnitude() throws {
+        let mapped = try FinancialDataMapper.remoteTransaction(
+            from: snapshot(id: "t1", merchant: "Tonebox", amount: #require(Decimal(string: "-9.99")), daysAgo: 0),
             userID: "user-42"
         )
 
@@ -63,10 +63,10 @@ struct FinanceKitAdaptersTests {
         #expect(liability.name == "Apple Card")
     }
 
-    @Test func minorUnitsRespectsCurrencyScale() {
-        #expect(FinancialDataMapper.minorUnits(from: Decimal(string: "1500")!, currencyCode: "JPY") == 1500)
-        #expect(FinancialDataMapper.minorUnits(from: Decimal(string: "15.49")!, currencyCode: "USD") == 1549)
-        #expect(FinancialDataMapper.minorUnits(from: Decimal(string: "1.234")!, currencyCode: "BHD") == 1234)
+    @Test func minorUnitsRespectsCurrencyScale() throws {
+        #expect(try FinancialDataMapper.minorUnits(from: #require(Decimal(string: "1500")), currencyCode: "JPY") == 1500)
+        #expect(try FinancialDataMapper.minorUnits(from: #require(Decimal(string: "15.49")), currencyCode: "USD") == 1549)
+        #expect(try FinancialDataMapper.minorUnits(from: #require(Decimal(string: "1.234")), currencyCode: "BHD") == 1234)
         #expect(FinancialDataMapper.fractionDigits(for: "jpy") == 0)
         #expect(FinancialDataMapper.fractionDigits(for: "kwd") == 3)
         #expect(FinancialDataMapper.fractionDigits(for: "eur") == 2)
@@ -96,13 +96,13 @@ struct FinanceKitAdaptersTests {
 
     @Test func syncWindowUsesOverlapAfterPriorSync() {
         let now = Date(timeIntervalSince1970: 2_000_000_000)
-        let last = now.addingTimeInterval(-10 * 86_400)
+        let last = now.addingTimeInterval(-10 * 86400)
         let start = FinancialSyncWindow.startDate(lastSync: last, now: now)
         #expect(start == last.addingTimeInterval(-FinancialSyncWindow.overlap))
     }
 
-    @Test func userDefaultsSyncStateRoundTrips() {
-        let defaults = UserDefaults(suiteName: "sift-test-\(UUID().uuidString)")!
+    @Test func userDefaultsSyncStateRoundTrips() throws {
+        let defaults = try #require(UserDefaults(suiteName: "sift-test-\(UUID().uuidString)"))
         let state = UserDefaultsFinancialSyncState(defaults: defaults)
 
         #expect(state.lastSyncDate == nil)

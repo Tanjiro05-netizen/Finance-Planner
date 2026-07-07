@@ -1,7 +1,7 @@
+@testable import Sift
 import SwiftUI
 import Testing
 import UIKit
-@testable import Sift
 
 @MainActor
 struct CoreScreensRenderTests {
@@ -41,12 +41,12 @@ struct CoreScreensRenderTests {
         }
     }
 
-    private func assertRenders<Content: View>(@ViewBuilder content: () -> Content) {
+    private func assertRenders(@ViewBuilder content: () -> some View) {
         render(content(), dynamicTypeSize: .large)
         render(content(), dynamicTypeSize: .accessibility2)
     }
 
-    private func render<Content: View>(_ content: Content, dynamicTypeSize: DynamicTypeSize) {
+    private func render(_ content: some View, dynamicTypeSize: DynamicTypeSize) {
         let controller = UIHostingController(
             rootView: NavigationStack {
                 content

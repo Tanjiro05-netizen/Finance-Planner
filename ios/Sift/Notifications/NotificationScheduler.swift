@@ -1,13 +1,13 @@
 import Foundation
 import UserNotifications
 
-enum NotificationAuthorizationState: Equatable, Sendable {
+enum NotificationAuthorizationState: Equatable {
     case authorized
     case denied
     case notDetermined
 }
 
-struct NotificationReconcileResult: Equatable, Sendable {
+struct NotificationReconcileResult: Equatable {
     let authorizationState: NotificationAuthorizationState
     let scheduledIdentifiers: [String]
     let cancelledIdentifiers: [String]
@@ -298,7 +298,7 @@ final class NotificationScheduler: NotificationScheduling, @unchecked Sendable {
         let summary = WeeklyNotificationSummary(
             monthlyTotal: monthlyTotal,
             activeSubscriptionCount: subscriptions.count,
-            recentPriceChangeCount: priceChanges.filter { $0.changedAt >= weekCutoff }.count
+            recentPriceChangeCount: priceChanges.count(where: { $0.changedAt >= weekCutoff })
         )
 
         var components = DateComponents()

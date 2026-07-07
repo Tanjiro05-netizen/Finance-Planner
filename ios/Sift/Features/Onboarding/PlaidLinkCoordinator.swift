@@ -1,17 +1,17 @@
 import LinkKit
 import SwiftUI
 
-enum PlaidLinkResult: Equatable, Sendable {
+enum PlaidLinkResult: Equatable {
     case success(publicToken: String)
     case cancelled
 }
 
-enum PlaidLinkOutcome: Equatable, Sendable {
+enum PlaidLinkOutcome: Equatable {
     case linked
     case cancelled
 }
 
-struct BankInstitution: Identifiable, Equatable, Sendable {
+struct BankInstitution: Identifiable, Equatable {
     let id: String
     let name: String
     let monogram: String
@@ -48,7 +48,7 @@ struct PlaidLinkCoordinator: OnboardingLinkCoordinating {
         let result = try await presenter.link(with: token, institutionName: institution?.name)
 
         switch result {
-        case .success(let publicToken):
+        case let .success(publicToken):
             _ = try await apiClient.exchange(publicToken: publicToken)
             return .linked
         case .cancelled:
@@ -65,7 +65,7 @@ final class LinkKitPlaidLinkPresenter: PlaidLinkPresenting {
     private var session: PlaidLinkSession?
     private var continuation: CheckedContinuation<PlaidLinkResult, Error>?
 
-    func link(with linkToken: String, institutionName: String?) async throws -> PlaidLinkResult {
+    func link(with linkToken: String, institutionName _: String?) async throws -> PlaidLinkResult {
         try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
             do {
@@ -107,8 +107,6 @@ final class LinkKitPlaidLinkPresenter: PlaidLinkPresenting {
     func sheet() -> some View {
         if let session {
             session.sheet()
-        } else {
-            EmptyView()
         }
     }
 
@@ -135,7 +133,7 @@ final class MockPlaidLinkPresenter: PlaidLinkPresenting, @unchecked Sendable {
     }
 
     @MainActor
-    func link(with linkToken: String, institutionName: String?) async throws -> PlaidLinkResult {
+    func link(with _: String, institutionName _: String?) async throws -> PlaidLinkResult {
         result
     }
 }

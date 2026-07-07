@@ -141,7 +141,7 @@ struct MockBiometricAuthenticator: BiometricAuthenticating {
 }
 
 /// Persisted preference for requiring authentication when Sift opens. Defaults on.
-struct AppLockPreference: Sendable {
+struct AppLockPreference {
     // UserDefaults is thread-safe but not marked Sendable.
     private nonisolated(unsafe) let defaults: UserDefaults
     private let key = "sift.appLock.enabled"
@@ -150,7 +150,7 @@ struct AppLockPreference: Sendable {
         self.defaults = defaults
     }
 
-    // Opt-in until a Settings toggle exists to turn it off; the gate itself is fully wired.
+    /// Opt-in until a Settings toggle exists to turn it off; the gate itself is fully wired.
     var isEnabled: Bool {
         get { defaults.object(forKey: key) as? Bool ?? false }
         nonmutating set { defaults.set(newValue, forKey: key) }

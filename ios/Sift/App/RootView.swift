@@ -137,7 +137,7 @@ struct RootView: View {
                 featureFlags: featureFlags,
                 analyticsRecorder: analyticsRecorder
             )
-                .environment(appModel)
+            .environment(appModel)
         }
     }
 
@@ -163,7 +163,7 @@ struct RootView: View {
                     detectionService: detectionService,
                     notificationScheduler: notificationScheduler
                 )
-                    .withHomeDestinations()
+                .withHomeDestinations()
             }
         } label: {
             tabLabel(for: .home, selectedTab: selectedTab)
@@ -179,7 +179,7 @@ struct RootView: View {
                     detectionService: detectionService,
                     notificationScheduler: notificationScheduler
                 )
-                    .withSubscriptionsDestinations()
+                .withSubscriptionsDestinations()
             }
         } label: {
             tabLabel(for: .subscriptions, selectedTab: selectedTab)
@@ -195,7 +195,7 @@ struct RootView: View {
                     detectionService: detectionService,
                     notificationScheduler: notificationScheduler
                 )
-                    .withInsightsDestinations()
+                .withInsightsDestinations()
             }
         } label: {
             tabLabel(for: .insights, selectedTab: selectedTab)
@@ -269,22 +269,8 @@ struct LockView: View {
     }
 }
 
-private struct BiometricAuthenticatorKey: EnvironmentKey {
-    static let defaultValue: any BiometricAuthenticating = MockBiometricAuthenticator(available: false)
-}
-
-private struct AppLockEnabledKey: EnvironmentKey {
-    static let defaultValue = false
-}
-
 extension EnvironmentValues {
-    var biometricAuthenticator: any BiometricAuthenticating {
-        get { self[BiometricAuthenticatorKey.self] }
-        set { self[BiometricAuthenticatorKey.self] = newValue }
-    }
+    @Entry var biometricAuthenticator: any BiometricAuthenticating = MockBiometricAuthenticator(available: false)
 
-    var appLockEnabled: Bool {
-        get { self[AppLockEnabledKey.self] }
-        set { self[AppLockEnabledKey.self] = newValue }
-    }
+    @Entry var appLockEnabled: Bool = false
 }

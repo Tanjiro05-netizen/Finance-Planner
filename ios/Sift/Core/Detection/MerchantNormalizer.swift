@@ -1,13 +1,13 @@
 import Foundation
 
-struct NormalizedMerchant: Equatable, Sendable {
+struct NormalizedMerchant: Equatable {
     let merchantKey: MerchantKey
     let displayName: String
     let isKnownAlias: Bool
 }
 
-struct MerchantNormalizer: Sendable {
-    private struct Alias: Sendable {
+struct MerchantNormalizer {
+    private struct Alias {
         let canonicalName: String
         let patterns: [String]
     }
@@ -36,11 +36,11 @@ struct MerchantNormalizer: Sendable {
     private static let removableTokens: Set<String> = [
         "auth", "authorization", "card", "charge", "chkcard", "debit", "digital",
         "inc", "llc", "ltd", "monthly", "online", "payment", "pos", "purchase",
-        "recurring", "services", "subscription", "usa", "visa", "web"
+        "recurring", "services", "subscription", "usa", "visa", "web",
     ]
 
     private static let trailingLocationTokens: Set<String> = [
-        "ca", "gatos", "los", "ny", "nyc", "new", "san", "seattle", "wa", "york"
+        "ca", "gatos", "los", "ny", "nyc", "new", "san", "seattle", "wa", "york",
     ]
 
     func normalize(_ merchantRaw: String) -> NormalizedMerchant {

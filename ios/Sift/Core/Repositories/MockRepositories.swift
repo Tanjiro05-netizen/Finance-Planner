@@ -147,7 +147,7 @@ final class MockTransactionRepository: TransactionRepository, @unchecked Sendabl
 
     @MainActor
     func recent(limit: Int) throws -> [Transaction] {
-        Array(try all().prefix(limit))
+        try Array(all().prefix(limit))
     }
 
     @MainActor

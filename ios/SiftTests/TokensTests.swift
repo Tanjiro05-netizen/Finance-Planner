@@ -1,6 +1,6 @@
+@testable import Sift
 import SwiftUI
 import Testing
-@testable import Sift
 
 struct TokensTests {
     @Test func hexParsingProducesExpectedRGBA() {

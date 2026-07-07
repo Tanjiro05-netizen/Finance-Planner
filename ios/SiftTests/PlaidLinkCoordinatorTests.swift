@@ -1,5 +1,5 @@
-import Testing
 @testable import Sift
+import Testing
 
 @MainActor
 struct PlaidLinkCoordinatorTests {

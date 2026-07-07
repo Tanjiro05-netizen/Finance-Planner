@@ -1,6 +1,6 @@
 import Foundation
 
-struct SubscriptionRefreshResult: Equatable, Sendable {
+struct SubscriptionRefreshResult: Equatable {
     let synced: TransactionSyncResponse
     let importedTransactionCount: Int
     let detectionResult: DetectionResult

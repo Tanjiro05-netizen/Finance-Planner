@@ -68,7 +68,7 @@ struct PageDots: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(0..<count, id: \.self) { index in
+            ForEach(0 ..< count, id: \.self) { index in
                 Capsule()
                     .fill(index == currentIndex ? Palette.ink : Palette.sand)
                     .frame(width: index == currentIndex ? 18 : 7, height: 7)

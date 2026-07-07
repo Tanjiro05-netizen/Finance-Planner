@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Sift
+import Testing
 
 @MainActor
 struct CoreScreensViewModelTests {
@@ -13,7 +13,7 @@ struct CoreScreensViewModelTests {
 
         viewModel.load()
 
-        #expect(viewModel.monthlyTotal == Money.usd(24_783))
+        #expect(viewModel.monthlyTotal == Money.usd(24783))
         #expect(viewModel.subscriptionCount == 11)
         #expect(viewModel.renewThisWeekCount == 3)
         #expect(viewModel.unusedNudge?.id == SeedData.ID.creativeCloud)
@@ -51,10 +51,10 @@ struct CoreScreensViewModelTests {
 
         await viewModel.load()
 
-        #expect(viewModel.potentialSavings == Money.usd(14_600))
+        #expect(viewModel.potentialSavings == Money.usd(14600))
         #expect(viewModel.annualSavings == Money.usd(175_200))
         #expect(viewModel.categorySpend.first?.name == "Design")
-        #expect(viewModel.categorySpend.first?.total == Money.usd(8_436))
+        #expect(viewModel.categorySpend.first?.total == Money.usd(8436))
         #expect(viewModel.priceChangeRows.count == 1)
         #expect(viewModel.priceChangeRows.first?.subscriptionName == "Streamline+")
     }
@@ -73,10 +73,10 @@ struct CoreScreensViewModelTests {
         monthlyViewModel.load()
         yearlyViewModel.load()
 
-        #expect(monthlyViewModel.monthlyCost == Money.usd(1_549))
-        #expect(monthlyViewModel.annualCost == Money.usd(18_588))
+        #expect(monthlyViewModel.monthlyCost == Money.usd(1549))
+        #expect(monthlyViewModel.annualCost == Money.usd(18588))
         #expect(yearlyViewModel.monthlyCost == Money.usd(999))
-        #expect(yearlyViewModel.annualCost == Money.usd(11_988))
+        #expect(yearlyViewModel.annualCost == Money.usd(11988))
     }
 
     @Test func refreshCallsSharedRefreshService() async {

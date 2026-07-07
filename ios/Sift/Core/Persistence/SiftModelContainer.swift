@@ -30,4 +30,3 @@ enum SiftModelContainerFactory {
         return container
     }
 }
-

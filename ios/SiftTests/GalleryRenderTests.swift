@@ -1,7 +1,7 @@
+@testable import Sift
 import SwiftUI
 import Testing
 import UIKit
-@testable import Sift
 
 struct GalleryRenderTests {
     @Test @MainActor func componentGalleryBuildsWithoutRuntimeErrors() {

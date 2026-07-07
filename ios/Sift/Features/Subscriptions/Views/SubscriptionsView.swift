@@ -217,7 +217,7 @@ private struct SubscriptionsLoadingView: View {
                     .font(.siftBody)
             }
 
-            ForEach(0..<5, id: \.self) { _ in
+            ForEach(0 ..< 5, id: \.self) { _ in
                 SubscriptionRow(
                     letter: "S",
                     color: Palette.inkFaint,

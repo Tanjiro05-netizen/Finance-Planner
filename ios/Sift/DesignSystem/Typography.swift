@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-enum SiftFontPostScriptName: String, CaseIterable, Sendable {
+enum SiftFontPostScriptName: String, CaseIterable {
     case frauncesRegular = "Fraunces-9pt"
     case frauncesSemiBold = "Fraunces-9ptSemiBold"
     case frauncesBold = "Fraunces-9ptBold"
@@ -20,7 +20,7 @@ enum SiftFontPostScriptName: String, CaseIterable, Sendable {
     }
 }
 
-enum SiftFontFamily: CaseIterable, Sendable {
+enum SiftFontFamily: CaseIterable {
     case fraunces
     case plusJakartaSans
     case ibmPlexMono
@@ -79,7 +79,7 @@ extension Font {
     }
 }
 
-struct MoneyTextParts: Equatable, Sendable {
+struct MoneyTextParts: Equatable {
     let symbol: String
     let major: String
     let fractional: String?

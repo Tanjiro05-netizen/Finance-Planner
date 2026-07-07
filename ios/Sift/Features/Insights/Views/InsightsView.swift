@@ -156,7 +156,7 @@ private struct CategorySpendCard: View {
                     .accessibilityValue("\(row.total.formatted()) per month")
                 }
                 .chartXAxis(.hidden)
-                .chartXScale(domain: 0...domainMax)
+                .chartXScale(domain: 0 ... domainMax)
                 .frame(height: CGFloat(rows.count) * 44 + 8)
             }
         }
@@ -322,10 +322,10 @@ private struct InsightsLoadingView: View {
             SiftCard {
                 Text("CATEGORY SPEND")
                     .font(.siftLabel)
-                ForEach(0..<4, id: \.self) { _ in
+                ForEach(0 ..< 4, id: \.self) { _ in
                     CategorySpendBar(
-                        row: CategorySpend(id: UUID().uuidString, name: "Category", total: .usd(10_000)),
-                        maxSpend: .usd(10_000)
+                        row: CategorySpend(id: UUID().uuidString, name: "Category", total: .usd(10000)),
+                        maxSpend: .usd(10000)
                     )
                 }
             }

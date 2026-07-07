@@ -1,7 +1,7 @@
 import Foundation
+@testable import Sift
 import SwiftData
 import Testing
-@testable import Sift
 
 @MainActor
 struct SubscriptionRepositoryTests {
@@ -10,7 +10,7 @@ struct SubscriptionRepositoryTests {
 
         let total = try fixture.repository.monthlyTotal()
 
-        #expect(total == Money.usd(24_783))
+        #expect(total == Money.usd(24783))
         #expect(total.formatted() == "$247.83")
     }
 
@@ -47,7 +47,7 @@ struct SubscriptionRepositoryTests {
 
         let savings = try fixture.repository.potentialSavings(referenceDate: SeedData.referenceDate, staleAfterDays: 60)
 
-        #expect(savings == Money.usd(14_600))
+        #expect(savings == Money.usd(14600))
         #expect(savings.formatted(showZeroFraction: false) == "$146")
     }
 

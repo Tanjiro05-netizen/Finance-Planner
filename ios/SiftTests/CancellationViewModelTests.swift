@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Sift
+import Testing
 
 @MainActor
 struct CancellationViewModelTests {
@@ -63,7 +63,7 @@ struct CancellationViewModelTests {
         #expect(viewModel.stage == .confirmed)
         #expect(viewModel.request?.status == .confirmed)
         #expect(try repositories.subscriptions.subscription(id: SeedData.ID.streamline)?.status == .cancelled)
-        #expect(try repositories.subscriptions.monthlyTotal() == Money.usd(23_234))
+        #expect(try repositories.subscriptions.monthlyTotal() == Money.usd(23234))
     }
 
     @Test func guidedUserConfirmationSetsCancelledByUser() async throws {

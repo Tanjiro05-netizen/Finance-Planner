@@ -271,7 +271,7 @@ private struct DashboardLoadingView: View {
                 RenewalTimelineStrip(marks: [], monthLabel: "JULY")
             }
 
-            ForEach(0..<3, id: \.self) { _ in
+            ForEach(0 ..< 3, id: \.self) { _ in
                 SubscriptionRow(
                     letter: "S",
                     color: Palette.inkFaint,

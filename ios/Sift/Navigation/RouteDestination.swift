@@ -14,7 +14,7 @@ enum RouteDestination {
     @ViewBuilder
     static func subscriptions(_ route: SubscriptionsRoute) -> some View {
         switch route {
-        case .detail(let id):
+        case let .detail(id):
             SubscriptionDetailRouteView(subscriptionID: id)
         }
     }
@@ -40,7 +40,7 @@ enum RouteDestination {
         analyticsRecorder: any AnalyticsRecording = NoopAnalyticsRecorder()
     ) -> some View {
         switch sheet {
-        case .subscriptionDetail(let id):
+        case let .subscriptionDetail(id):
             DetailSheetView(
                 subscriptionID: id,
                 repositories: repositories,
@@ -48,7 +48,7 @@ enum RouteDestination {
                 detectionService: detectionService,
                 notificationScheduler: notificationScheduler
             )
-        case .cancellation(let subscriptionID):
+        case let .cancellation(subscriptionID):
             CancelFlowSheetView(
                 subscriptionID: subscriptionID,
                 repositories: repositories,

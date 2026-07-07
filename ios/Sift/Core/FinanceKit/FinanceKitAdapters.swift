@@ -65,7 +65,7 @@ struct FinanceKitAPIClient: SiftAPIClient {
             return []
         }
 
-        return charges[start..<end].map {
+        return charges[start ..< end].map {
             FinancialDataMapper.remoteTransaction(from: $0, userID: userID)
         }
     }
@@ -104,7 +104,7 @@ struct FinanceKitAPIClient: SiftAPIClient {
             return []
         }
 
-        return FinancialDataMapper.spendTransactions(from: try await store.fetchTransactions())
+        return try await FinancialDataMapper.spendTransactions(from: store.fetchTransactions())
     }
 
     private func authorizedSnapshotAccounts() async throws -> [FinancialAccountSnapshot] {

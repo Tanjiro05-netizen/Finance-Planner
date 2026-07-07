@@ -1,6 +1,6 @@
+@testable import Sift
 import Testing
 import UIKit
-@testable import Sift
 
 struct TypographyTests {
     @Test @MainActor func semanticFontsResolveToBundledFaces() {

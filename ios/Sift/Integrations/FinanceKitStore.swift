@@ -2,111 +2,125 @@ import Foundation
 import LocalAuthentication
 
 #if canImport(BackgroundTasks)
-@preconcurrency import BackgroundTasks
+    @preconcurrency import BackgroundTasks
 #endif
 
 #if canImport(FinanceKit)
-import FinanceKit
+    import FinanceKit
 
-/// Live `FinancialDataStore` backed by Apple's FinanceKit. Reads the person's real
-/// Apple Card / Apple Cash / Apple Pay accounts and transactions on-device.
-///
-/// Using this at runtime requires the `com.apple.developer.financekit` entitlement
-/// (granted per bundle ID by Apple), a real device in a supported region, and the
-/// `NSFinancialDataUsageDescription` string in Info.plist. On the Simulator
-/// `isDataAvailable()` returns `false`, and every fetch degrades to an empty result.
-struct FinanceKitStore: FinancialDataStore {
-    private let syncState: any FinancialSyncStateStoring
+    /// Live `FinancialDataStore` backed by Apple's FinanceKit. Reads the person's real
+    /// Apple Card / Apple Cash / Apple Pay accounts and transactions on-device.
+    ///
+    /// Using this at runtime requires the `com.apple.developer.financekit` entitlement
+    /// (granted per bundle ID by Apple), a real device in a supported region, and the
+    /// `NSFinancialDataUsageDescription` string in Info.plist. On the Simulator
+    /// `isDataAvailable()` returns `false`, and every fetch degrades to an empty result.
+    struct FinanceKitStore: FinancialDataStore {
+        private let syncState: any FinancialSyncStateStoring
 
-    init(syncState: any FinancialSyncStateStoring = UserDefaultsFinancialSyncState()) {
-        self.syncState = syncState
-    }
-
-    func isDataAvailable() -> Bool {
-        FinanceStore.isDataAvailable(.financialData)
-    }
-
-    func authorizationStatus() async throws -> FinancialAuthorization {
-        Self.map(try await FinanceStore.shared.authorizationStatus())
-    }
-
-    func requestAuthorization() async throws -> FinancialAuthorization {
-        Self.map(try await FinanceStore.shared.requestAuthorization())
-    }
-
-    func fetchAccounts() async throws -> [FinancialAccountSnapshot] {
-        let query = AccountQuery(sortDescriptors: [], predicate: nil, limit: nil, offset: nil)
-        return try await FinanceStore.shared.accounts(query: query).map(Self.snapshot(from:))
-    }
-
-    /// Incremental fetch: only transactions since the last successful sync (with a
-    /// month of overlap), instead of the full history each time. On the first sync this
-    /// looks back roughly six months.
-    func fetchTransactions() async throws -> [FinancialTransactionSnapshot] {
-        let now = Date()
-        let start = FinancialSyncWindow.startDate(lastSync: syncState.lastSyncDate, now: now)
-        let predicate = #Predicate<FinanceKit.Transaction> { transaction in
-            transaction.transactionDate >= start
+        init(syncState: any FinancialSyncStateStoring = UserDefaultsFinancialSyncState()) {
+            self.syncState = syncState
         }
-        let query = TransactionQuery(
-            sortDescriptors: [SortDescriptor(\.transactionDate, order: .reverse)],
-            predicate: predicate,
-            limit: nil,
-            offset: nil
-        )
-        let snapshots = try await FinanceStore.shared.transactions(query: query).map(Self.snapshot(from:))
-        syncState.recordSync(at: now)
-        return snapshots
-    }
 
-    private static func map(_ status: AuthorizationStatus) -> FinancialAuthorization {
-        switch status {
-        case .authorized:
-            .authorized
-        case .denied:
-            .denied
-        case .notDetermined:
-            .notDetermined
-        @unknown default:
-            .notDetermined
+        func isDataAvailable() -> Bool {
+            FinanceStore.isDataAvailable(.financialData)
+        }
+
+        func authorizationStatus() async throws -> FinancialAuthorization {
+            try await Self.map(FinanceStore.shared.authorizationStatus())
+        }
+
+        func requestAuthorization() async throws -> FinancialAuthorization {
+            try await Self.map(FinanceStore.shared.requestAuthorization())
+        }
+
+        func fetchAccounts() async throws -> [FinancialAccountSnapshot] {
+            let query = AccountQuery(sortDescriptors: [], predicate: nil, limit: nil, offset: nil)
+            return try await FinanceStore.shared.accounts(query: query).map(Self.snapshot(from:))
+        }
+
+        /// Incremental fetch: only transactions since the last successful sync (with a
+        /// month of overlap), instead of the full history each time. On the first sync this
+        /// looks back roughly six months.
+        func fetchTransactions() async throws -> [FinancialTransactionSnapshot] {
+            let now = Date()
+            let start = FinancialSyncWindow.startDate(lastSync: syncState.lastSyncDate, now: now)
+            let predicate = #Predicate<FinanceKit.Transaction> { transaction in
+                transaction.transactionDate >= start
+            }
+            let query = TransactionQuery(
+                sortDescriptors: [SortDescriptor(\.transactionDate, order: .reverse)],
+                predicate: predicate,
+                limit: nil,
+                offset: nil
+            )
+            let snapshots = try await FinanceStore.shared.transactions(query: query).map(Self.snapshot(from:))
+            syncState.recordSync(at: now)
+            return snapshots
+        }
+
+        private static func map(_ status: AuthorizationStatus) -> FinancialAuthorization {
+            switch status {
+            case .authorized:
+                .authorized
+            case .denied:
+                .denied
+            case .notDetermined:
+                .notDetermined
+            @unknown default:
+                .notDetermined
+            }
+        }
+
+        private static func snapshot(from account: Account) -> FinancialAccountSnapshot {
+            FinancialAccountSnapshot(
+                id: account.id.uuidString,
+                displayName: account.displayName,
+                institutionName: account.institutionName,
+                currencyCode: account.currencyCode,
+                isLiability: account.liabilityAccount != nil
+            )
+        }
+
+        private static func snapshot(from transaction: FinanceKit.Transaction) -> FinancialTransactionSnapshot {
+            FinancialTransactionSnapshot(
+                id: transaction.id.uuidString,
+                accountID: transaction.accountID.uuidString,
+                merchantName: transaction.merchantName ?? transaction.transactionDescription,
+                amount: transaction.transactionAmount.amount,
+                currencyCode: transaction.transactionAmount.currencyCode,
+                date: transaction.transactionDate,
+                isPending: transaction.status == .pending,
+                isDebit: transaction.creditDebitIndicator == .debit
+            )
         }
     }
-
-    private static func snapshot(from account: Account) -> FinancialAccountSnapshot {
-        FinancialAccountSnapshot(
-            id: account.id.uuidString,
-            displayName: account.displayName,
-            institutionName: account.institutionName,
-            currencyCode: account.currencyCode,
-            isLiability: account.liabilityAccount != nil
-        )
-    }
-
-    private static func snapshot(from transaction: FinanceKit.Transaction) -> FinancialTransactionSnapshot {
-        FinancialTransactionSnapshot(
-            id: transaction.id.uuidString,
-            accountID: transaction.accountID.uuidString,
-            merchantName: transaction.merchantName ?? transaction.transactionDescription,
-            amount: transaction.transactionAmount.amount,
-            currencyCode: transaction.transactionAmount.currencyCode,
-            date: transaction.transactionDate,
-            isPending: transaction.status == .pending,
-            isDebit: transaction.creditDebitIndicator == .debit
-        )
-    }
-}
 
 #else
 
-/// Fallback used only where FinanceKit is unavailable at compile time so the app still
-/// builds; it reports no financial data.
-struct FinanceKitStore: FinancialDataStore {
-    func isDataAvailable() -> Bool { false }
-    func authorizationStatus() async throws -> FinancialAuthorization { .notDetermined }
-    func requestAuthorization() async throws -> FinancialAuthorization { .notDetermined }
-    func fetchAccounts() async throws -> [FinancialAccountSnapshot] { [] }
-    func fetchTransactions() async throws -> [FinancialTransactionSnapshot] { [] }
-}
+    /// Fallback used only where FinanceKit is unavailable at compile time so the app still
+    /// builds; it reports no financial data.
+    struct FinanceKitStore: FinancialDataStore {
+        func isDataAvailable() -> Bool {
+            false
+        }
+
+        func authorizationStatus() async throws -> FinancialAuthorization {
+            .notDetermined
+        }
+
+        func requestAuthorization() async throws -> FinancialAuthorization {
+            .notDetermined
+        }
+
+        func fetchAccounts() async throws -> [FinancialAccountSnapshot] {
+            []
+        }
+
+        func fetchTransactions() async throws -> [FinancialTransactionSnapshot] {
+            []
+        }
+    }
 
 #endif
 
@@ -129,50 +143,50 @@ struct LocalAuthenticationGate: BiometricAuthenticating {
 }
 
 #if canImport(BackgroundTasks)
-/// Registers and schedules a background app-refresh task so Sift can pull new on-device
-/// transactions while closed. The identifier must also appear under
-/// `BGTaskSchedulerPermittedIdentifiers` in Info.plist.
-@MainActor
-final class BackgroundRefreshController {
-    static let taskIdentifier = "com.sift.app.refresh"
+    /// Registers and schedules a background app-refresh task so Sift can pull new on-device
+    /// transactions while closed. The identifier must also appear under
+    /// `BGTaskSchedulerPermittedIdentifiers` in Info.plist.
+    @MainActor
+    final class BackgroundRefreshController {
+        static let taskIdentifier = "com.sift.app.refresh"
 
-    private let refresh: @MainActor () async -> Void
-    private let interval: TimeInterval
+        private let refresh: @MainActor () async -> Void
+        private let interval: TimeInterval
 
-    init(interval: TimeInterval = 6 * 3600, refresh: @escaping @MainActor () async -> Void) {
-        self.interval = interval
-        self.refresh = refresh
-    }
+        init(interval: TimeInterval = 6 * 3600, refresh: @escaping @MainActor () async -> Void) {
+            self.interval = interval
+            self.refresh = refresh
+        }
 
-    /// Call once during launch, before the app finishes launching.
-    func register() {
-        BGTaskScheduler.shared.register(
-            forTaskWithIdentifier: Self.taskIdentifier,
-            using: .main
-        ) { task in
-            MainActor.assumeIsolated {
-                self.handle(task)
+        /// Call once during launch, before the app finishes launching.
+        func register() {
+            BGTaskScheduler.shared.register(
+                forTaskWithIdentifier: Self.taskIdentifier,
+                using: .main
+            ) { task in
+                MainActor.assumeIsolated {
+                    self.handle(task)
+                }
+            }
+        }
+
+        func schedule() {
+            let request = BGAppRefreshTaskRequest(identifier: Self.taskIdentifier)
+            request.earliestBeginDate = Date(timeIntervalSinceNow: interval)
+            try? BGTaskScheduler.shared.submit(request)
+        }
+
+        private func handle(_ task: BGTask) {
+            schedule()
+
+            let work = Task { @MainActor in
+                await refresh()
+                task.setTaskCompleted(success: true)
+            }
+
+            task.expirationHandler = {
+                work.cancel()
             }
         }
     }
-
-    func schedule() {
-        let request = BGAppRefreshTaskRequest(identifier: Self.taskIdentifier)
-        request.earliestBeginDate = Date(timeIntervalSinceNow: interval)
-        try? BGTaskScheduler.shared.submit(request)
-    }
-
-    private func handle(_ task: BGTask) {
-        schedule()
-
-        let work = Task { @MainActor in
-            await refresh()
-            task.setTaskCompleted(success: true)
-        }
-
-        task.expirationHandler = {
-            work.cancel()
-        }
-    }
-}
 #endif

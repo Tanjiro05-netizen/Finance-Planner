@@ -1,7 +1,7 @@
 import Foundation
+@testable import Sift
 import Testing
 import UserNotifications
-@testable import Sift
 
 @MainActor
 struct NotificationSchedulerTests {
@@ -156,7 +156,7 @@ private func notificationRepositories() throws -> RepositoryContainer {
         userID: SeedData.defaultUserID,
         subscriptionID: "sub-renewal",
         oldAmount: .usd(999),
-        newAmount: .usd(1_199),
+        newAmount: .usd(1199),
         changedAt: notificationTestDate(2026, 6, 30)
     ))
     return repositories

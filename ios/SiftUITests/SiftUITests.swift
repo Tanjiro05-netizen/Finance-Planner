@@ -6,7 +6,7 @@ final class SiftUITests: XCTestCase {
     }
 
     @MainActor
-    func testTabsAndDetailSheet() throws {
+    func testTabsAndDetailSheet() {
         let app = XCUIApplication()
         app.launchArguments = [
             "-siftUseMockServices",
@@ -38,7 +38,7 @@ final class SiftUITests: XCTestCase {
     }
 
     @MainActor
-    func testConciergeCancellationFlowConfirmsAndRemovesSubscription() throws {
+    func testConciergeCancellationFlowConfirmsAndRemovesSubscription() {
         let app = XCUIApplication()
         app.launchArguments = [
             "-siftUseMockServices",
@@ -70,7 +70,7 @@ final class SiftUITests: XCTestCase {
     }
 
     @MainActor
-    func testGuidedOnlyLaunchShowsConciergeComingSoon() throws {
+    func testGuidedOnlyLaunchShowsConciergeComingSoon() {
         let app = XCUIApplication()
         app.launchArguments = [
             "-siftUseMockServices",
@@ -91,7 +91,7 @@ final class SiftUITests: XCTestCase {
     }
 
     @MainActor
-    func testMockOnboardingHappyPathReachesDashboard() throws {
+    func testMockOnboardingHappyPathReachesDashboard() {
         let app = XCUIApplication()
         app.launchArguments = [
             "-siftUseMockServices",
@@ -119,7 +119,7 @@ final class SiftUITests: XCTestCase {
     }
 
     @MainActor
-    func testAlertTogglePersistsAcrossRelaunch() throws {
+    func testAlertTogglePersistsAcrossRelaunch() {
         let app = XCUIApplication()
         app.launchArguments = [
             "-siftOnboardingComplete",
@@ -145,7 +145,7 @@ final class SiftUITests: XCTestCase {
     }
 
     @MainActor
-    func testAddSandboxAccountFromSettings() throws {
+    func testAddSandboxAccountFromSettings() {
         let app = XCUIApplication()
         app.launchArguments = [
             "-siftUseMockServices",
@@ -168,7 +168,7 @@ final class SiftUITests: XCTestCase {
     }
 
     @MainActor
-    func testSettingsShowsSupportAbout() throws {
+    func testSettingsShowsSupportAbout() {
         let app = XCUIApplication()
         app.launchArguments = [
             "-siftUseMockServices",
@@ -180,7 +180,7 @@ final class SiftUITests: XCTestCase {
         app.buttons["home-profile-button"].tap()
 
         let feedbackButton = app.buttons["settings-support-feedback"]
-        for _ in 0..<4 where !feedbackButton.exists {
+        for _ in 0 ..< 4 where !feedbackButton.exists {
             app.swipeUp()
         }
 

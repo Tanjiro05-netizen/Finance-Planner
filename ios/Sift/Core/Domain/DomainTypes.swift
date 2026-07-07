@@ -1,6 +1,6 @@
 import Foundation
 
-enum SiftError: Error, Equatable, LocalizedError, Sendable {
+enum SiftError: Error, Equatable, LocalizedError {
     case notFound(String)
     case currencyMismatch
     case persistence(String)
@@ -13,23 +13,23 @@ enum SiftError: Error, Equatable, LocalizedError, Sendable {
 
     var errorDescription: String? {
         switch self {
-        case .notFound(let label):
+        case let .notFound(label):
             "\(label) could not be found."
         case .currencyMismatch:
             "Money values must use the same currency."
-        case .persistence(let message):
+        case let .persistence(message):
             message
-        case .network(let message):
+        case let .network(message):
             message
-        case .api(_, let message):
+        case let .api(_, message):
             message
         case .unauthorized:
             "Please start a new secure session."
-        case .decoding(let message):
+        case let .decoding(message):
             message
-        case .keychain(let message):
+        case let .keychain(message):
             message
-        case .cancelled(let message):
+        case let .cancelled(message):
             message
         }
     }
@@ -38,7 +38,7 @@ enum SiftError: Error, Equatable, LocalizedError, Sendable {
         switch self {
         case .unauthorized:
             true
-        case .api(let code, _):
+        case let .api(code, _):
             code == "unauthorized" || code == "token_expired"
         default:
             false
@@ -49,7 +49,7 @@ enum SiftError: Error, Equatable, LocalizedError, Sendable {
         switch self {
         case .network:
             true
-        case .api(let code, _):
+        case let .api(code, _):
             code == "rate_limited" || code == "temporarily_unavailable"
         default:
             false
@@ -57,7 +57,7 @@ enum SiftError: Error, Equatable, LocalizedError, Sendable {
     }
 }
 
-struct SiftFeatureFlags: Equatable, Sendable {
+struct SiftFeatureFlags: Equatable {
     var conciergeEnabled: Bool
 
     static let launchDefault = SiftFeatureFlags(conciergeEnabled: false)
@@ -74,7 +74,7 @@ struct SiftFeatureFlags: Equatable, Sendable {
     }
 }
 
-enum AnalyticsEvent: Equatable, Sendable {
+enum AnalyticsEvent: Equatable {
     case apiRetry(method: String, endpoint: String, statusCode: Int?, attempt: Int)
     case cancellationStarted(method: CancellationMethod)
     case cancellationConfirmed(method: CancellationMethod)
@@ -89,7 +89,7 @@ struct NoopAnalyticsRecorder: AnalyticsRecording {
     func record(_: AnalyticsEvent) {}
 }
 
-enum Cadence: String, Codable, CaseIterable, Sendable {
+enum Cadence: String, Codable, CaseIterable {
     case weekly
     case monthly
     case quarterly
@@ -142,7 +142,7 @@ enum Cadence: String, Codable, CaseIterable, Sendable {
     }
 }
 
-struct MerchantKey: Codable, Equatable, Hashable, RawRepresentable, Sendable {
+struct MerchantKey: Codable, Equatable, Hashable, RawRepresentable {
     let rawValue: String
 
     init(rawValue: String) {
@@ -166,24 +166,24 @@ struct MerchantKey: Codable, Equatable, Hashable, RawRepresentable, Sendable {
     }
 }
 
-enum LinkedAccountStatus: String, Codable, CaseIterable, Sendable {
+enum LinkedAccountStatus: String, Codable, CaseIterable {
     case connected
     case needsAttention
     case disconnected
 }
 
-enum SubscriptionStatus: String, Codable, CaseIterable, Sendable {
+enum SubscriptionStatus: String, Codable, CaseIterable {
     case active
     case unused
     case cancelled
 }
 
-enum CancellationMethod: String, Codable, CaseIterable, Sendable {
+enum CancellationMethod: String, Codable, CaseIterable {
     case concierge
     case guided
 }
 
-enum CancellationStatus: String, Codable, CaseIterable, Sendable {
+enum CancellationStatus: String, Codable, CaseIterable {
     case requested
     case contacting
     case confirmed
@@ -199,7 +199,7 @@ struct SubscriptionCategoryGroup: Equatable {
     var monthlyTotal: Money {
         let values = subscriptions
             .filter { $0.status != .cancelled }
-            .map { $0.monthlyEquivalent }
+            .map(\.monthlyEquivalent)
         return (try? Money.sum(values)) ?? .zeroUSD
     }
 }

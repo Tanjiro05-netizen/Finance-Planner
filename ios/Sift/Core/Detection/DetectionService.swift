@@ -12,7 +12,7 @@ extension DetectionServing {
     }
 }
 
-struct DetectedSubscription: Identifiable, Equatable, Sendable {
+struct DetectedSubscription: Identifiable, Equatable {
     let id: String
     let name: String
     let merchantKey: MerchantKey
@@ -136,9 +136,11 @@ final class LiveDetectionService: DetectionServing, @unchecked Sendable {
 struct MockDetectionService: DetectionServing {
     let detections: [DetectedSubscription]
 
-    init(detections: [DetectedSubscription] = SeedData.snapshot().subscriptions
-        .filter { $0.status != .cancelled }
-        .map(DetectedSubscription.init(subscription:))) {
+    init(
+        detections: [DetectedSubscription] = SeedData.snapshot().subscriptions
+            .filter { $0.status != .cancelled }
+            .map(DetectedSubscription.init(subscription:))
+    ) {
         self.detections = detections
     }
 
@@ -207,8 +209,8 @@ actor DetectionPersistenceActor: ModelActor {
         userID: String,
         referenceDate: Date
     ) throws {
-        var subscriptionsByMerchant = Dictionary(
-            uniqueKeysWithValues: try userSubscriptions(userID: userID).map { ($0.merchantKey, $0) }
+        var subscriptionsByMerchant = try Dictionary(
+            uniqueKeysWithValues: userSubscriptions(userID: userID).map { ($0.merchantKey, $0) }
         )
         let existingPriceChanges = try userPriceChanges(userID: userID)
 

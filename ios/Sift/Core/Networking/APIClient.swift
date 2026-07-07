@@ -4,7 +4,7 @@ protocol HTTPDataLoading: Sendable {
     func loadData(for request: URLRequest) async throws -> HTTPDataResponse
 }
 
-struct HTTPDataResponse: Sendable {
+struct HTTPDataResponse {
     let data: Data
     let statusCode: Int
 }
@@ -57,11 +57,11 @@ extension SiftAPIClient {
     }
 }
 
-struct AuthBootstrapResponse: Codable, Equatable, Sendable {
+struct AuthBootstrapResponse: Codable, Equatable {
     let token: String
 }
 
-struct LinkTokenResponse: Codable, Equatable, Sendable {
+struct LinkTokenResponse: Codable, Equatable {
     let linkToken: String
 
     enum CodingKeys: String, CodingKey {
@@ -69,15 +69,15 @@ struct LinkTokenResponse: Codable, Equatable, Sendable {
     }
 }
 
-struct ExchangePublicTokenResponse: Codable, Equatable, Sendable {
+struct ExchangePublicTokenResponse: Codable, Equatable {
     let ok: Bool
 }
 
-struct APIOKResponse: Codable, Equatable, Sendable {
+struct APIOKResponse: Codable, Equatable {
     let ok: Bool
 }
 
-struct RemoteAccount: Codable, Equatable, Sendable {
+struct RemoteAccount: Codable, Equatable {
     let id: String
     let plaidItemId: String
     let institutionName: String
@@ -138,14 +138,14 @@ extension LinkedAccount {
     }
 }
 
-struct TransactionSyncResponse: Codable, Equatable, Sendable {
+struct TransactionSyncResponse: Codable, Equatable {
     let added: Int
     let modified: Int
     let removed: Int
     let hasMore: Bool
 }
 
-struct RemoteTransaction: Codable, Equatable, Sendable {
+struct RemoteTransaction: Codable, Equatable {
     let id: String
     let userId: String
     let accountId: String
@@ -157,7 +157,7 @@ struct RemoteTransaction: Codable, Equatable, Sendable {
     let category: String?
 }
 
-struct RemoteCancellationRequest: Codable, Equatable, Sendable {
+struct RemoteCancellationRequest: Codable, Equatable {
     let id: String
     let userId: String
     let subscriptionRef: String
@@ -169,7 +169,7 @@ struct RemoteCancellationRequest: Codable, Equatable, Sendable {
     let updatedAt: Date
 }
 
-struct APIRetryPolicy: Equatable, Sendable {
+struct APIRetryPolicy: Equatable {
     let maxRetries: Int
     let baseDelayNanoseconds: UInt64
 
@@ -186,7 +186,7 @@ struct APIRetryPolicy: Equatable, Sendable {
     }
 
     func shouldRetry(statusCode: Int, attempt: Int) -> Bool {
-        attempt < maxRetries && (statusCode == 429 || (500..<600).contains(statusCode))
+        attempt < maxRetries && (statusCode == 429 || (500 ..< 600).contains(statusCode))
     }
 }
 
@@ -338,10 +338,10 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
         )
     }
 
-    private func send<Response: Decodable, Body: Encodable>(
+    private func send<Response: Decodable>(
         path: String,
         method: String,
-        body: Body,
+        body: some Encodable,
         requiresAuth: Bool
     ) async throws -> Response {
         try await send(
@@ -353,11 +353,11 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
         )
     }
 
-    private func send<Response: Decodable, Body: Encodable>(
+    private func send<Response: Decodable>(
         path: String,
         method: String,
         queryItems: [URLQueryItem],
-        body: Body,
+        body: some Encodable,
         requiresAuth: Bool
     ) async throws -> Response {
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)
@@ -384,7 +384,7 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
         let endpointLabel = analyticsEndpointLabel(for: path)
         var lastNetworkError: Error?
 
-        for attempt in 0...retryPolicy.maxRetries {
+        for attempt in 0 ... retryPolicy.maxRetries {
             let response: HTTPDataResponse
 
             do {
@@ -463,7 +463,7 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
     }
 
     private func decodeEnvelope<Response: Decodable>(
-        _ type: Response.Type,
+        _: Response.Type,
         from response: HTTPDataResponse
     ) throws -> Response {
         let envelope = try decoder.decode(APIEnvelope<Response>.self, from: response.data)
@@ -472,7 +472,7 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
             throw SiftError.api(code: error.code, message: error.message)
         }
 
-        guard (200..<300).contains(response.statusCode) else {
+        guard (200 ..< 300).contains(response.statusCode) else {
             throw SiftError.network("The server returned status \(response.statusCode).")
         }
 
@@ -516,7 +516,7 @@ struct MockSiftAPIClient: SiftAPIClient {
         linkTokenResponse
     }
 
-    func exchange(publicToken: String) async throws -> ExchangePublicTokenResponse {
+    func exchange(publicToken _: String) async throws -> ExchangePublicTokenResponse {
         exchangeResponse
     }
 

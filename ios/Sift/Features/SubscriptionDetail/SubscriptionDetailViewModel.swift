@@ -84,7 +84,7 @@ final class SubscriptionDetailViewModel {
 
         do {
             guard let subscription = try repositories.subscriptions.subscription(id: subscriptionID) else {
-                self.subscription = nil
+                subscription = nil
                 chargeHistory = []
                 paymentMeta = "Payment method unavailable"
                 errorMessage = nil

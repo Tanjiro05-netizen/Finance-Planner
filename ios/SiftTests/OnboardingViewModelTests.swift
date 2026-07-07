@@ -1,5 +1,5 @@
-import Testing
 @testable import Sift
+import Testing
 
 @MainActor
 struct OnboardingViewModelTests {
@@ -33,7 +33,7 @@ struct OnboardingViewModelTests {
                 userId: SeedData.defaultUserID,
                 accountId: SeedData.ID.checking,
                 merchantName: "NETFLIX #4471 LOS GATOS",
-                amountMinor: 1_549,
+                amountMinor: 1549,
                 isoCurrency: "USD",
                 date: SeedData.referenceDate,
                 pending: false,

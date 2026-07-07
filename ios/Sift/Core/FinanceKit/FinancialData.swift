@@ -5,7 +5,7 @@ import Foundation
 /// Mirrors `FinanceKit.AuthorizationStatus` without importing FinanceKit, so the
 /// ingestion pipeline stays testable on any platform and the framework only has to
 /// be linked by the thin live adapter (`FinanceKitStore`).
-enum FinancialAuthorization: Equatable, Sendable {
+enum FinancialAuthorization: Equatable {
     case notDetermined
     case denied
     case authorized
@@ -13,7 +13,7 @@ enum FinancialAuthorization: Equatable, Sendable {
 
 /// A single account surfaced by the on-device financial data store (Apple Card,
 /// Apple Cash, or another Wallet-linked account).
-struct FinancialAccountSnapshot: Equatable, Sendable {
+struct FinancialAccountSnapshot: Equatable {
     let id: String
     let displayName: String
     let institutionName: String
@@ -25,7 +25,7 @@ struct FinancialAccountSnapshot: Equatable, Sendable {
 ///
 /// Amounts are stored as an unsigned magnitude; direction is carried separately by
 /// `isDebit` so callers decide how to treat spend versus credits.
-struct FinancialTransactionSnapshot: Equatable, Sendable {
+struct FinancialTransactionSnapshot: Equatable {
     let id: String
     let accountID: String
     let merchantName: String
@@ -61,11 +61,11 @@ enum FinancialDataMapper {
         switch currencyCode.uppercased() {
         case "BIF", "CLP", "DJF", "GNF", "ISK", "JPY", "KMF", "KRW",
              "PYG", "RWF", "UGX", "UYI", "VND", "VUV", "XAF", "XOF", "XPF":
-            return 0
+            0
         case "BHD", "IQD", "JOD", "KWD", "LYD", "OMR", "TND":
-            return 3
+            3
         default:
-            return 2
+            2
         }
     }
 
@@ -182,7 +182,7 @@ struct MockFinancialDataStore: FinancialDataStore {
     }
 }
 
-enum FinancialDataError: Error, Equatable, Sendable {
+enum FinancialDataError: Error, Equatable {
     case unavailable
     case notAuthorized
 }
@@ -217,9 +217,9 @@ struct UserDefaultsFinancialSyncState: FinancialSyncStateStoring {
 enum FinancialSyncWindow {
     /// Re-fetch a month of overlap on incremental syncs; combined with upsert de-duping
     /// this guards against gaps if an earlier sync failed after advancing the marker.
-    static let overlap: TimeInterval = 31 * 86_400
+    static let overlap: TimeInterval = 31 * 86400
     /// First-ever sync looks back roughly six months (Sift's detection horizon).
-    static let fullLookback: TimeInterval = 182 * 86_400
+    static let fullLookback: TimeInterval = 182 * 86400
 
     static func startDate(lastSync: Date?, now: Date) -> Date {
         guard let lastSync else {

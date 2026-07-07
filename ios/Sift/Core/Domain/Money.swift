@@ -6,7 +6,7 @@ enum Cents {
     }
 }
 
-struct Money: Codable, Equatable, Hashable, Comparable, Sendable {
+struct Money: Codable, Equatable, Hashable, Comparable {
     let amountMinor: Int
     let currency: String
 
@@ -65,7 +65,7 @@ struct Money: Codable, Equatable, Hashable, Comparable, Sendable {
         let symbol = currency == "USD" ? "$" : "\(currency) "
         let majorText = groupedMajorDigits(major)
 
-        if fraction == 0 && !showZeroFraction {
+        if fraction == 0, !showZeroFraction {
             return "\(sign)\(symbol)\(majorText)"
         }
 
@@ -83,7 +83,7 @@ private func groupedMajorDigits(_ value: Int) -> String {
     let digits = Array(String(value).reversed())
     let grouped = digits.enumerated().reduce(into: [Character]()) { result, pair in
         let (index, character) = pair
-        if index > 0 && index.isMultiple(of: 3) {
+        if index > 0, index.isMultiple(of: 3) {
             result.append(",")
         }
         result.append(character)
@@ -91,4 +91,3 @@ private func groupedMajorDigits(_ value: Int) -> String {
 
     return String(grouped.reversed())
 }
-

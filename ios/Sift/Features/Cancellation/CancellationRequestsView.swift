@@ -161,7 +161,7 @@ private struct RequestStatusPill: View {
 private struct RequestsLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.sm) {
-            ForEach(0..<3, id: \.self) { _ in
+            ForEach(0 ..< 3, id: \.self) { _ in
                 CancellationRequestRow(
                     row: CancellationRequestRowModel(
                         id: UUID().uuidString,

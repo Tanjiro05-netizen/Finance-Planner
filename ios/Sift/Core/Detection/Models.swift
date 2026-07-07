@@ -1,6 +1,6 @@
 import Foundation
 
-struct Txn: Equatable, Sendable {
+struct Txn: Equatable {
     let id: String
     let merchantRaw: String
     let amount: Money
@@ -25,7 +25,7 @@ struct Txn: Equatable, Sendable {
     }
 }
 
-struct SubscriptionCandidate: Identifiable, Equatable, Sendable {
+struct SubscriptionCandidate: Identifiable, Equatable {
     let id: String
     let name: String
     let merchantKey: MerchantKey
@@ -44,7 +44,7 @@ struct SubscriptionCandidate: Identifiable, Equatable, Sendable {
     let isUnused: Bool
 }
 
-struct DetectedPriceChange: Equatable, Sendable {
+struct DetectedPriceChange: Equatable {
     let merchantKey: MerchantKey
     let merchantName: String
     let oldAmount: Money
@@ -52,8 +52,8 @@ struct DetectedPriceChange: Equatable, Sendable {
     let changedAt: Date
 }
 
-struct DetectionFlag: Equatable, Sendable {
-    enum Kind: Equatable, Sendable {
+struct DetectionFlag: Equatable {
+    enum Kind: Equatable {
         case trialEnding
         case unused
     }
@@ -62,7 +62,7 @@ struct DetectionFlag: Equatable, Sendable {
     let kind: Kind
 }
 
-struct DetectionResult: Equatable, Sendable {
+struct DetectionResult: Equatable {
     var candidates: [SubscriptionCandidate]
     var priceChanges: [DetectedPriceChange]
     var flags: [DetectionFlag]
@@ -89,15 +89,15 @@ extension Cadence {
     var detectionToleranceDays: ClosedRange<Int> {
         switch self {
         case .weekly:
-            6...8
+            6 ... 8
         case .monthly:
-            28...33
+            28 ... 33
         case .quarterly:
-            84...98
+            84 ... 98
         case .yearly:
-            350...380
+            350 ... 380
         case .unknown:
-            0...0
+            0 ... 0
         }
     }
 

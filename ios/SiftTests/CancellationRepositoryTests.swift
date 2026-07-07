@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Sift
+import Testing
 
 @MainActor
 struct CancellationRepositoryTests {
@@ -8,7 +8,7 @@ struct CancellationRepositoryTests {
         let container = try SiftModelContainerFactory.makeSeededInMemoryContainer()
         let repository = LiveCancellationRepository(modelContext: container.mainContext)
         let createdAt = SeedData.referenceDate
-        let updatedAt = Calendar.utc.date(byAdding: .hour, value: 2, to: createdAt)!
+        let updatedAt = try #require(Calendar.utc.date(byAdding: .hour, value: 2, to: createdAt))
 
         let request = try repository.create(
             subscriptionID: SeedData.ID.tonebox,

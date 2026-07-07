@@ -166,7 +166,7 @@ final class LiveTransactionRepository: TransactionRepository, @unchecked Sendabl
 
     @MainActor
     func recent(limit: Int) throws -> [Transaction] {
-        Array(try all().prefix(limit))
+        try Array(all().prefix(limit))
     }
 
     @MainActor
@@ -439,7 +439,7 @@ final class LiveSettingsRepository: SettingsRepository, @unchecked Sendable {
 
 @MainActor
 private func fetchUserScoped<Model: PersistentModel>(
-    _ model: Model.Type,
+    _: Model.Type,
     in context: ModelContext,
     userID: String
 ) throws -> [Model] {

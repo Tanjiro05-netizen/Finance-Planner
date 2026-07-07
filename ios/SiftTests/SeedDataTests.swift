@@ -1,7 +1,7 @@
 import Foundation
+@testable import Sift
 import SwiftData
 import Testing
-@testable import Sift
 
 @MainActor
 struct SeedDataTests {
@@ -17,8 +17,8 @@ struct SeedDataTests {
         let savings = try Money.sum(unused.map(\.monthlyEquivalent))
 
         #expect(snapshot.subscriptions.count == 12)
-        #expect(total == Money.usd(24_783))
-        #expect(savings == Money.usd(14_600))
+        #expect(total == Money.usd(24783))
+        #expect(savings == Money.usd(14600))
     }
 
     @Test func seedLoadsIntoInMemoryContainer() throws {

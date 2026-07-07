@@ -1,7 +1,7 @@
 import Foundation
 import UserNotifications
 
-enum SiftNotificationKind: String, CaseIterable, Sendable {
+enum SiftNotificationKind: String, CaseIterable {
     case renewal
     case priceChange = "price-change"
     case trialEnding = "trial-ending"
@@ -62,7 +62,7 @@ enum SiftNotificationPayload {
     }
 }
 
-struct WeeklyNotificationSummary: Equatable, Sendable {
+struct WeeklyNotificationSummary: Equatable {
     let monthlyTotal: Money
     let activeSubscriptionCount: Int
     let recentPriceChangeCount: Int
@@ -79,56 +79,51 @@ struct NotificationContentBuilder {
     }
 
     func renewalContent(for subscription: Subscription) -> UNMutableNotificationContent {
-        let content = baseContent(
+        baseContent(
             title: "\(subscription.name) renews soon",
             body: "\(subscription.name) renews \(dateText(subscription.nextRenewal)) for \(amountText(subscription)).",
             kind: .renewal,
             subscriptionID: subscription.id
         )
-        return content
     }
 
     func trialEndingContent(for subscription: Subscription) -> UNMutableNotificationContent {
-        let content = baseContent(
+        baseContent(
             title: "\(subscription.name) trial is ending",
             body: "\(subscription.name) converts \(dateText(subscription.nextRenewal)) for \(amountText(subscription)).",
             kind: .trialEnding,
             subscriptionID: subscription.id
         )
-        return content
     }
 
     func unusedNudgeContent(for subscription: Subscription) -> UNMutableNotificationContent {
         let lastUsedText = subscription.lastUsed.map { " since \(dateText($0))" } ?? ""
-        let content = baseContent(
+        return baseContent(
             title: "\(subscription.name) looks unused",
             body: "\(subscription.name) is \(amountText(subscription)) and has not been used\(lastUsedText).",
             kind: .unusedNudge,
             subscriptionID: subscription.id
         )
-        return content
     }
 
     func priceChangeContent(_ priceChange: PriceChange, subscription: Subscription?) -> UNMutableNotificationContent {
         let name = subscription?.name ?? "A subscription"
-        let content = baseContent(
+        return baseContent(
             title: "\(name) price changed",
             body: "\(name) changed from \(priceChange.oldAmount.formatted()) to \(priceChange.newAmount.formatted()).",
             kind: .priceChange,
             subscriptionID: priceChange.subscriptionID
         )
-        return content
     }
 
     func weeklySummaryContent(_ summary: WeeklyNotificationSummary) -> UNMutableNotificationContent {
         let subscriptionText = summary.activeSubscriptionCount == 1 ? "1 active subscription" : "\(summary.activeSubscriptionCount) active subscriptions"
         let priceText = summary.recentPriceChangeCount == 1 ? "1 price change" : "\(summary.recentPriceChangeCount) price changes"
-        let content = baseContent(
+        return baseContent(
             title: "Your Sift summary",
             body: "You are tracking \(summary.monthlyTotal.formatted())/mo across \(subscriptionText). \(priceText) this week.",
             kind: .weeklySummary
         )
-        return content
     }
 
     private func baseContent(

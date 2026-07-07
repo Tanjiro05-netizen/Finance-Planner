@@ -1,9 +1,11 @@
-enum AppTab: String, CaseIterable, Identifiable, Hashable, Sendable {
+enum AppTab: String, CaseIterable, Identifiable, Hashable {
     case home
     case subscriptions
     case insights
 
-    var id: Self { self }
+    var id: Self {
+        self
+    }
 
     var title: String {
         switch self {
@@ -28,7 +30,7 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable, Sendable {
     }
 }
 
-enum HomeRoute: Hashable, CaseIterable, Sendable {
+enum HomeRoute: Hashable, CaseIterable {
     case settings
 
     var title: String {
@@ -39,7 +41,7 @@ enum HomeRoute: Hashable, CaseIterable, Sendable {
     }
 }
 
-enum SubscriptionsRoute: Hashable, Sendable {
+enum SubscriptionsRoute: Hashable {
     case detail(id: String)
 
     static var samples: [Self] {
@@ -47,7 +49,7 @@ enum SubscriptionsRoute: Hashable, Sendable {
     }
 }
 
-enum InsightsRoute: Hashable, CaseIterable, Sendable {
+enum InsightsRoute: Hashable, CaseIterable {
     case savingsBreakdown
 
     var title: String {
@@ -58,16 +60,16 @@ enum InsightsRoute: Hashable, CaseIterable, Sendable {
     }
 }
 
-enum AppSheet: Hashable, Identifiable, Sendable {
+enum AppSheet: Hashable, Identifiable {
     case subscriptionDetail(id: String)
     case cancellation(subscriptionID: String)
     case cancellationRequests
 
     var id: String {
         switch self {
-        case .subscriptionDetail(let id):
+        case let .subscriptionDetail(id):
             "subscription-detail-\(id)"
-        case .cancellation(let subscriptionID):
+        case let .cancellation(subscriptionID):
             "cancellation-\(subscriptionID)"
         case .cancellationRequests:
             "cancellation-requests"
@@ -83,7 +85,7 @@ enum AppSheet: Hashable, Identifiable, Sendable {
     }
 }
 
-enum DeepLink: Hashable, Sendable {
+enum DeepLink: Hashable {
     case home
     case subscriptions
     case insights

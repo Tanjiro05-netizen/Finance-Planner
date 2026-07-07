@@ -465,13 +465,6 @@ struct StatusTimelineItem: Identifiable, Equatable {
     let title: String
     let subtitle: String
     let state: StatusTimelineState
-
-    init(id: String, title: String, subtitle: String, state: StatusTimelineState) {
-        self.id = id
-        self.title = title
-        self.subtitle = subtitle
-        self.state = state
-    }
 }
 
 struct StatusTimeline: View {

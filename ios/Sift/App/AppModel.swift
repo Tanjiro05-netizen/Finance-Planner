@@ -75,10 +75,10 @@ final class AppModel {
         case .settings:
             select(tab: .home)
             push(.settings, in: .home)
-        case .subscriptionDetail(let id):
+        case let .subscriptionDetail(id):
             select(tab: .subscriptions)
             present(.subscriptionDetail(id: id))
-        case .cancellation(let subscriptionID):
+        case let .cancellation(subscriptionID):
             select(tab: .subscriptions)
             present(.cancellation(subscriptionID: subscriptionID))
         }

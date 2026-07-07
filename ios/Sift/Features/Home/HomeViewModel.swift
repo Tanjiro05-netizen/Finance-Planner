@@ -59,9 +59,9 @@ final class HomeViewModel {
         let hour = Calendar.current.component(.hour, from: referenceDateProvider())
 
         switch hour {
-        case 0..<12:
+        case 0 ..< 12:
             return "Good morning"
-        case 12..<17:
+        case 12 ..< 17:
             return "Good afternoon"
         default:
             return "Good evening"
@@ -146,13 +146,13 @@ final class HomeViewModel {
         let start = calendar.startOfDay(for: referenceDateProvider())
         let end = calendar.date(byAdding: .day, value: 7, to: start) ?? start
 
-        return subscriptions.filter { subscription in
+        return subscriptions.count(where: { subscription in
             guard let nextRenewal = subscription.nextRenewal else {
                 return false
             }
 
             return nextRenewal >= start && nextRenewal < end
-        }.count
+        })
     }
 
     private func makeTimeline(from subscriptions: [Subscription]) -> (marks: [DashboardTimelineMark], monthLabel: String) {
@@ -215,7 +215,7 @@ final class HomeViewModel {
 
         if delta.amountMinor < 0 {
             return DashboardTrend(
-                text: "Down \((Money(amountMinor: abs(delta.amountMinor), currency: delta.currency)).formatted())",
+                text: "Down \(Money(amountMinor: abs(delta.amountMinor), currency: delta.currency).formatted())",
                 direction: .down
             )
         }
