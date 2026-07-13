@@ -121,20 +121,20 @@ enum Elevation {
     struct Shadow {
         let color: Color
         let radius: CGFloat
-        let x: CGFloat
-        let y: CGFloat
+        let offsetX: CGFloat
+        let offsetY: CGFloat
     }
 
     static var card: Shadow {
-        Shadow(color: Palette.ink.opacity(0.12), radius: 30, x: 0, y: 14)
+        Shadow(color: Palette.ink.opacity(0.12), radius: 30, offsetX: 0, offsetY: 14)
     }
 
     static var row: Shadow {
-        Shadow(color: Palette.ink.opacity(0.10), radius: 20, x: 0, y: 8)
+        Shadow(color: Palette.ink.opacity(0.10), radius: 20, offsetX: 0, offsetY: 8)
     }
 
     static var control: Shadow {
-        Shadow(color: Palette.ink.opacity(0.18), radius: 40, x: 0, y: 18)
+        Shadow(color: Palette.ink.opacity(0.18), radius: 40, offsetX: 0, offsetY: 18)
     }
 }
 

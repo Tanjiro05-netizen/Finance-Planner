@@ -42,7 +42,12 @@ struct SiftApp: App {
             stateStore.setComplete(true)
         }
 
-        let container = try! SiftModelContainerFactory.makeContainer(inMemory: launchOptions.useMockServices)
+        let container: ModelContainer
+        do {
+            container = try SiftModelContainerFactory.makeContainer(inMemory: launchOptions.useMockServices)
+        } catch {
+            fatalError("Failed to create the SwiftData model container: \(error)")
+        }
         modelContainer = container
         onboardingStateStore = stateStore
         tokenStore = authTokenStore

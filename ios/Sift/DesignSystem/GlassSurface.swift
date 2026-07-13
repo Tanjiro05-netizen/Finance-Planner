@@ -38,8 +38,8 @@ struct GlassSurfaceModifier: ViewModifier {
                 .shadow(
                     color: Elevation.control.color,
                     radius: Elevation.control.radius,
-                    x: Elevation.control.x,
-                    y: Elevation.control.y
+                    x: Elevation.control.offsetX,
+                    y: Elevation.control.offsetY
                 )
         } else {
             fallback(content)
@@ -56,8 +56,8 @@ struct GlassSurfaceModifier: ViewModifier {
             .shadow(
                 color: Elevation.control.color,
                 radius: Elevation.control.radius,
-                x: Elevation.control.x,
-                y: Elevation.control.y
+                x: Elevation.control.offsetX,
+                y: Elevation.control.offsetY
             )
     }
 }

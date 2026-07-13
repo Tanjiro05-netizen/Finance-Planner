@@ -153,6 +153,12 @@ enum SeedData {
 
 private extension SeedData {
     static func makeSubscriptions(userID: String) -> [Subscription] {
+        streamingAndDesignSubscriptions(userID: userID)
+            + productivityAndSecuritySubscriptions(userID: userID)
+            + toolsAndArchivedSubscriptions(userID: userID)
+    }
+
+    static func streamingAndDesignSubscriptions(userID: String) -> [Subscription] {
         [
             Subscription(
                 id: ID.streamline,
@@ -222,6 +228,11 @@ private extension SeedData {
                 firstSeen: date(year: 2024, month: 7, day: 17),
                 lastCharge: date(year: 2026, month: 6, day: 17)
             ),
+        ]
+    }
+
+    static func productivityAndSecuritySubscriptions(userID: String) -> [Subscription] {
+        [
             Subscription(
                 id: ID.notewell,
                 userID: userID,
@@ -290,6 +301,11 @@ private extension SeedData {
                 firstSeen: date(year: 2025, month: 4, day: 20),
                 lastCharge: date(year: 2026, month: 6, day: 20)
             ),
+        ]
+    }
+
+    static func toolsAndArchivedSubscriptions(userID: String) -> [Subscription] {
+        [
             Subscription(
                 id: ID.readwise,
                 userID: userID,

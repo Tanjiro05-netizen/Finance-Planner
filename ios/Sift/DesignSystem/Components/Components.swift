@@ -13,7 +13,12 @@ struct SiftCard<Content: View>: View {
             RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
                 .stroke(Palette.line, lineWidth: 1)
         )
-        .shadow(color: Elevation.card.color, radius: Elevation.card.radius, x: Elevation.card.x, y: Elevation.card.y)
+        .shadow(
+            color: Elevation.card.color,
+            radius: Elevation.card.radius,
+            x: Elevation.card.offsetX,
+            y: Elevation.card.offsetY
+        )
     }
 }
 
@@ -150,7 +155,12 @@ struct SubscriptionRow: View {
             RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
                 .stroke(Palette.line, lineWidth: 1)
         )
-        .shadow(color: Elevation.row.color, radius: Elevation.row.radius, x: Elevation.row.x, y: Elevation.row.y)
+        .shadow(
+            color: Elevation.row.color,
+            radius: Elevation.row.radius,
+            x: Elevation.row.offsetX,
+            y: Elevation.row.offsetY
+        )
     }
 }
 
