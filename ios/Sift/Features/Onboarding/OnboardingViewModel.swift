@@ -16,7 +16,7 @@ enum OnboardingStep: Int, CaseIterable {
 }
 
 /// Why the Apple Wallet connection produced nothing to scan.
-enum ConnectUnavailableReason {
+enum ConnectUnavailableReason: Equatable {
     /// The person declined the FinanceKit permission prompt.
     case accessDenied
     /// Access was granted but there is no Apple Card / Cash / Pay activity to read.

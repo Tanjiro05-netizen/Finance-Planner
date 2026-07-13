@@ -140,7 +140,7 @@ struct MockBiometricAuthenticator: BiometricAuthenticating {
     }
 }
 
-/// Persisted preference for requiring authentication when Sift opens. Defaults on.
+/// Persisted preference for requiring authentication when Sift opens. Opt-in by default.
 struct AppLockPreference {
     // UserDefaults is thread-safe but not marked Sendable.
     private nonisolated(unsafe) let defaults: UserDefaults

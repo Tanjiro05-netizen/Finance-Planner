@@ -75,6 +75,79 @@ struct OnboardingViewModelTests {
 
         #expect(harness.stateStore.isComplete())
     }
+
+    @Test func connectAppleWalletLinkedProgressesToReviewFound() async throws {
+        let harness = OnboardingHarness(presenter: MockPlaidLinkPresenter(result: .success(publicToken: "on-device")))
+
+        harness.viewModel.showConnectIntro()
+        harness.viewModel.showConnectLeadIn()
+        await harness.viewModel.connectAppleWallet()
+
+        #expect(harness.viewModel.step == .reviewFound)
+        #expect(harness.viewModel.reviewItems.count == harness.detections.count)
+
+        let accounts = try harness.repositories.accounts.all()
+        #expect(!accounts.isEmpty)
+    }
+
+    @Test func connectAppleWalletDeniedShowsUnavailableAccessDenied() async {
+        let harness = OnboardingHarness(presenter: MockPlaidLinkPresenter(result: .cancelled))
+
+        harness.viewModel.showConnectIntro()
+        harness.viewModel.showConnectLeadIn()
+        await harness.viewModel.connectAppleWallet()
+
+        #expect(harness.viewModel.step == .connectUnavailable)
+        #expect(harness.viewModel.unavailableReason == .accessDenied)
+    }
+
+    @Test func connectAppleWalletWithNoWalletDataShowsUnavailableNoWalletData() async {
+        var apiClient = MockSiftAPIClient()
+        apiClient.accounts = []
+        apiClient.syncResponse = TransactionSyncResponse(added: 0, modified: 0, removed: 0, hasMore: false)
+        let viewModel = OnboardingViewModel(
+            apiClient: apiClient,
+            linkCoordinator: PlaidLinkCoordinator(
+                apiClient: apiClient,
+                presenter: MockPlaidLinkPresenter(result: .success(publicToken: "on-device"))
+            ),
+            detectionService: MockDetectionService(detections: []),
+            notificationAuthorizer: MockNotificationAuthorizer(),
+            repositories: .emptyMock(),
+            stateStore: InMemoryOnboardingStateStore()
+        )
+
+        viewModel.showConnectIntro()
+        viewModel.showConnectLeadIn()
+        await viewModel.connectAppleWallet()
+
+        #expect(viewModel.step == .connectUnavailable)
+        #expect(viewModel.unavailableReason == .noWalletData)
+    }
+
+    @Test func retryConnectClearsReasonAndReturnsToSecureLeadIn() {
+        let harness = OnboardingHarness()
+        harness.viewModel.unavailableReason = .accessDenied
+        harness.viewModel.step = .connectUnavailable
+
+        harness.viewModel.retryConnect()
+
+        #expect(harness.viewModel.step == .secureLeadIn)
+        #expect(harness.viewModel.unavailableReason == nil)
+    }
+
+    @Test func skipConnectMovesToNotificationsWithZeroedTotals() {
+        let harness = OnboardingHarness()
+        harness.viewModel.unavailableReason = .noWalletData
+        harness.viewModel.step = .connectUnavailable
+
+        harness.viewModel.skipConnect()
+
+        #expect(harness.viewModel.step == .notifications)
+        #expect(harness.viewModel.unavailableReason == nil)
+        #expect(harness.viewModel.confirmedCount == 0)
+        #expect(harness.viewModel.confirmedMonthlyTotal == .zeroUSD)
+    }
 }
 
 @MainActor
@@ -84,13 +157,15 @@ private final class OnboardingHarness {
     let detections: [DetectedSubscription]
     let viewModel: OnboardingViewModel
 
-    init(apiClient: any SiftAPIClient = MockSiftAPIClient()) {
+    init(
+        apiClient: any SiftAPIClient = MockSiftAPIClient(),
+        presenter: any PlaidLinkPresenting = MockPlaidLinkPresenter()
+    ) {
         detections = SeedData.snapshot().subscriptions
             .filter { $0.status != .cancelled }
             .prefix(3)
             .map(DetectedSubscription.init(subscription:))
 
-        let presenter = MockPlaidLinkPresenter()
         let coordinator = PlaidLinkCoordinator(apiClient: apiClient, presenter: presenter)
         viewModel = OnboardingViewModel(
             apiClient: apiClient,
