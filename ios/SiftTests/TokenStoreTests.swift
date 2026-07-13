@@ -27,8 +27,8 @@ struct TokenStoreTests {
         #expect(await grantsAuth.authenticate(reason: "test"))
     }
 
-    @Test func appLockPreferenceDefaultsToOffAndPersists() {
-        let defaults = UserDefaults(suiteName: "sift-test-\(UUID().uuidString)")!
+    @Test func appLockPreferenceDefaultsToOffAndPersists() throws {
+        let defaults = try #require(UserDefaults(suiteName: "sift-test-\(UUID().uuidString)"))
         let preference = AppLockPreference(defaults: defaults)
 
         #expect(preference.isEnabled == false)
