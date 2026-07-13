@@ -29,7 +29,7 @@ One thread per task. Do not attempt multiple phases in a single session.
 
 There is no backend; the app is entirely on device.
 
-**CI / coverage:** GitHub Actions runs iOS build/test/lint on PRs. The iOS coverage floor is 80% for `ios/Sift/Core/` and `*ViewModel.swift` files, enforced from `xccov` JSON by `scripts/check-ios-coverage.js`. Untestable platform-integration code (e.g. the live `FinanceKitStore`) lives outside `Core/` and outside `*ViewModel.swift` so it is not in the coverage scope — keep such adapters thin and put the logic in tested, framework-free helpers.
+**CI / coverage:** GitHub Actions runs iOS build/test/lint on PRs, split into an independent `Lint & Format` job and an `iOS Build & Test` job so a formatting nit never hides build/test signal. The iOS coverage floor is 80% for `ios/Sift/Core/` and `*ViewModel.swift` files, enforced from `xccov` JSON by `scripts/check-ios-coverage.js`; current scoped coverage sits at ~80.4%, so new `Core/`/ViewModel code needs tests alongside it or the floor will trip. Untestable platform-integration code (e.g. the live `FinanceKitStore`) lives outside `Core/` and outside `*ViewModel.swift` so it is not in the coverage scope — keep such adapters thin and put the logic in tested, framework-free helpers.
 
 **Codex must run the relevant build + tests before declaring a task done.** A task is not complete if the build is red or tests fail.
 
