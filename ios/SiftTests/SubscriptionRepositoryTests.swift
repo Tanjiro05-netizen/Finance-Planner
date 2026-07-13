@@ -51,6 +51,18 @@ struct SubscriptionRepositoryTests {
         #expect(savings.formatted(showZeroFraction: false) == "$146")
     }
 
+    @Test func noArgumentConveniencesForwardToSeedDataDefaults() throws {
+        let fixture = try makeFixture()
+
+        let unusedViaConvenience = try fixture.repository.unused()
+        let unusedExplicit = try fixture.repository.unused(referenceDate: SeedData.referenceDate, staleAfterDays: 60)
+        #expect(unusedViaConvenience.map(\.id) == unusedExplicit.map(\.id))
+
+        let savingsViaConvenience = try fixture.repository.potentialSavings()
+        let savingsExplicit = try fixture.repository.potentialSavings(referenceDate: SeedData.referenceDate, staleAfterDays: 60)
+        #expect(savingsViaConvenience == savingsExplicit)
+    }
+
     private func makeFixture() throws -> Fixture {
         let container = try SiftModelContainerFactory.makeSeededInMemoryContainer()
         return Fixture(

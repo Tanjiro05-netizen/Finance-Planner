@@ -3,6 +3,31 @@ import Foundation
 import Testing
 
 struct TokenStoreTests {
+    @Test func keychainTokenStoreSavesUpdatesAndReadsBack() throws {
+        let store = KeychainTokenStore(service: "com.sift.tests.\(UUID().uuidString)", account: "jwt")
+        defer { try? store.deleteToken() }
+
+        #expect(try store.readToken() == nil)
+
+        try store.saveToken("jwt-first")
+        #expect(try store.readToken() == "jwt-first")
+
+        try store.saveToken("jwt-second")
+        #expect(try store.readToken() == "jwt-second")
+    }
+
+    @Test func keychainTokenStoreDeleteIsIdempotent() throws {
+        let store = KeychainTokenStore(service: "com.sift.tests.\(UUID().uuidString)", account: "jwt")
+
+        try store.deleteToken()
+        #expect(try store.readToken() == nil)
+
+        try store.saveToken("jwt-value")
+        try store.deleteToken()
+        #expect(try store.readToken() == nil)
+        try store.deleteToken()
+    }
+
     @Test func inMemoryTokenStoreRoundTrips() throws {
         let store = InMemoryTokenStore()
 
