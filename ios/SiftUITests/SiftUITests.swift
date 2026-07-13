@@ -129,11 +129,12 @@ final class SiftUITests: XCTestCase {
         openNotifications(in: app)
         let toggle = app.descendants(matching: .any)["alert-weekly-summary-toggle"]
         XCTAssertTrue(toggle.waitForExistence(timeout: 2))
-        if toggle.value as? String == "On" {
+        // XCUITest reports a SwiftUI Toggle's accessibility value as "1"/"0", not "On"/"Off".
+        if toggle.value as? String == "1" {
             toggle.tap()
         }
         toggle.tap()
-        XCTAssertEqual(toggle.value as? String, "On")
+        XCTAssertEqual(toggle.value as? String, "1")
 
         app.terminate()
         app.launch()
@@ -141,7 +142,7 @@ final class SiftUITests: XCTestCase {
         openNotifications(in: app)
         let relaunchedToggle = app.descendants(matching: .any)["alert-weekly-summary-toggle"]
         XCTAssertTrue(relaunchedToggle.waitForExistence(timeout: 2))
-        XCTAssertEqual(relaunchedToggle.value as? String, "On")
+        XCTAssertEqual(relaunchedToggle.value as? String, "1")
     }
 
     @MainActor
