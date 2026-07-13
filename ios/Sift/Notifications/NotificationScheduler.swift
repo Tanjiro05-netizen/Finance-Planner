@@ -167,7 +167,9 @@ final class NotificationScheduler: NotificationScheduling, @unchecked Sendable {
 
         if settings.renewalReminders {
             requests += subscriptions.compactMap { subscription in
-                guard !subscription.isTrialEnding else {
+                // Active subscriptions only: unused ones get the nudge instead of a
+                // renewal reminder, and trial-ending ones get the trial alert.
+                guard subscription.status == .active, !subscription.isTrialEnding else {
                     return nil
                 }
 
