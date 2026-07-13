@@ -66,7 +66,7 @@ struct DomainTypesTests {
 
     // MARK: - SubscriptionCategoryGroup
 
-    @Test func monthlyTotalExcludesCancelledSubscriptions() throws {
+    @Test func monthlyTotalExcludesCancelledSubscriptions() {
         let group = SubscriptionCategoryGroup(
             categoryID: "cat-streaming",
             categoryName: "Streaming",
