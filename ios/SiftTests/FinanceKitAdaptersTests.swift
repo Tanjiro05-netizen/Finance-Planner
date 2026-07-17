@@ -74,14 +74,14 @@ struct FinanceKitAdaptersTests {
     }
 
     @Test func remoteAccountCarriesBalanceWhenPresent() throws {
-        let withBalance = FinancialDataMapper.remoteAccount(from: FinancialAccountSnapshot(
+        let withBalance = try FinancialDataMapper.remoteAccount(from: FinancialAccountSnapshot(
             id: "a3",
             displayName: "Apple Card",
             institutionName: "Goldman Sachs",
             currencyCode: "USD",
             isLiability: true,
-            currentBalance: try #require(Decimal(string: "125.50")),
-            availableBalance: try #require(Decimal(string: "874.50"))
+            currentBalance: #require(Decimal(string: "125.50")),
+            availableBalance: #require(Decimal(string: "874.50"))
         ))
         let withoutBalance = FinancialDataMapper.remoteAccount(from: FinancialAccountSnapshot(
             id: "a4", displayName: "Apple Cash", institutionName: "Apple", currencyCode: "USD", isLiability: false

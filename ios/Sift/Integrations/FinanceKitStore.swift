@@ -90,7 +90,7 @@ import LocalAuthentication
                 institutionName: account.institutionName,
                 currencyCode: account.currencyCode,
                 isLiability: account.liabilityAccount != nil,
-                currentBalance: balance.map(Self.currentAmount(from:)),
+                currentBalance: balance.map(currentAmount(from:)),
                 availableBalance: balance?.available?.amount.amount
             )
         }

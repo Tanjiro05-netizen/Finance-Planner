@@ -99,7 +99,7 @@ final class TransactionsViewModel {
         do {
             let now = referenceDateProvider()
             let start = Calendar.utc.date(byAdding: .month, value: -1, to: now) ?? now
-            categoriesByID = Dictionary(uniqueKeysWithValues: try repositories.categories.all().map { ($0.id, $0) })
+            categoriesByID = try Dictionary(uniqueKeysWithValues: repositories.categories.all().map { ($0.id, $0) })
             transactions = try repositories.transactions.transactions(from: start, to: now)
             totalSpend = try repositories.transactions.totalSpend(from: start, to: now)
             totalIncome = try repositories.transactions.totalIncome(from: start, to: now)
