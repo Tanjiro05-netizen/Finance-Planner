@@ -9,8 +9,8 @@ struct TransactionRepositoryTests {
         let fixture = try makeFixture()
 
         let june = try fixture.repository.transactions(
-            from: SeedData.date(year: 2026, month: 6, day: 1),
-            to: SeedData.date(year: 2026, month: 6, day: 30)
+            from: date(year: 2026, month: 6, day: 1),
+            to: date(year: 2026, month: 6, day: 30)
         )
 
         #expect(june.map(\.id).sorted() == ["txn-creative-jun", "txn-streamline-jun", "txn-tonebox-jun"])
@@ -21,8 +21,8 @@ struct TransactionRepositoryTests {
         try fixture.repository.insert(makeCreditTransaction(id: "txn-payroll-jun", amount: .usd(200_000)))
 
         let range = (
-            SeedData.date(year: 2026, month: 6, day: 1),
-            SeedData.date(year: 2026, month: 6, day: 30)
+            date(year: 2026, month: 6, day: 1),
+            date(year: 2026, month: 6, day: 30)
         )
         let spend = try fixture.repository.totalSpend(from: range.0, to: range.1)
         let income = try fixture.repository.totalIncome(from: range.0, to: range.1)
@@ -35,8 +35,8 @@ struct TransactionRepositoryTests {
         let fixture = try makeFixture()
 
         let groups = try fixture.repository.byCategory(
-            from: SeedData.date(year: 2026, month: 6, day: 1),
-            to: SeedData.date(year: 2026, month: 6, day: 30)
+            from: date(year: 2026, month: 6, day: 1),
+            to: date(year: 2026, month: 6, day: 30)
         )
 
         #expect(groups.count == 1)
@@ -55,8 +55,8 @@ struct TransactionRepositoryTests {
         try fixture.repository.update(transaction)
 
         let groups = try fixture.repository.byCategory(
-            from: SeedData.date(year: 2026, month: 6, day: 1),
-            to: SeedData.date(year: 2026, month: 6, day: 30)
+            from: date(year: 2026, month: 6, day: 1),
+            to: date(year: 2026, month: 6, day: 30)
         )
 
         let streamingGroup = try #require(groups.first { $0.categoryID == SeedData.ID.streaming })
@@ -100,7 +100,7 @@ struct TransactionRepositoryTests {
             merchantRaw: "STREAMLINE PLUS",
             merchantKey: MerchantKey("Streamline Plus"),
             amount: .usd(1549),
-            date: SeedData.date(year: 2026, month: 6, day: 12),
+            date: date(year: 2026, month: 6, day: 12),
             categoryHint: "Streaming",
             source: .financeKit
         ))
@@ -118,7 +118,7 @@ struct TransactionRepositoryTests {
             merchantRaw: "Employer Inc",
             merchantKey: MerchantKey("Employer Inc"),
             amount: amount,
-            date: SeedData.date(year: 2026, month: 6, day: 15),
+            date: date(year: 2026, month: 6, day: 15),
             direction: .credit,
             kind: .income,
             source: .financeKit
@@ -137,4 +137,15 @@ struct TransactionRepositoryTests {
         let container: ModelContainer
         let repository: LiveTransactionRepository
     }
+}
+
+private func date(year: Int, month: Int, day: Int) -> Date {
+    var components = DateComponents()
+    components.calendar = Calendar.utc
+    components.timeZone = TimeZone(secondsFromGMT: 0)
+    components.year = year
+    components.month = month
+    components.day = day
+    components.hour = 12
+    return components.date ?? Date(timeIntervalSince1970: 0)
 }
