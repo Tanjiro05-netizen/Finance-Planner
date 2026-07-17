@@ -106,6 +106,8 @@ import LocalAuthentication
                 value.amount.amount
             case let .availableAndBooked(_, booked):
                 booked.amount.amount
+            @unknown default:
+                0
             }
         }
 
