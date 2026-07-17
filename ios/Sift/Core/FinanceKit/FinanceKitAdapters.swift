@@ -44,9 +44,12 @@ struct FinanceKitAPIClient: SiftAPIClient {
     }
 
     func syncTransactions() async throws -> TransactionSyncResponse {
-        let charges = try await spendTransactions()
+        // Counts every ledger row (debits and credits), not just subscription-eligible
+        // charges -- this response reports what's available to import, and the ledger
+        // wants the full picture. Subscription detection reads its own debit-only path.
+        let rows = try await allTransactions()
         return TransactionSyncResponse(
-            added: charges.count,
+            added: rows.count,
             modified: 0,
             removed: 0,
             hasMore: false
@@ -54,18 +57,18 @@ struct FinanceKitAPIClient: SiftAPIClient {
     }
 
     func listTransactions(limit: Int, offset: Int) async throws -> [RemoteTransaction] {
-        let charges = try await spendTransactions()
-        guard limit > 0, offset < charges.count else {
+        let rows = try await allTransactions()
+        guard limit > 0, offset < rows.count else {
             return []
         }
 
         let start = max(offset, 0)
-        let end = min(start + limit, charges.count)
+        let end = min(start + limit, rows.count)
         guard start < end else {
             return []
         }
 
-        return charges[start ..< end].map {
+        return rows[start ..< end].map {
             FinancialDataMapper.remoteTransaction(from: $0, userID: userID)
         }
     }
@@ -96,7 +99,7 @@ struct FinanceKitAPIClient: SiftAPIClient {
         )
     }
 
-    private func spendTransactions() async throws -> [FinancialTransactionSnapshot] {
+    private func allTransactions() async throws -> [FinancialTransactionSnapshot] {
         guard store.isDataAvailable() else {
             return []
         }
@@ -104,7 +107,7 @@ struct FinanceKitAPIClient: SiftAPIClient {
             return []
         }
 
-        return try await FinancialDataMapper.spendTransactions(from: store.fetchTransactions())
+        return try await FinancialDataMapper.allTransactions(from: store.fetchTransactions())
     }
 
     private func authorizedSnapshotAccounts() async throws -> [FinancialAccountSnapshot] {

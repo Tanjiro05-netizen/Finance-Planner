@@ -935,104 +935,6 @@ struct CategoryRowModel: Identifiable, Equatable {
 }
 
 @MainActor
-final class CategoryService {
-    struct KeywordRule {
-        let name: String
-        let iconToken: String
-        let keywords: [String]
-    }
-
-    /// Keyword map: merchant keys and Plaid categories are lowercased, then matched
-    /// against these stable terms. Manual category overrides set categoryManuallySet
-    /// and are never changed by automatic categorisation.
-    static let keywordRules: [KeywordRule] = [
-        KeywordRule(name: "Streaming", iconToken: "play.rectangle", keywords: ["stream", "netflix", "hulu", "video", "reel", "entertainment"]),
-        KeywordRule(name: "Audio", iconToken: "waveform", keywords: ["audio", "music", "spotify", "tonebox", "podcast"]),
-        KeywordRule(name: "Design", iconToken: "paintpalette", keywords: ["design", "adobe", "creative", "figma", "canva"]),
-        KeywordRule(name: "Productivity", iconToken: "square.and.pencil", keywords: ["productivity", "note", "readwise", "cloud", "daybook", "parcel"]),
-        KeywordRule(name: "Security", iconToken: "lock.shield", keywords: ["security", "vpn", "password", "atlas"]),
-        KeywordRule(name: "Health", iconToken: "heart.text.square", keywords: ["health", "fitness", "workout", "wellness"]),
-    ]
-
-    private let repositories: RepositoryContainer
-
-    init(repositories: RepositoryContainer) {
-        self.repositories = repositories
-    }
-
-    func applyAutoCategorizationIfEnabled() throws {
-        guard try repositories.settings.settings().autoCategorizeSubscriptions else {
-            return
-        }
-
-        let transactions = try repositories.transactions.all()
-        let categoryIDsByName = try ensureRuleCategories()
-        let hintsByMerchant = Dictionary(grouping: transactions, by: \.merchantKey)
-            .mapValues { values in
-                values.compactMap(\.categoryHint).joined(separator: " ")
-            }
-
-        for subscription in try repositories.subscriptions.all() where !subscription.categoryManuallySet {
-            guard let rule = rule(for: subscription, hint: hintsByMerchant[subscription.merchantKey]) else {
-                continue
-            }
-
-            subscription.categoryID = categoryIDsByName[rule.name.lowercased()]
-            try repositories.subscriptions.update(subscription)
-        }
-    }
-
-    func manuallyAssign(subscriptionID: String, categoryID: String?) throws {
-        guard let subscription = try repositories.subscriptions.subscription(id: subscriptionID) else {
-            throw SiftError.notFound("Subscription")
-        }
-
-        subscription.categoryID = categoryID
-        subscription.categoryManuallySet = true
-        try repositories.subscriptions.update(subscription)
-    }
-
-    func mergeCategory(id sourceID: String, into targetID: String) throws {
-        guard sourceID != targetID else {
-            return
-        }
-
-        for subscription in try repositories.subscriptions.all() where subscription.categoryID == sourceID {
-            subscription.categoryID = targetID
-            subscription.categoryManuallySet = true
-            try repositories.subscriptions.update(subscription)
-        }
-
-        try repositories.categories.delete(id: sourceID)
-    }
-
-    private func ensureRuleCategories() throws -> [String: String] {
-        var categories = try repositories.categories.all()
-
-        for rule in Self.keywordRules where !categories.contains(where: { $0.name.caseInsensitiveCompare(rule.name) == .orderedSame }) {
-            let category = Category(
-                id: "cat-\(MerchantKey(rule.name).rawValue)",
-                userID: SeedData.defaultUserID,
-                name: rule.name,
-                iconToken: rule.iconToken,
-                isAuto: true
-            )
-            try repositories.categories.insert(category)
-            categories.append(category)
-        }
-
-        return Dictionary(uniqueKeysWithValues: categories.map { ($0.name.lowercased(), $0.id) })
-    }
-
-    private func rule(for subscription: Subscription, hint: String?) -> KeywordRule? {
-        let searchable = "\(subscription.merchantKey.rawValue) \(hint ?? "")".lowercased()
-        return Self.keywordRules.first { rule in
-            rule.keywords.contains { searchable.contains($0) }
-        }
-    }
-}
-
-@MainActor
 @Observable
 final class CategoriesViewModel {
     private let repositories: RepositoryContainer
@@ -1054,6 +956,7 @@ final class CategoriesViewModel {
             let settings = try repositories.settings.settings()
             autoCategorize = settings.autoCategorizeSubscriptions
             try service.applyAutoCategorizationIfEnabled()
+            try service.applyAutoCategorizationForTransactions()
             categories = try repositories.categories.all()
             subscriptions = try repositories.subscriptions.all()
             rows = makeRows()

@@ -56,10 +56,22 @@
 		B0000000000000000000B001 /* FinancialData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000F001 /* FinancialData.swift */; };
 		B0000000000000000000B002 /* FinanceKitAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000F002 /* FinanceKitAdapters.swift */; };
 		B0000000000000000000B003 /* FinanceKitStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000F003 /* FinanceKitStore.swift */; };
+		C0000000000000000000B001 /* CategoryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F001 /* CategoryService.swift */; };
+		C0000000000000000000B002 /* TransactionClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F002 /* TransactionClassifier.swift */; };
+		C0000000000000000000B003 /* TransactionComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F003 /* TransactionComponents.swift */; };
+		C0000000000000000000B004 /* TransactionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F004 /* TransactionsViewModel.swift */; };
+		C0000000000000000000B005 /* TransactionDetailSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F005 /* TransactionDetailSheetView.swift */; };
+		C0000000000000000000B006 /* TransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F006 /* TransactionsView.swift */; };
+		C0000000000000000000B007 /* ManualTransactionEntryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F007 /* ManualTransactionEntryViewModel.swift */; };
+		C0000000000000000000B008 /* ManualTransactionEntrySheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F008 /* ManualTransactionEntrySheetView.swift */; };
 		B0000000000000000000C001 /* FinanceKitAdaptersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T001 /* FinanceKitAdaptersTests.swift */; };
 		B0000000000000000000C002 /* SubscriptionRefreshServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T002 /* SubscriptionRefreshServiceTests.swift */; };
 		B0000000000000000000C003 /* TokenStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T003 /* TokenStoreTests.swift */; };
 		B0000000000000000000C004 /* DomainTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T004 /* DomainTypesTests.swift */; };
+		B0000000000000000000C005 /* TransactionClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T005 /* TransactionClassifierTests.swift */; };
+		B0000000000000000000C006 /* CategoryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T006 /* CategoryServiceTests.swift */; };
+		B0000000000000000000C007 /* TransactionRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T007 /* TransactionRepositoryTests.swift */; };
+		B0000000000000000000C008 /* ManualTransactionEntryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T008 /* ManualTransactionEntryViewModelTests.swift */; };
 		60000000000000000000B001 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F001 /* Models.swift */; };
 		60000000000000000000B002 /* MerchantNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F002 /* MerchantNormalizer.swift */; };
 		60000000000000000000B003 /* DetectionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F003 /* DetectionEngine.swift */; };
@@ -186,11 +198,23 @@
 		B0000000000000000000F001 /* FinancialData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialData.swift; sourceTree = "<group>"; };
 		B0000000000000000000F002 /* FinanceKitAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceKitAdapters.swift; sourceTree = "<group>"; };
 		B0000000000000000000F003 /* FinanceKitStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceKitStore.swift; sourceTree = "<group>"; };
+		C0000000000000000000F001 /* CategoryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryService.swift; sourceTree = "<group>"; };
+		C0000000000000000000F002 /* TransactionClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionClassifier.swift; sourceTree = "<group>"; };
+		C0000000000000000000F003 /* TransactionComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionComponents.swift; sourceTree = "<group>"; };
+		C0000000000000000000F004 /* TransactionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsViewModel.swift; sourceTree = "<group>"; };
+		C0000000000000000000F005 /* TransactionDetailSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailSheetView.swift; sourceTree = "<group>"; };
+		C0000000000000000000F006 /* TransactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsView.swift; sourceTree = "<group>"; };
+		C0000000000000000000F007 /* ManualTransactionEntryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualTransactionEntryViewModel.swift; sourceTree = "<group>"; };
+		C0000000000000000000F008 /* ManualTransactionEntrySheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualTransactionEntrySheetView.swift; sourceTree = "<group>"; };
 		B0000000000000000000F004 /* Sift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sift.entitlements; sourceTree = "<group>"; };
 		B0000000000000000000T001 /* FinanceKitAdaptersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceKitAdaptersTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T002 /* SubscriptionRefreshServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRefreshServiceTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T003 /* TokenStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStoreTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T004 /* DomainTypesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainTypesTests.swift; sourceTree = "<group>"; };
+		B0000000000000000000T005 /* TransactionClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionClassifierTests.swift; sourceTree = "<group>"; };
+		B0000000000000000000T006 /* CategoryServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryServiceTests.swift; sourceTree = "<group>"; };
+		B0000000000000000000T007 /* TransactionRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionRepositoryTests.swift; sourceTree = "<group>"; };
+		B0000000000000000000T008 /* ManualTransactionEntryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualTransactionEntryViewModelTests.swift; sourceTree = "<group>"; };
 		60000000000000000000F001 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		60000000000000000000F002 /* MerchantNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantNormalizer.swift; sourceTree = "<group>"; };
 		60000000000000000000F003 /* DetectionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionEngine.swift; sourceTree = "<group>"; };
@@ -335,6 +359,10 @@
 				B0000000000000000000T002 /* SubscriptionRefreshServiceTests.swift */,
 				B0000000000000000000T003 /* TokenStoreTests.swift */,
 				B0000000000000000000T004 /* DomainTypesTests.swift */,
+				B0000000000000000000T005 /* TransactionClassifierTests.swift */,
+				B0000000000000000000T006 /* CategoryServiceTests.swift */,
+				B0000000000000000000T007 /* TransactionRepositoryTests.swift */,
+				B0000000000000000000T008 /* ManualTransactionEntryViewModelTests.swift */,
 				70000000000000000000T001 /* CancellationViewModelTests.swift */,
 				70000000000000000000T002 /* CancellationGuideProviderTests.swift */,
 				70000000000000000000T003 /* SavingsTests.swift */,
@@ -361,6 +389,7 @@
 			children = (
 				10000000000000000000F007 /* Components.swift */,
 				10000000000000000000F052 /* ScreenHeader.swift */,
+				C0000000000000000000F003 /* TransactionComponents.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -446,6 +475,7 @@
 				400000000000000000000001 /* Networking */,
 				400000000000000000000002 /* Security */,
 				B0000000000000000000G001 /* FinanceKit */,
+				C0000000000000000000G001 /* Categorization */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -481,6 +511,43 @@
 				B0000000000000000000F003 /* FinanceKitStore.swift */,
 			);
 			path = Integrations;
+			sourceTree = "<group>";
+		};
+		C0000000000000000000G001 /* Categorization */ = {
+			isa = PBXGroup;
+			children = (
+				C0000000000000000000F001 /* CategoryService.swift */,
+				C0000000000000000000F002 /* TransactionClassifier.swift */,
+			);
+			path = Categorization;
+			sourceTree = "<group>";
+		};
+		C0000000000000000000G002 /* Transactions */ = {
+			isa = PBXGroup;
+			children = (
+				C0000000000000000000F004 /* TransactionsViewModel.swift */,
+				C0000000000000000000F005 /* TransactionDetailSheetView.swift */,
+				C0000000000000000000G003 /* Views */,
+				C0000000000000000000G004 /* ManualEntry */,
+			);
+			path = Transactions;
+			sourceTree = "<group>";
+		};
+		C0000000000000000000G003 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C0000000000000000000F006 /* TransactionsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C0000000000000000000G004 /* ManualEntry */ = {
+			isa = PBXGroup;
+			children = (
+				C0000000000000000000F007 /* ManualTransactionEntryViewModel.swift */,
+				C0000000000000000000F008 /* ManualTransactionEntrySheetView.swift */,
+			);
+			path = ManualEntry;
 			sourceTree = "<group>";
 		};
 		300000000000000000000002 /* Domain */ = {
@@ -551,6 +618,7 @@
 				200000000000000000000014 /* SubscriptionDetail */,
 				200000000000000000000015 /* Cancellation */,
 				200000000000000000000016 /* Settings */,
+				C0000000000000000000G002 /* Transactions */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -879,6 +947,14 @@
 				B0000000000000000000B001 /* FinancialData.swift in Sources */,
 				B0000000000000000000B002 /* FinanceKitAdapters.swift in Sources */,
 				B0000000000000000000B003 /* FinanceKitStore.swift in Sources */,
+				C0000000000000000000B001 /* CategoryService.swift in Sources */,
+				C0000000000000000000B002 /* TransactionClassifier.swift in Sources */,
+				C0000000000000000000B003 /* TransactionComponents.swift in Sources */,
+				C0000000000000000000B004 /* TransactionsViewModel.swift in Sources */,
+				C0000000000000000000B005 /* TransactionDetailSheetView.swift in Sources */,
+				C0000000000000000000B006 /* TransactionsView.swift in Sources */,
+				C0000000000000000000B007 /* ManualTransactionEntryViewModel.swift in Sources */,
+				C0000000000000000000B008 /* ManualTransactionEntrySheetView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -914,6 +990,10 @@
 				B0000000000000000000C002 /* SubscriptionRefreshServiceTests.swift in Sources */,
 				B0000000000000000000C003 /* TokenStoreTests.swift in Sources */,
 				B0000000000000000000C004 /* DomainTypesTests.swift in Sources */,
+				B0000000000000000000C005 /* TransactionClassifierTests.swift in Sources */,
+				B0000000000000000000C006 /* CategoryServiceTests.swift in Sources */,
+				B0000000000000000000C007 /* TransactionRepositoryTests.swift in Sources */,
+				B0000000000000000000C008 /* ManualTransactionEntryViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

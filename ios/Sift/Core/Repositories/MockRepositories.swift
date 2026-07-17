@@ -156,6 +156,16 @@ final class MockTransactionRepository: TransactionRepository, @unchecked Sendabl
     }
 
     @MainActor
+    func transactions(from startDate: Date, to endDate: Date) throws -> [Transaction] {
+        try all().filter { $0.date >= startDate && $0.date <= endDate }
+    }
+
+    @MainActor
+    func transaction(id: String) throws -> Transaction? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
     func insert(_ transaction: Transaction) throws {
         transactions.append(transaction)
     }
@@ -163,6 +173,10 @@ final class MockTransactionRepository: TransactionRepository, @unchecked Sendabl
     @MainActor
     func upsert(_ transaction: Transaction) throws {
         if let index = transactions.firstIndex(where: { $0.id == transaction.id && $0.userID == userID }) {
+            let existing = transactions[index]
+            transaction.categoryID = existing.categoryID
+            transaction.categoryManuallySet = existing.categoryManuallySet
+            transaction.note = existing.note
             transactions[index] = transaction
         } else {
             transactions.append(transaction)
@@ -170,8 +184,45 @@ final class MockTransactionRepository: TransactionRepository, @unchecked Sendabl
     }
 
     @MainActor
+    func update(_: Transaction) throws {}
+
+    @MainActor
+    func delete(id: String) throws {
+        transactions.removeAll { $0.id == id && $0.userID == userID }
+    }
+
+    @MainActor
     func deleteAll() throws {
         transactions.removeAll { $0.userID == userID }
+    }
+
+    @MainActor
+    func totalSpend(from startDate: Date, to endDate: Date) throws -> Money {
+        let values = try transactions(from: startDate, to: endDate)
+            .filter { $0.direction == .debit }
+            .map(\.amount)
+        return try Money.sum(values)
+    }
+
+    @MainActor
+    func totalIncome(from startDate: Date, to endDate: Date) throws -> Money {
+        let values = try transactions(from: startDate, to: endDate)
+            .filter { $0.direction == .credit }
+            .map(\.amount)
+        return try Money.sum(values)
+    }
+
+    @MainActor
+    func byCategory(from startDate: Date, to endDate: Date) throws -> [TransactionCategoryGroup] {
+        let scoped = try transactions(from: startDate, to: endDate)
+        let grouped = Dictionary(grouping: scoped, by: \.categoryID)
+        return grouped.map { categoryID, transactions in
+            TransactionCategoryGroup(
+                categoryID: categoryID,
+                categoryName: categoryID ?? "Uncategorized",
+                transactions: transactions
+            )
+        }
     }
 }
 

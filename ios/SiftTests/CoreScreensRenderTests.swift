@@ -41,6 +41,24 @@ struct CoreScreensRenderTests {
         }
     }
 
+    @Test func transactionsRendersAtDefaultAndLargeDynamicType() {
+        assertRenders {
+            TransactionsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func transactionsEmptyStateRenders() {
+        assertRenders {
+            TransactionsView(
+                repositories: .emptyMock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
     private func assertRenders(@ViewBuilder content: () -> some View) {
         render(content(), dynamicTypeSize: .large)
         render(content(), dynamicTypeSize: .accessibility2)

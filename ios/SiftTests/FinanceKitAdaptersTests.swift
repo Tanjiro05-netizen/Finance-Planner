@@ -48,6 +48,16 @@ struct FinanceKitAdaptersTests {
         #expect(mapped.amountMinor == 999)
         #expect(mapped.isoCurrency == "USD")
         #expect(mapped.category == nil)
+        #expect(mapped.direction == "debit")
+    }
+
+    @Test func remoteTransactionCarriesCreditDirection() {
+        let mapped = FinancialDataMapper.remoteTransaction(
+            from: snapshot(id: "t2", merchant: "Payroll", amount: 500, daysAgo: 0, isDebit: false),
+            userID: "user-42"
+        )
+
+        #expect(mapped.direction == "credit")
     }
 
     @Test func remoteAccountMapsLiabilityToCredit() {
@@ -61,6 +71,27 @@ struct FinanceKitAdaptersTests {
         #expect(asset.type == "depository")
         #expect(liability.type == "credit")
         #expect(liability.name == "Apple Card")
+    }
+
+    @Test func remoteAccountCarriesBalanceWhenPresent() throws {
+        let withBalance = FinancialDataMapper.remoteAccount(from: FinancialAccountSnapshot(
+            id: "a3",
+            displayName: "Apple Card",
+            institutionName: "Goldman Sachs",
+            currencyCode: "USD",
+            isLiability: true,
+            currentBalance: try #require(Decimal(string: "125.50")),
+            availableBalance: try #require(Decimal(string: "874.50"))
+        ))
+        let withoutBalance = FinancialDataMapper.remoteAccount(from: FinancialAccountSnapshot(
+            id: "a4", displayName: "Apple Cash", institutionName: "Apple", currencyCode: "USD", isLiability: false
+        ))
+
+        #expect(withBalance.currentBalanceMinor == 12550)
+        #expect(withBalance.availableBalanceMinor == 87450)
+        #expect(withBalance.isoCurrency == "USD")
+        #expect(withoutBalance.currentBalanceMinor == nil)
+        #expect(withoutBalance.availableBalanceMinor == nil)
     }
 
     @Test func minorUnitsRespectsCurrencyScale() throws {
@@ -84,6 +115,22 @@ struct FinanceKitAdaptersTests {
         #expect(account.institutionName == "Apple")
         #expect(account.mask == "")
         #expect(account.status == .connected)
+        #expect(account.currentBalance == nil)
+        #expect(account.balanceAsOf == nil)
+    }
+
+    @Test func linkedAccountFromRemoteCarriesBalance() {
+        let syncedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let remote = RemoteAccount(
+            id: "a1", plaidItemId: "a1", institutionName: "Apple",
+            mask: nil, name: "Apple Card", type: "credit", status: "active",
+            currentBalanceMinor: 12550, availableBalanceMinor: 87450, isoCurrency: "USD"
+        )
+        let account = LinkedAccount(remote: remote, userID: "user-1", syncedAt: syncedAt)
+
+        #expect(account.currentBalance == Money.usd(12550))
+        #expect(account.availableBalance == Money.usd(87450))
+        #expect(account.balanceAsOf == syncedAt)
     }
 
     // MARK: - Incremental sync window
@@ -123,7 +170,10 @@ struct FinanceKitAdaptersTests {
 
     // MARK: - FinanceKitAPIClient
 
-    @Test func syncReportsAvailableChargeCount() async throws {
+    @Test func syncReportsAvailableLedgerRowCount() async throws {
+        // added now counts every ledger row (debits and credits), not just subscription-
+        // eligible charges: the ledger wants the full picture, and subscription detection
+        // reads its own debit-only path downstream, not this count.
         let store = MockFinancialDataStore(transactions: [
             snapshot(id: "t1", merchant: "A", amount: 5, daysAgo: 1),
             snapshot(id: "t2", merchant: "B", amount: 6, daysAgo: 2),
@@ -133,7 +183,7 @@ struct FinanceKitAdaptersTests {
 
         let response = try await client.syncTransactions()
 
-        #expect(response.added == 2)
+        #expect(response.added == 3)
         #expect(response.hasMore == false)
     }
 
@@ -151,6 +201,19 @@ struct FinanceKitAdaptersTests {
         #expect(firstPage.map(\.id) == ["t1", "t2"])
         #expect(secondPage.map(\.id) == ["t3"])
         #expect(firstPage.allSatisfy { $0.userId == "user-1" })
+    }
+
+    @Test func listTransactionsIncludesCredits() async throws {
+        let store = MockFinancialDataStore(transactions: [
+            snapshot(id: "t1", merchant: "A", amount: 5, daysAgo: 1),
+            snapshot(id: "credit", merchant: "B", amount: 6, daysAgo: 2, isDebit: false),
+        ])
+        let client = FinanceKitAPIClient(store: store, userID: "user-1")
+
+        let rows = try await client.listTransactions(limit: 50, offset: 0)
+
+        #expect(rows.map(\.id).sorted() == ["credit", "t1"])
+        #expect(rows.first { $0.id == "credit" }?.direction == "credit")
     }
 
     @Test func unauthorizedStoreYieldsNoData() async throws {

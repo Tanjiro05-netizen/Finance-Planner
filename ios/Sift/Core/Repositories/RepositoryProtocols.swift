@@ -44,9 +44,16 @@ protocol TransactionRepository: AnyObject, Sendable {
     @MainActor func all() throws -> [Transaction]
     @MainActor func recent(limit: Int) throws -> [Transaction]
     @MainActor func transactions(for accountID: String) throws -> [Transaction]
+    @MainActor func transactions(from startDate: Date, to endDate: Date) throws -> [Transaction]
+    @MainActor func transaction(id: String) throws -> Transaction?
     @MainActor func insert(_ transaction: Transaction) throws
     @MainActor func upsert(_ transaction: Transaction) throws
+    @MainActor func update(_ transaction: Transaction) throws
+    @MainActor func delete(id: String) throws
     @MainActor func deleteAll() throws
+    @MainActor func totalSpend(from startDate: Date, to endDate: Date) throws -> Money
+    @MainActor func totalIncome(from startDate: Date, to endDate: Date) throws -> Money
+    @MainActor func byCategory(from startDate: Date, to endDate: Date) throws -> [TransactionCategoryGroup]
 }
 
 protocol CancellationRepository: AnyObject, Sendable {

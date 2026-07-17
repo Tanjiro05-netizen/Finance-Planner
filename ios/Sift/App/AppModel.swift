@@ -9,6 +9,7 @@ final class AppModel {
     var homePath = NavigationPath()
     var subscriptionsPath = NavigationPath()
     var insightsPath = NavigationPath()
+    var transactionsPath = NavigationPath()
     var sheet: AppSheet?
 
     init(isOnboardingComplete: Bool = false) {
@@ -25,6 +26,7 @@ final class AppModel {
         homePath = NavigationPath()
         subscriptionsPath = NavigationPath()
         insightsPath = NavigationPath()
+        transactionsPath = NavigationPath()
         sheet = nil
     }
 
@@ -72,6 +74,8 @@ final class AppModel {
             select(tab: .subscriptions)
         case .insights:
             select(tab: .insights)
+        case .transactions:
+            select(tab: .transactions)
         case .settings:
             select(tab: .home)
             push(.settings, in: .home)
@@ -92,6 +96,8 @@ final class AppModel {
             subscriptionsPath.count
         case .insights:
             insightsPath.count
+        case .transactions:
+            transactionsPath.count
         }
     }
 }

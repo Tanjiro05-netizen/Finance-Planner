@@ -30,6 +30,8 @@ enum SeedData {
         static let parcelPro = "sub-parcel-pro"
 
         static let alertSettings = "alert-settings-preview"
+
+        static let streamlineTransaction = "txn-streamline-jun"
     }
 
     struct Snapshot {

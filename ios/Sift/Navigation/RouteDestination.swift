@@ -63,6 +63,10 @@ enum RouteDestination {
                 apiClient: apiClient,
                 notificationScheduler: notificationScheduler
             )
+        case .manualTransactionEntry:
+            ManualTransactionEntrySheetView(repositories: repositories)
+        case let .transactionDetail(id):
+            TransactionDetailSheetView(transactionID: id)
         }
     }
 }

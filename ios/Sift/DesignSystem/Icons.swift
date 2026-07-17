@@ -2,6 +2,7 @@ enum SiftIcon {
     static let home = "house"
     static let subscriptions = "rectangle.stack"
     static let insights = "chart.bar"
+    static let transactions = "list.bullet.rectangle"
     static let profile = "person.crop.circle"
     static let bell = "bell"
     static let lock = "lock"

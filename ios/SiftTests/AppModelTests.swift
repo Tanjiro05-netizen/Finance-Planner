@@ -22,6 +22,16 @@ struct AppModelTests {
         #expect(model.sheet == nil)
     }
 
+    @Test func presentTransactionSheets() {
+        let model = AppModel()
+
+        model.present(.manualTransactionEntry)
+        #expect(model.sheet == .manualTransactionEntry)
+
+        model.present(.transactionDetail(id: SampleRouteID.transaction))
+        #expect(model.sheet == .transactionDetail(id: SampleRouteID.transaction))
+    }
+
     @Test func pushAppendsToTheCorrectPath() {
         let model = AppModel()
 
@@ -32,6 +42,7 @@ struct AppModelTests {
         #expect(model.pathCount(for: .home) == 1)
         #expect(model.pathCount(for: .subscriptions) == 1)
         #expect(model.pathCount(for: .insights) == 1)
+        #expect(model.pathCount(for: .transactions) == 0)
     }
 
     @Test func deepLinkCanSelectAndRoute() {
@@ -44,6 +55,9 @@ struct AppModelTests {
         model.handle(.subscriptionDetail(id: SampleRouteID.subscription))
         #expect(model.selectedTab == .subscriptions)
         #expect(model.sheet == .subscriptionDetail(id: SampleRouteID.subscription))
+
+        model.handle(.transactions)
+        #expect(model.selectedTab == .transactions)
     }
 
     @Test func returnToOnboardingClearsNavigationState() {
@@ -57,6 +71,7 @@ struct AppModelTests {
         #expect(!model.isOnboardingComplete)
         #expect(model.selectedTab == .home)
         #expect(model.pathCount(for: .home) == 0)
+        #expect(model.pathCount(for: .transactions) == 0)
         #expect(model.sheet == nil)
     }
 }
@@ -92,35 +107,6 @@ struct AlertSettingsViewModelTests {
         reloaded.load()
         #expect(reloaded.weeklySummary)
         #expect(!reloaded.renewalReminders)
-    }
-}
-
-@MainActor
-struct CategoryServiceTests {
-    @Test func autoCategoriseMapsKnownMerchants() throws {
-        let repositories = RepositoryContainer.mock()
-        let subscription = try #require(try repositories.subscriptions.subscription(id: SeedData.ID.figma))
-        subscription.categoryID = nil
-        subscription.categoryManuallySet = false
-        try repositories.subscriptions.update(subscription)
-
-        try CategoryService(repositories: repositories).applyAutoCategorizationIfEnabled()
-
-        let updated = try #require(try repositories.subscriptions.subscription(id: SeedData.ID.figma))
-        let design = try #require(try repositories.categories.category(id: SeedData.ID.design))
-        #expect(updated.categoryID == design.id)
-    }
-
-    @Test func manualOverrideSurvivesAutoCategorisation() throws {
-        let repositories = RepositoryContainer.mock()
-        let service = CategoryService(repositories: repositories)
-
-        try service.manuallyAssign(subscriptionID: SeedData.ID.streamline, categoryID: SeedData.ID.health)
-        try service.applyAutoCategorizationIfEnabled()
-
-        let subscription = try #require(try repositories.subscriptions.subscription(id: SeedData.ID.streamline))
-        #expect(subscription.categoryID == SeedData.ID.health)
-        #expect(subscription.categoryManuallySet)
     }
 }
 

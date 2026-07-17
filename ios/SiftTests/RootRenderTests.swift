@@ -15,4 +15,16 @@ struct RootRenderTests {
 
         #expect(controller.view != nil)
     }
+
+    @Test func rootViewBuildsWithLedgerTabEnabled() {
+        let controller = UIHostingController(
+            rootView: RootView()
+                .environment(AppModel(isOnboardingComplete: true))
+                .environment(\.featureFlags, SiftFeatureFlags(conciergeEnabled: false, ledgerEnabled: true))
+        )
+
+        controller.loadViewIfNeeded()
+
+        #expect(controller.view != nil)
+    }
 }

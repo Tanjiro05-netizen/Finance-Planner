@@ -95,17 +95,21 @@ final class DefaultSubscriptionRefreshService: SubscriptionRefreshing, @unchecke
 
     @MainActor
     private func upsert(record: RemoteTransaction, merchantKey: MerchantKey) throws {
-        try repositories.transactions.upsert(Transaction(
-            id: record.id,
-            userID: record.userId,
-            accountID: record.accountId,
-            merchantRaw: record.merchantName,
-            merchantKey: merchantKey,
-            amount: Money(amountMinor: record.amountMinor, currency: record.isoCurrency),
-            date: record.date,
-            pending: record.pending,
-            categoryHint: record.category
-        ))
+        let transaction = Transaction(remote: record, merchantKey: merchantKey, source: .financeKit)
+        if transaction.direction == .credit {
+            let priorDebits = try repositories.transactions.transactions(for: transaction.accountID)
+                .filter { $0.direction == .debit }
+            transaction.kind = TransactionClassifier.refine(
+                kind: transaction.kind,
+                direction: transaction.direction,
+                merchantKey: transaction.merchantKey,
+                accountID: transaction.accountID,
+                amount: transaction.amount,
+                date: transaction.date,
+                priorDebits: priorDebits
+            )
+        }
+        try repositories.transactions.upsert(transaction)
     }
 }
 

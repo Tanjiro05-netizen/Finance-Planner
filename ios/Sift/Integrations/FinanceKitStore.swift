@@ -36,7 +36,18 @@ import LocalAuthentication
 
         func fetchAccounts() async throws -> [FinancialAccountSnapshot] {
             let query = AccountQuery(sortDescriptors: [], predicate: nil, limit: nil, offset: nil)
-            return try await FinanceStore.shared.accounts(query: query).map(Self.snapshot(from:))
+            let accounts = try await FinanceStore.shared.accounts(query: query)
+
+            let balanceQuery = AccountBalanceQuery(sortDescriptors: [], predicate: nil, limit: nil, offset: nil)
+            let balances = try await FinanceStore.shared.accountBalances(query: balanceQuery)
+            let balancesByAccountID = Dictionary(
+                balances.map { ($0.accountID, $0) },
+                uniquingKeysWith: { first, _ in first }
+            )
+
+            return accounts.map { account in
+                Self.snapshot(from: account, balance: balancesByAccountID[account.id])
+            }
         }
 
         /// Incremental fetch: only transactions since the last successful sync (with a
@@ -72,14 +83,30 @@ import LocalAuthentication
             }
         }
 
-        private static func snapshot(from account: Account) -> FinancialAccountSnapshot {
+        private static func snapshot(from account: Account, balance: AccountBalance?) -> FinancialAccountSnapshot {
             FinancialAccountSnapshot(
                 id: account.id.uuidString,
                 displayName: account.displayName,
                 institutionName: account.institutionName,
                 currencyCode: account.currencyCode,
-                isLiability: account.liabilityAccount != nil
+                isLiability: account.liabilityAccount != nil,
+                currentBalance: balance.map(Self.currentAmount(from:)),
+                availableBalance: balance?.available?.amount.amount
             )
+        }
+
+        /// `AccountBalance.currentBalance` may carry only the available side, only the
+        /// booked side, or both; when both are present the booked amount is the settled
+        /// balance, which is what "current balance" means to a person looking at the app.
+        private static func currentAmount(from balance: AccountBalance) -> Decimal {
+            switch balance.currentBalance {
+            case let .available(value):
+                value.amount.amount
+            case let .booked(value):
+                value.amount.amount
+            case let .availableAndBooked(_, booked):
+                booked.amount.amount
+            }
         }
 
         private static func snapshot(from transaction: FinanceKit.Transaction) -> FinancialTransactionSnapshot {

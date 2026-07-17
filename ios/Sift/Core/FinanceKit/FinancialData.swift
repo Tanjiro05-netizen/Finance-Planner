@@ -19,6 +19,26 @@ struct FinancialAccountSnapshot: Equatable {
     let institutionName: String
     let currencyCode: String
     let isLiability: Bool
+    let currentBalance: Decimal?
+    let availableBalance: Decimal?
+
+    init(
+        id: String,
+        displayName: String,
+        institutionName: String,
+        currencyCode: String,
+        isLiability: Bool,
+        currentBalance: Decimal? = nil,
+        availableBalance: Decimal? = nil
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.institutionName = institutionName
+        self.currencyCode = currencyCode
+        self.isLiability = isLiability
+        self.currentBalance = currentBalance
+        self.availableBalance = availableBalance
+    }
 }
 
 /// A single transaction surfaced by the on-device financial data store.
@@ -101,7 +121,8 @@ enum FinancialDataMapper {
             isoCurrency: snapshot.currencyCode,
             date: snapshot.date,
             pending: snapshot.isPending,
-            category: nil
+            category: nil,
+            direction: (snapshot.isDebit ? TransactionDirection.debit : .credit).remoteValue
         )
     }
 
@@ -113,23 +134,40 @@ enum FinancialDataMapper {
             mask: nil,
             name: snapshot.displayName,
             type: snapshot.isLiability ? "credit" : "depository",
-            status: "active"
+            status: "active",
+            currentBalanceMinor: snapshot.currentBalance.map { minorUnits(from: $0, currencyCode: snapshot.currencyCode) },
+            availableBalanceMinor: snapshot.availableBalance.map { minorUnits(from: $0, currencyCode: snapshot.currencyCode) },
+            isoCurrency: snapshot.currencyCode
         )
     }
 
     /// Charges eligible for subscription detection: settled or pending debits, most
-    /// recent first with a stable tiebreak so paging is deterministic.
+    /// recent first with a stable tiebreak so paging is deterministic. Credits are
+    /// intentionally excluded here -- this feeds subscription detection, not the ledger.
     static func spendTransactions(
         from snapshots: [FinancialTransactionSnapshot]
     ) -> [FinancialTransactionSnapshot] {
         snapshots
             .filter(\.isDebit)
-            .sorted { lhs, rhs in
-                if lhs.date != rhs.date {
-                    return lhs.date > rhs.date
-                }
-                return lhs.id < rhs.id
-            }
+            .sorted(by: chronological)
+    }
+
+    /// Every transaction (debit and credit), for the general ledger. Same deterministic
+    /// ordering as `spendTransactions`, just without the debit-only filter.
+    static func allTransactions(
+        from snapshots: [FinancialTransactionSnapshot]
+    ) -> [FinancialTransactionSnapshot] {
+        snapshots.sorted(by: chronological)
+    }
+
+    private static func chronological(
+        _ lhs: FinancialTransactionSnapshot,
+        _ rhs: FinancialTransactionSnapshot
+    ) -> Bool {
+        if lhs.date != rhs.date {
+            return lhs.date > rhs.date
+        }
+        return lhs.id < rhs.id
     }
 }
 

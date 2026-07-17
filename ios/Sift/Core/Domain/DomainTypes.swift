@@ -59,17 +59,21 @@ enum SiftError: Error, Equatable, LocalizedError {
 
 struct SiftFeatureFlags: Equatable {
     var conciergeEnabled: Bool
+    var ledgerEnabled: Bool
 
-    static let launchDefault = SiftFeatureFlags(conciergeEnabled: false)
+    static let launchDefault = SiftFeatureFlags(conciergeEnabled: false, ledgerEnabled: false)
 
     static func current(processInfo: ProcessInfo = .processInfo) -> SiftFeatureFlags {
         let arguments = processInfo.arguments
         let environment = processInfo.environment
         let envValue = environment["SIFT_CONCIERGE_ENABLED"]?.lowercased()
         let enabledByEnvironment = envValue == "1" || envValue == "true" || envValue == "yes"
+        let ledgerEnvValue = environment["SIFT_LEDGER_ENABLED"]?.lowercased()
+        let ledgerEnabledByEnvironment = ledgerEnvValue == "1" || ledgerEnvValue == "true" || ledgerEnvValue == "yes"
 
         return SiftFeatureFlags(
-            conciergeEnabled: arguments.contains("-siftConciergeEnabled") || enabledByEnvironment
+            conciergeEnabled: arguments.contains("-siftConciergeEnabled") || enabledByEnvironment,
+            ledgerEnabled: arguments.contains("-siftLedgerEnabled") || ledgerEnabledByEnvironment
         )
     }
 }
@@ -200,6 +204,45 @@ struct SubscriptionCategoryGroup: Equatable {
         let values = subscriptions
             .filter { $0.status != .cancelled }
             .map(\.monthlyEquivalent)
+        return (try? Money.sum(values)) ?? .zeroUSD
+    }
+}
+
+/// Whether money left the account (`debit`) or entered it (`credit`). Objective, derived
+/// directly from the source data (`FinanceKit.CreditDebitIndicator` or a Plaid sign).
+enum TransactionDirection: String, Codable, CaseIterable {
+    case debit
+    case credit
+}
+
+/// A categorization/heuristic layer on top of `TransactionDirection`, used for display and
+/// later budget rules. A `.credit` might be `.refund` or `.income`; a `.debit` is usually
+/// `.purchase` unless it matches a known subscription charge.
+enum TransactionKind: String, Codable, CaseIterable {
+    case purchase
+    case subscriptionCharge
+    case refund
+    case income
+    case transfer
+    case other
+}
+
+/// Where a transaction row came from, so the ledger can distinguish auto-imported data
+/// from what a person typed in themselves.
+enum TransactionSource: String, Codable, CaseIterable {
+    case financeKit
+    /// Reserved for a future Plaid/bank-sync backend; unused in Phase 1.
+    case plaid
+    case manual
+}
+
+struct TransactionCategoryGroup: Equatable {
+    let categoryID: String?
+    let categoryName: String
+    let transactions: [Transaction]
+
+    var total: Money {
+        let values = transactions.map(\.amount)
         return (try? Money.sum(values)) ?? .zeroUSD
     }
 }

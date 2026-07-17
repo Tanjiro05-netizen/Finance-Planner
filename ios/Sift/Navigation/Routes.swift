@@ -2,6 +2,7 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
     case home
     case subscriptions
     case insights
+    case transactions
 
     var id: Self {
         self
@@ -15,6 +16,8 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
             "Subscriptions"
         case .insights:
             "Insights"
+        case .transactions:
+            "Transactions"
         }
     }
 
@@ -26,6 +29,8 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
             isSelected ? "rectangle.stack.fill" : SiftIcon.subscriptions
         case .insights:
             isSelected ? "chart.bar.fill" : SiftIcon.insights
+        case .transactions:
+            isSelected ? "list.bullet.rectangle.fill" : SiftIcon.transactions
         }
     }
 }
@@ -64,6 +69,8 @@ enum AppSheet: Hashable, Identifiable {
     case subscriptionDetail(id: String)
     case cancellation(subscriptionID: String)
     case cancellationRequests
+    case manualTransactionEntry
+    case transactionDetail(id: String)
 
     var id: String {
         switch self {
@@ -73,6 +80,10 @@ enum AppSheet: Hashable, Identifiable {
             "cancellation-\(subscriptionID)"
         case .cancellationRequests:
             "cancellation-requests"
+        case .manualTransactionEntry:
+            "manual-transaction-entry"
+        case let .transactionDetail(id):
+            "transaction-detail-\(id)"
         }
     }
 
@@ -81,6 +92,8 @@ enum AppSheet: Hashable, Identifiable {
             .subscriptionDetail(id: SampleRouteID.subscription),
             .cancellation(subscriptionID: SampleRouteID.subscription),
             .cancellationRequests,
+            .manualTransactionEntry,
+            .transactionDetail(id: SampleRouteID.transaction),
         ]
     }
 }
@@ -89,6 +102,7 @@ enum DeepLink: Hashable {
     case home
     case subscriptions
     case insights
+    case transactions
     case settings
     case subscriptionDetail(id: String)
     case cancellation(subscriptionID: String)
@@ -96,4 +110,5 @@ enum DeepLink: Hashable {
 
 enum SampleRouteID {
     static let subscription = SeedData.ID.streamline
+    static let transaction = SeedData.ID.streamlineTransaction
 }

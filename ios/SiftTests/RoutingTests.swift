@@ -18,6 +18,8 @@ struct RoutingTests {
         #expect(ids.count == sheets.count)
         #expect(ids.contains("subscription-detail-\(SampleRouteID.subscription)"))
         #expect(ids.contains("cancellation-\(SampleRouteID.subscription)"))
+        #expect(ids.contains("manual-transaction-entry"))
+        #expect(ids.contains("transaction-detail-\(SampleRouteID.transaction)"))
     }
 
     @Test func routeDestinationsBuild() {

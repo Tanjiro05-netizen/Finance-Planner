@@ -41,6 +41,64 @@ struct DomainTypesTests {
         // neither -siftConciergeEnabled nor SIFT_CONCIERGE_ENABLED set.
         #expect(SiftFeatureFlags.current().conciergeEnabled == false)
         #expect(SiftFeatureFlags.launchDefault.conciergeEnabled == false)
+        #expect(SiftFeatureFlags.current().ledgerEnabled == false)
+        #expect(SiftFeatureFlags.launchDefault.ledgerEnabled == false)
+    }
+
+    // MARK: - Transaction enums
+
+    @Test func transactionDirectionCasesRoundTripRawValues() {
+        #expect(TransactionDirection(rawValue: "debit") == .debit)
+        #expect(TransactionDirection(rawValue: "credit") == .credit)
+        #expect(TransactionDirection.allCases.map(\.rawValue) == ["debit", "credit"])
+    }
+
+    @Test func transactionKindCasesRoundTripRawValues() {
+        let expected: [TransactionKind] = [.purchase, .subscriptionCharge, .refund, .income, .transfer, .other]
+        #expect(TransactionKind.allCases == expected)
+        for kind in expected {
+            #expect(TransactionKind(rawValue: kind.rawValue) == kind)
+        }
+    }
+
+    @Test func transactionSourceCasesRoundTripRawValues() {
+        let expected: [TransactionSource] = [.financeKit, .plaid, .manual]
+        #expect(TransactionSource.allCases == expected)
+        for source in expected {
+            #expect(TransactionSource(rawValue: source.rawValue) == source)
+        }
+    }
+
+    // MARK: - TransactionCategoryGroup
+
+    @Test func transactionCategoryGroupTotalSumsAmounts() {
+        let group = TransactionCategoryGroup(
+            categoryID: "cat-streaming",
+            categoryName: "Streaming",
+            transactions: [
+                makeTransaction(id: "t1", amount: .usd(999)),
+                makeTransaction(id: "t2", amount: .usd(501)),
+            ]
+        )
+
+        #expect(group.total == .usd(1500))
+    }
+
+    @Test func transactionCategoryGroupTotalIsZeroForEmptyGroup() {
+        let group = TransactionCategoryGroup(categoryID: nil, categoryName: "Empty", transactions: [])
+        #expect(group.total == .zeroUSD)
+    }
+
+    private func makeTransaction(id: String, amount: Money) -> Transaction {
+        Transaction(
+            id: id,
+            userID: SeedData.defaultUserID,
+            accountID: "acct-1",
+            merchantRaw: id,
+            merchantKey: MerchantKey(id),
+            amount: amount,
+            date: SeedData.referenceDate
+        )
     }
 
     // MARK: - Cadence

@@ -11,6 +11,9 @@ final class LinkedAccount {
     var type: String
     var status: LinkedAccountStatus
     var lastSyncedAt: Date?
+    var currentBalance: Money?
+    var availableBalance: Money?
+    var balanceAsOf: Date?
 
     init(
         id: String,
@@ -20,7 +23,10 @@ final class LinkedAccount {
         mask: String,
         type: String,
         status: LinkedAccountStatus,
-        lastSyncedAt: Date? = nil
+        lastSyncedAt: Date? = nil,
+        currentBalance: Money? = nil,
+        availableBalance: Money? = nil,
+        balanceAsOf: Date? = nil
     ) {
         self.id = id
         self.userID = userID
@@ -30,6 +36,9 @@ final class LinkedAccount {
         self.type = type
         self.status = status
         self.lastSyncedAt = lastSyncedAt
+        self.currentBalance = currentBalance
+        self.availableBalance = availableBalance
+        self.balanceAsOf = balanceAsOf
     }
 }
 
@@ -44,6 +53,12 @@ final class Transaction {
     var date: Date
     var pending: Bool
     var categoryHint: String?
+    var direction: TransactionDirection
+    var kind: TransactionKind
+    var categoryID: String?
+    var categoryManuallySet: Bool
+    var source: TransactionSource
+    var note: String?
 
     init(
         id: String,
@@ -54,7 +69,13 @@ final class Transaction {
         amount: Money,
         date: Date,
         pending: Bool = false,
-        categoryHint: String? = nil
+        categoryHint: String? = nil,
+        direction: TransactionDirection = .debit,
+        kind: TransactionKind = .purchase,
+        categoryID: String? = nil,
+        categoryManuallySet: Bool = false,
+        source: TransactionSource = .financeKit,
+        note: String? = nil
     ) {
         self.id = id
         self.userID = userID
@@ -65,6 +86,12 @@ final class Transaction {
         self.date = date
         self.pending = pending
         self.categoryHint = categoryHint
+        self.direction = direction
+        self.kind = kind
+        self.categoryID = categoryID
+        self.categoryManuallySet = categoryManuallySet
+        self.source = source
+        self.note = note
     }
 }
 

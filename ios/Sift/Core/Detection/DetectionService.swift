@@ -191,7 +191,7 @@ actor DetectionPersistenceActor: ModelActor {
 
     private func transactionInputs(userID: String) throws -> [Txn] {
         try modelContext.fetch(FetchDescriptor<Transaction>())
-            .filter { $0.userID == userID }
+            .filter { $0.userID == userID && $0.direction == .debit }
             .map { transaction in
                 Txn(
                     id: transaction.id,

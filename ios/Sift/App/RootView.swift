@@ -148,6 +148,9 @@ struct RootView: View {
             homeTab(path: $model.homePath, selectedTab: model.selectedTab)
             subscriptionsTab(path: $model.subscriptionsPath, selectedTab: model.selectedTab)
             insightsTab(path: $model.insightsPath, selectedTab: model.selectedTab)
+            if featureFlags.ledgerEnabled {
+                transactionsTab(path: $model.transactionsPath, selectedTab: model.selectedTab)
+            }
         }
         .tabViewStyle(.automatic)
         .tint(Palette.goldDeep)
@@ -199,6 +202,16 @@ struct RootView: View {
             }
         } label: {
             tabLabel(for: .insights, selectedTab: selectedTab)
+        }
+    }
+
+    private func transactionsTab(path: Binding<NavigationPath>, selectedTab: AppTab) -> some TabContent<AppTab> {
+        Tab(value: AppTab.transactions) {
+            NavigationStack(path: path) {
+                TransactionsView(repositories: repositories)
+            }
+        } label: {
+            tabLabel(for: .transactions, selectedTab: selectedTab)
         }
     }
 

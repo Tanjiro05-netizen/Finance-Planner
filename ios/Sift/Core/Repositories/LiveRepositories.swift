@@ -175,6 +175,25 @@ final class LiveTransactionRepository: TransactionRepository, @unchecked Sendabl
     }
 
     @MainActor
+    func transactions(from startDate: Date, to endDate: Date) throws -> [Transaction] {
+        let scopedUserID = userID
+        var descriptor = FetchDescriptor<Transaction>(
+            predicate: #Predicate { transaction in
+                transaction.userID == scopedUserID &&
+                    transaction.date >= startDate &&
+                    transaction.date <= endDate
+            }
+        )
+        descriptor.sortBy = [SortDescriptor(\.date, order: .reverse)]
+        return try context.fetch(descriptor)
+    }
+
+    @MainActor
+    func transaction(id: String) throws -> Transaction? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
     func insert(_ transaction: Transaction) throws {
         context.insert(transaction)
         try context.save()
@@ -190,10 +209,35 @@ final class LiveTransactionRepository: TransactionRepository, @unchecked Sendabl
             existing.date = transaction.date
             existing.pending = transaction.pending
             existing.categoryHint = transaction.categoryHint
+            existing.direction = transaction.direction
+            existing.kind = transaction.kind
+            existing.source = transaction.source
+            // categoryID/categoryManuallySet/note are left untouched: a re-sync from the
+            // source never carries a resolved category, so copying them here would wipe
+            // out whatever CategoryService or the person themselves already assigned.
         } else {
             context.insert(transaction)
         }
 
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ transaction: Transaction) throws {
+        guard transaction.userID == userID else {
+            throw SiftError.notFound("Transaction")
+        }
+
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let transaction = try transaction(id: id) else {
+            throw SiftError.notFound("Transaction")
+        }
+
+        context.delete(transaction)
         try context.save()
     }
 
@@ -203,6 +247,38 @@ final class LiveTransactionRepository: TransactionRepository, @unchecked Sendabl
             context.delete(transaction)
         }
         try context.save()
+    }
+
+    @MainActor
+    func totalSpend(from startDate: Date, to endDate: Date) throws -> Money {
+        let values = try transactions(from: startDate, to: endDate)
+            .filter { $0.direction == .debit }
+            .map(\.amount)
+        return try Money.sum(values)
+    }
+
+    @MainActor
+    func totalIncome(from startDate: Date, to endDate: Date) throws -> Money {
+        let values = try transactions(from: startDate, to: endDate)
+            .filter { $0.direction == .credit }
+            .map(\.amount)
+        return try Money.sum(values)
+    }
+
+    @MainActor
+    func byCategory(from startDate: Date, to endDate: Date) throws -> [TransactionCategoryGroup] {
+        let scoped = try transactions(from: startDate, to: endDate)
+        let categories = try fetchUserScoped(Category.self, in: context, userID: userID)
+        let namesByID = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.name) })
+
+        let grouped = Dictionary(grouping: scoped, by: \.categoryID)
+        return grouped.map { categoryID, transactions in
+            TransactionCategoryGroup(
+                categoryID: categoryID,
+                categoryName: categoryID.flatMap { namesByID[$0] } ?? "Uncategorized",
+                transactions: transactions
+            )
+        }
     }
 }
 

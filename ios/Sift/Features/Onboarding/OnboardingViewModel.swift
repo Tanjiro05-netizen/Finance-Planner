@@ -294,17 +294,7 @@ final class OnboardingViewModel {
 
             for record in records {
                 let merchant = normalizer.normalize(record.merchantName)
-                try repositories.transactions.upsert(Transaction(
-                    id: record.id,
-                    userID: record.userId,
-                    accountID: record.accountId,
-                    merchantRaw: record.merchantName,
-                    merchantKey: merchant.merchantKey,
-                    amount: Money(amountMinor: record.amountMinor, currency: record.isoCurrency),
-                    date: record.date,
-                    pending: record.pending,
-                    categoryHint: record.category
-                ))
+                try upsert(record: record, merchantKey: merchant.merchantKey)
             }
 
             importedCount += records.count
@@ -313,6 +303,24 @@ final class OnboardingViewModel {
             }
             offset += records.count
         }
+    }
+
+    private func upsert(record: RemoteTransaction, merchantKey: MerchantKey) throws {
+        let transaction = Transaction(remote: record, merchantKey: merchantKey, source: .financeKit)
+        if transaction.direction == .credit {
+            let priorDebits = try repositories.transactions.transactions(for: transaction.accountID)
+                .filter { $0.direction == .debit }
+            transaction.kind = TransactionClassifier.refine(
+                kind: transaction.kind,
+                direction: transaction.direction,
+                merchantKey: transaction.merchantKey,
+                accountID: transaction.accountID,
+                amount: transaction.amount,
+                date: transaction.date,
+                priorDebits: priorDebits
+            )
+        }
+        try repositories.transactions.upsert(transaction)
     }
 
     private func run(_ operation: () async throws -> Void) async {

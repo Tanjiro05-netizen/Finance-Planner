@@ -90,20 +90,46 @@ struct DetectionServiceTests {
         #expect(subscriptions[0].status == .cancelled)
         #expect(subscriptions[0].nextRenewal == nil)
     }
+
+    @Test func creditTransactionsAreExcludedFromDetection() async throws {
+        // Regression check: once the ledger stopped dropping credits, transactionInputs
+        // needed an explicit direction filter, since amount.amountMinor >= 0 is always
+        // true (amounts are unsigned magnitudes) and was never actually filtering credits.
+        let container = try SiftModelContainerFactory.makeContainer(inMemory: true)
+        try insertTransactions(
+            monthlyPersistentSeries(
+                merchant: "REFUND CO",
+                amountByIndex: { _ in 1999 },
+                firstCharge: date(2026, 1, 1),
+                count: 6,
+                direction: .credit
+            ),
+            into: container
+        )
+        let service = LiveDetectionService(modelContainer: container)
+
+        let result = try await service.recompute(referenceDate: date(2026, 6, 15))
+
+        let subscriptions = try fetchSubscriptions(in: container)
+        #expect(result.candidates.isEmpty)
+        #expect(subscriptions.isEmpty)
+    }
 }
 
 private func monthlyPersistentSeries(
     merchant: String,
     amountByIndex: (Int) -> Int,
     firstCharge: Date,
-    count: Int
+    count: Int,
+    direction: TransactionDirection = .debit
 ) -> [Transaction] {
     (0 ..< count).map { index in
         transaction(
             id: "\(merchant)-\(index)",
             merchant: merchant,
             amount: amountByIndex(index),
-            date: Calendar.utc.date(byAdding: .month, value: index, to: firstCharge) ?? firstCharge
+            date: Calendar.utc.date(byAdding: .month, value: index, to: firstCharge) ?? firstCharge,
+            direction: direction
         )
     }
 }
@@ -119,7 +145,8 @@ private func transaction(
     id: String,
     merchant: String,
     amount: Int,
-    date: Date
+    date: Date,
+    direction: TransactionDirection = .debit
 ) -> Transaction {
     Transaction(
         id: id,
@@ -128,7 +155,8 @@ private func transaction(
         merchantRaw: merchant,
         merchantKey: MerchantKey(merchant),
         amount: .usd(amount),
-        date: date
+        date: date,
+        direction: direction
     )
 }
 

@@ -85,6 +85,33 @@ struct RemoteAccount: Codable, Equatable {
     let name: String
     let type: String
     let status: String
+    let currentBalanceMinor: Int?
+    let availableBalanceMinor: Int?
+    let isoCurrency: String?
+
+    init(
+        id: String,
+        plaidItemId: String,
+        institutionName: String,
+        mask: String?,
+        name: String,
+        type: String,
+        status: String,
+        currentBalanceMinor: Int? = nil,
+        availableBalanceMinor: Int? = nil,
+        isoCurrency: String? = nil
+    ) {
+        self.id = id
+        self.plaidItemId = plaidItemId
+        self.institutionName = institutionName
+        self.mask = mask
+        self.name = name
+        self.type = type
+        self.status = status
+        self.currentBalanceMinor = currentBalanceMinor
+        self.availableBalanceMinor = availableBalanceMinor
+        self.isoCurrency = isoCurrency
+    }
 }
 
 extension RemoteAccount {
@@ -96,6 +123,9 @@ extension RemoteAccount {
         name = account.type
         type = account.type
         status = account.status.remoteValue
+        currentBalanceMinor = account.currentBalance?.amountMinor
+        availableBalanceMinor = account.availableBalance?.amountMinor
+        isoCurrency = account.currentBalance?.currency ?? account.availableBalance?.currency
     }
 }
 
@@ -123,8 +153,19 @@ extension LinkedAccountStatus {
     }
 }
 
+extension TransactionDirection {
+    init(remoteValue: String) {
+        self = remoteValue == "credit" ? .credit : .debit
+    }
+
+    var remoteValue: String {
+        self == .credit ? "credit" : "debit"
+    }
+}
+
 extension LinkedAccount {
     convenience init(remote: RemoteAccount, userID: String, syncedAt: Date = Date()) {
+        let currency = remote.isoCurrency ?? "USD"
         self.init(
             id: remote.id,
             userID: userID,
@@ -133,7 +174,33 @@ extension LinkedAccount {
             mask: remote.mask ?? "",
             type: remote.type,
             status: LinkedAccountStatus(remoteStatus: remote.status),
-            lastSyncedAt: syncedAt
+            lastSyncedAt: syncedAt,
+            currentBalance: remote.currentBalanceMinor.map { Money(amountMinor: $0, currency: currency) },
+            availableBalance: remote.availableBalanceMinor.map { Money(amountMinor: $0, currency: currency) },
+            balanceAsOf: remote.currentBalanceMinor != nil ? syncedAt : nil
+        )
+    }
+}
+
+extension Transaction {
+    /// Shared construction point from a `RemoteTransaction` so every import path (FinanceKit
+    /// sync, onboarding scan, and a future Plaid backend) builds a `Transaction` identically
+    /// instead of hand-rolling the initializer in more than one place.
+    convenience init(remote: RemoteTransaction, merchantKey: MerchantKey, source: TransactionSource) {
+        let direction = TransactionDirection(remoteValue: remote.direction)
+        self.init(
+            id: remote.id,
+            userID: remote.userId,
+            accountID: remote.accountId,
+            merchantRaw: remote.merchantName,
+            merchantKey: merchantKey,
+            amount: Money(amountMinor: remote.amountMinor, currency: remote.isoCurrency),
+            date: remote.date,
+            pending: remote.pending,
+            categoryHint: remote.category,
+            direction: direction,
+            kind: TransactionClassifier.kind(for: direction),
+            source: source
         )
     }
 }
@@ -155,6 +222,31 @@ struct RemoteTransaction: Codable, Equatable {
     let date: Date
     let pending: Bool
     let category: String?
+    let direction: String
+
+    init(
+        id: String,
+        userId: String,
+        accountId: String,
+        merchantName: String,
+        amountMinor: Int,
+        isoCurrency: String,
+        date: Date,
+        pending: Bool,
+        category: String?,
+        direction: String = TransactionDirection.debit.remoteValue
+    ) {
+        self.id = id
+        self.userId = userId
+        self.accountId = accountId
+        self.merchantName = merchantName
+        self.amountMinor = amountMinor
+        self.isoCurrency = isoCurrency
+        self.date = date
+        self.pending = pending
+        self.category = category
+        self.direction = direction
+    }
 }
 
 struct RemoteCancellationRequest: Codable, Equatable {

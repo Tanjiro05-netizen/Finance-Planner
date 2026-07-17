@@ -52,6 +52,37 @@ struct OnboardingViewModelTests {
         #expect(transactions.count == 1)
         #expect(transactions[0].merchantRaw == "NETFLIX #4471 LOS GATOS")
         #expect(transactions[0].merchantKey == MerchantKey("Netflix"))
+        #expect(transactions[0].direction == .debit)
+    }
+
+    @Test func scanImportsCreditTransactionsToo() async throws {
+        var apiClient = MockSiftAPIClient()
+        apiClient.transactionPages = [[
+            RemoteTransaction(
+                id: "txn-payroll",
+                userId: SeedData.defaultUserID,
+                accountId: SeedData.ID.checking,
+                merchantName: "Employer Inc",
+                amountMinor: 200_000,
+                isoCurrency: "USD",
+                date: SeedData.referenceDate,
+                pending: false,
+                category: nil,
+                direction: "credit"
+            ),
+        ]]
+        let harness = OnboardingHarness(apiClient: apiClient)
+
+        await harness.viewModel.bootstrapIfNeeded()
+        harness.viewModel.showConnectIntro()
+        harness.viewModel.showBankPicker()
+        harness.viewModel.selectInstitution(BankInstitution.popular[0])
+        await harness.viewModel.connectSelectedInstitution()
+
+        let transactions = try harness.repositories.transactions.all()
+        #expect(transactions.count == 1)
+        #expect(transactions[0].direction == .credit)
+        #expect(transactions[0].kind == .income)
     }
 
     @Test func toggledOffReviewItemIsNotPersisted() {
