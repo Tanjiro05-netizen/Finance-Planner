@@ -11,7 +11,7 @@ struct CancellationViewModelTests {
             subscriptionID: SeedData.ID.streamline,
             repositories: repositories,
             apiClient: apiClient,
-            featureFlags: SiftFeatureFlags(conciergeEnabled: true),
+            featureFlags: SiftFeatureFlags(conciergeEnabled: true, ledgerEnabled: false),
             now: { SeedData.referenceDate }
         )
 
@@ -41,7 +41,7 @@ struct CancellationViewModelTests {
             subscriptionID: SeedData.ID.streamline,
             repositories: repositories,
             apiClient: apiClient,
-            featureFlags: SiftFeatureFlags(conciergeEnabled: true),
+            featureFlags: SiftFeatureFlags(conciergeEnabled: true, ledgerEnabled: false),
             now: { SeedData.referenceDate }
         )
 
