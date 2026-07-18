@@ -248,9 +248,9 @@ struct RemoteTransaction: Codable, Equatable {
         self.direction = direction
     }
 
-    // A server that doesn't send `direction` yet (or hasn't been updated for the
-    // ledger) should still decode -- default to debit, matching every transaction's
-    // historical meaning before this field existed.
+    /// A server that doesn't send `direction` yet (or hasn't been updated for the
+    /// ledger) should still decode -- default to debit, matching every transaction's
+    /// historical meaning before this field existed.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
