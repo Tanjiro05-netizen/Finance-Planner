@@ -247,6 +247,23 @@ struct RemoteTransaction: Codable, Equatable {
         self.category = category
         self.direction = direction
     }
+
+    // A server that doesn't send `direction` yet (or hasn't been updated for the
+    // ledger) should still decode -- default to debit, matching every transaction's
+    // historical meaning before this field existed.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        userId = try container.decode(String.self, forKey: .userId)
+        accountId = try container.decode(String.self, forKey: .accountId)
+        merchantName = try container.decode(String.self, forKey: .merchantName)
+        amountMinor = try container.decode(Int.self, forKey: .amountMinor)
+        isoCurrency = try container.decode(String.self, forKey: .isoCurrency)
+        date = try container.decode(Date.self, forKey: .date)
+        pending = try container.decode(Bool.self, forKey: .pending)
+        category = try container.decodeIfPresent(String.self, forKey: .category)
+        direction = try container.decodeIfPresent(String.self, forKey: .direction) ?? TransactionDirection.debit.remoteValue
+    }
 }
 
 struct RemoteCancellationRequest: Codable, Equatable {
