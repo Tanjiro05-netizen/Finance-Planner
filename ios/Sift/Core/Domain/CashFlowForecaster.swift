@@ -19,12 +19,12 @@ struct CashFlowEvent: Identifiable, Equatable {
 
 /// The projected balance at a point in time along the forecast.
 struct CashFlowProjectionPoint: Identifiable, Equatable {
+    let date: Date
+    let projectedBalance: Money
+
     var id: Date {
         date
     }
-
-    let date: Date
-    let projectedBalance: Money
 }
 
 struct CashFlowForecast: Equatable {

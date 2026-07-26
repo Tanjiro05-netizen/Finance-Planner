@@ -124,7 +124,7 @@ struct DomainTypesTests {
     }
 
     @Test func biweeklyMonthlyEquivalentUsesTwentySixPaymentsPerYear() {
-        // $1000 biweekly => 1000 * 26 / 12 = 2166.67 -> rounds to 216667 minor units.
+        // $1000 biweekly => 1000 * 26 / 12 = 2166.67 -> rounds to 216_667 minor units.
         #expect(Cadence.biweekly.monthlyEquivalent(for: .usd(100_000)) == .usd(216_667))
     }
 

@@ -49,7 +49,7 @@ final class CashFlowForecastViewModel {
             isUnavailable = false
             let today = referenceDateProvider()
             let windowEnd = Calendar.utc.date(byAdding: .day, value: windowDays, to: today) ?? today
-            let events = try buildEvents(from: today, through: windowEnd)
+            let events = try buildEvents(through: windowEnd)
             forecast = CashFlowForecaster.project(
                 startingBalance: startingBalance,
                 events: events,
@@ -62,7 +62,7 @@ final class CashFlowForecastViewModel {
         }
     }
 
-    private func buildEvents(from _: Date, through windowEnd: Date) throws -> [CashFlowEvent] {
+    private func buildEvents(through windowEnd: Date) throws -> [CashFlowEvent] {
         var events: [CashFlowEvent] = []
 
         for subscription in try repositories.subscriptions.all() where subscription.status != .cancelled {
