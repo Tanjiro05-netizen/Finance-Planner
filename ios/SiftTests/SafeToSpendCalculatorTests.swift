@@ -26,11 +26,11 @@ struct SafeToSpendCalculatorTests {
         #expect(SafeToSpendCalculator.calculate(input: input(balance: nil)) == .unavailable(.noBalanceData))
     }
 
-    @Test func dividesNetEvenlyUntilNextIncome() throws {
+    @Test func dividesNetEvenlyUntilNextIncome() {
         let payday = today.addingTimeInterval(10 * 86400)
         let outcome = SafeToSpendCalculator.calculate(input: input(
             balance: .usd(100_000),
-            debits: [.usd(20_000)],
+            debits: [.usd(20000)],
             nextIncome: payday
         ))
         guard case let .available(result) = outcome else {
@@ -38,19 +38,19 @@ struct SafeToSpendCalculatorTests {
             return
         }
         // (100000 - 20000) / 10 days = 8000/day
-        #expect(result.dailyAmount == .usd(8_000))
+        #expect(result.dailyAmount == .usd(8000))
         #expect(result.daysRemaining == 10)
         #expect(result.isOverspent == false)
         #expect(result.usedFallbackWindow == false)
         #expect(result.horizonEndDate == payday)
     }
 
-    @Test func upcomingCreditsIncreaseAvailableSpend() throws {
+    @Test func upcomingCreditsIncreaseAvailableSpend() {
         let payday = today.addingTimeInterval(10 * 86400)
         let outcome = SafeToSpendCalculator.calculate(input: input(
             balance: .usd(100_000),
-            debits: [.usd(20_000)],
-            credits: [.usd(10_000)],
+            debits: [.usd(20000)],
+            credits: [.usd(10000)],
             nextIncome: payday
         ))
         guard case let .available(result) = outcome else {
@@ -58,25 +58,25 @@ struct SafeToSpendCalculatorTests {
             return
         }
         // (100000 - 20000 + 10000) / 10 = 9000/day
-        #expect(result.dailyAmount == .usd(9_000))
+        #expect(result.dailyAmount == .usd(9000))
     }
 
-    @Test func fallsBackToThirtyDayWindowWithoutIncome() throws {
-        let outcome = SafeToSpendCalculator.calculate(input: input(balance: .usd(60_000)))
+    @Test func fallsBackToThirtyDayWindowWithoutIncome() {
+        let outcome = SafeToSpendCalculator.calculate(input: input(balance: .usd(60000)))
         guard case let .available(result) = outcome else {
             Issue.record("Expected available outcome")
             return
         }
         #expect(result.usedFallbackWindow)
         #expect(result.daysRemaining == SafeToSpendCalculator.fallbackWindowDays)
-        #expect(result.dailyAmount == .usd(2_000))
+        #expect(result.dailyAmount == .usd(2000))
     }
 
-    @Test func overspentReturnsNegativeDailyAndZeroDays() throws {
+    @Test func overspentReturnsNegativeDailyAndZeroDays() {
         let payday = today.addingTimeInterval(10 * 86400)
         let outcome = SafeToSpendCalculator.calculate(input: input(
-            balance: .usd(5_000),
-            debits: [.usd(30_000)],
+            balance: .usd(5000),
+            debits: [.usd(30000)],
             nextIncome: payday
         ))
         guard case let .available(result) = outcome else {
@@ -88,9 +88,9 @@ struct SafeToSpendCalculatorTests {
         #expect(result.dailyAmount.amountMinor < 0)
     }
 
-    @Test func horizonOnTodayDoesNotDivideByZero() throws {
+    @Test func horizonOnTodayDoesNotDivideByZero() {
         let outcome = SafeToSpendCalculator.calculate(input: input(
-            balance: .usd(10_000),
+            balance: .usd(10000),
             nextIncome: today
         ))
         guard case let .available(result) = outcome else {
@@ -98,18 +98,18 @@ struct SafeToSpendCalculatorTests {
             return
         }
         // Guarded to at least 1 day, so 10000/1.
-        #expect(result.dailyAmount == .usd(10_000))
+        #expect(result.dailyAmount == .usd(10000))
     }
 
-    @Test func recentDailySpendPassesThrough() throws {
+    @Test func recentDailySpendPassesThrough() {
         let outcome = SafeToSpendCalculator.calculate(input: input(
-            balance: .usd(60_000),
-            recentDaily: .usd(1_234)
+            balance: .usd(60000),
+            recentDaily: .usd(1234)
         ))
         guard case let .available(result) = outcome else {
             Issue.record("Expected available outcome")
             return
         }
-        #expect(result.recentDailySpend == .usd(1_234))
+        #expect(result.recentDailySpend == .usd(1234))
     }
 }

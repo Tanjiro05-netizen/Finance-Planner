@@ -4,8 +4,13 @@ import Testing
 
 struct DiscretionarySpendEstimatorTests {
     private let end = Date(timeIntervalSince1970: 1_720_000_000)
-    private var start: Date { end.addingTimeInterval(-10 * 86400) }
-    private var window: DateInterval { DateInterval(start: start, end: end) }
+    private var start: Date {
+        end.addingTimeInterval(-10 * 86400)
+    }
+
+    private var window: DateInterval {
+        DateInterval(start: start, end: end)
+    }
 
     private func txn(
         id: String,
@@ -30,8 +35,8 @@ struct DiscretionarySpendEstimatorTests {
 
     @Test func averagesDiscretionaryDebitsOverWindow() {
         let transactions = [
-            txn(id: "a", merchant: "GROCERY", amount: 5_000, daysBeforeEnd: 2),
-            txn(id: "b", merchant: "COFFEE", amount: 5_000, daysBeforeEnd: 5),
+            txn(id: "a", merchant: "GROCERY", amount: 5000, daysBeforeEnd: 2),
+            txn(id: "b", merchant: "COFFEE", amount: 5000, daysBeforeEnd: 5),
         ]
         // 10000 total / 10 days = 1000/day
         let rate = DiscretionarySpendEstimator.dailyRate(
@@ -39,16 +44,16 @@ struct DiscretionarySpendEstimatorTests {
             knownRecurringMerchantKeys: [],
             window: window
         )
-        #expect(rate == .usd(1_000))
+        #expect(rate == .usd(1000))
     }
 
     @Test func excludesRecurringCreditsAndPendingAndOutOfWindow() {
         let transactions = [
-            txn(id: "spend", merchant: "GROCERY", amount: 10_000, daysBeforeEnd: 2),
-            txn(id: "sub", merchant: "NETFLIX", amount: 1_500, daysBeforeEnd: 3),
+            txn(id: "spend", merchant: "GROCERY", amount: 10000, daysBeforeEnd: 2),
+            txn(id: "sub", merchant: "NETFLIX", amount: 1500, daysBeforeEnd: 3),
             txn(id: "income", merchant: "PAYROLL", amount: 200_000, daysBeforeEnd: 1, direction: .credit),
-            txn(id: "pending", merchant: "GROCERY", amount: 9_999, daysBeforeEnd: 1, pending: true),
-            txn(id: "old", merchant: "GROCERY", amount: 9_999, daysBeforeEnd: 40),
+            txn(id: "pending", merchant: "GROCERY", amount: 9999, daysBeforeEnd: 1, pending: true),
+            txn(id: "old", merchant: "GROCERY", amount: 9999, daysBeforeEnd: 40),
         ]
         let rate = DiscretionarySpendEstimator.dailyRate(
             recentTransactions: transactions,
@@ -56,7 +61,7 @@ struct DiscretionarySpendEstimatorTests {
             window: window
         )
         // Only the $100 grocery spend counts: 10000 / 10 days = 1000/day
-        #expect(rate == .usd(1_000))
+        #expect(rate == .usd(1000))
     }
 
     @Test func zeroWhenNoDiscretionarySpend() {

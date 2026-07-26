@@ -21,7 +21,7 @@ struct CadenceInferenceTests {
         #expect(match.regularity > 0.8)
     }
 
-    @Test func infersWeeklyAndYearlyAtToleranceBounds() throws {
+    @Test func infersWeeklyAndYearlyAtToleranceBounds() {
         let weekly = CadenceMath.inferCadence(from: [6, 8, 7], occurrenceCount: 4)
         #expect(weekly?.cadence == .weekly)
 

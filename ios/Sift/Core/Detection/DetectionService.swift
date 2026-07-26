@@ -178,11 +178,11 @@ actor DetectionPersistenceActor: ModelActor {
     }
 
     func detect(referenceDate: Date, userID: String = SeedData.defaultUserID) throws -> DetectionResult {
-        splitCandidates(try rawDetect(referenceDate: referenceDate, userID: userID)).subscriptions
+        try splitCandidates(rawDetect(referenceDate: referenceDate, userID: userID)).subscriptions
     }
 
     func recompute(referenceDate: Date, userID: String = SeedData.defaultUserID) throws -> DetectionResult {
-        let split = splitCandidates(try rawDetect(referenceDate: referenceDate, userID: userID))
+        let split = try splitCandidates(rawDetect(referenceDate: referenceDate, userID: userID))
         try reconcile(result: split.subscriptions, userID: userID, referenceDate: referenceDate)
         try reconcileBills(candidates: split.bills, userID: userID, referenceDate: referenceDate)
         try modelContext.save()

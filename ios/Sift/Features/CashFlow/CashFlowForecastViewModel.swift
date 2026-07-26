@@ -62,7 +62,7 @@ final class CashFlowForecastViewModel {
         }
     }
 
-    private func buildEvents(from startDate: Date, through windowEnd: Date) throws -> [CashFlowEvent] {
+    private func buildEvents(from _: Date, through windowEnd: Date) throws -> [CashFlowEvent] {
         var events: [CashFlowEvent] = []
 
         for subscription in try repositories.subscriptions.all() where subscription.status != .cancelled {

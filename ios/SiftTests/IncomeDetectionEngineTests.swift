@@ -38,9 +38,9 @@ struct IncomeDetectionEngineTests {
     @Test func irregularGigIncomeIsNotDetected() {
         let engine = IncomeDetectionEngine()
         let gigs = [
-            Txn(id: "g1", merchantRaw: "GIG PLATFORM", amount: .usd(12_000), date: referenceDate.addingTimeInterval(-90 * 86400)),
-            Txn(id: "g2", merchantRaw: "GIG PLATFORM", amount: .usd(48_000), date: referenceDate.addingTimeInterval(-61 * 86400)),
-            Txn(id: "g3", merchantRaw: "GIG PLATFORM", amount: .usd(9_000), date: referenceDate.addingTimeInterval(-12 * 86400)),
+            Txn(id: "g1", merchantRaw: "GIG PLATFORM", amount: .usd(12000), date: referenceDate.addingTimeInterval(-90 * 86400)),
+            Txn(id: "g2", merchantRaw: "GIG PLATFORM", amount: .usd(48000), date: referenceDate.addingTimeInterval(-61 * 86400)),
+            Txn(id: "g3", merchantRaw: "GIG PLATFORM", amount: .usd(9000), date: referenceDate.addingTimeInterval(-12 * 86400)),
         ]
         #expect(engine.detect(transactions: gigs, referenceDate: referenceDate).isEmpty)
     }

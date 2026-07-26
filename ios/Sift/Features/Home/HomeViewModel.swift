@@ -165,8 +165,8 @@ final class HomeViewModel {
 
         let windowStart = calendar.date(byAdding: .day, value: -30, to: today) ?? today
         let recentTransactions = try repositories.transactions.transactions(from: windowStart, to: today)
-        let recurringKeys = Set(try repositories.subscriptions.all().map(\.merchantKey))
-            .union(try repositories.bills.all().map(\.merchantKey))
+        let recurringKeys = try Set(repositories.subscriptions.all().map(\.merchantKey))
+            .union(repositories.bills.all().map(\.merchantKey))
         let dailySpend = DiscretionarySpendEstimator.dailyRate(
             recentTransactions: recentTransactions,
             knownRecurringMerchantKeys: recurringKeys,

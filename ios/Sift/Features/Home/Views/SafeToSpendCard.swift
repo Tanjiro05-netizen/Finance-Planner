@@ -99,12 +99,12 @@ struct SafeToSpendCard: View {
     VStack(spacing: Spacing.lg) {
         SafeToSpendCard(
             outcome: .available(SafeToSpendResult(
-                dailyAmount: .usd(1_842),
+                dailyAmount: .usd(1842),
                 horizonEndDate: Date().addingTimeInterval(9 * 86400),
                 daysRemaining: 9,
                 isOverspent: false,
                 usedFallbackWindow: false,
-                recentDailySpend: .usd(2_310)
+                recentDailySpend: .usd(2310)
             )),
             onTap: {}
         )

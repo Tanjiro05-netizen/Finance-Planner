@@ -34,52 +34,52 @@ struct CashFlowForecasterTests {
     @Test func debitLowersBalanceAndSetsLowestPoint() {
         let forecast = CashFlowForecaster.project(
             startingBalance: .usd(100_000),
-            events: [event(id: "rent", daysFromToday: 5, amount: 30_000, direction: .debit)],
+            events: [event(id: "rent", daysFromToday: 5, amount: 30000, direction: .debit)],
             from: today
         )
-        #expect(forecast.endingBalance == .usd(70_000))
-        #expect(forecast.lowestPoint.projectedBalance == .usd(70_000))
+        #expect(forecast.endingBalance == .usd(70000))
+        #expect(forecast.lowestPoint.projectedBalance == .usd(70000))
     }
 
     @Test func incomeAndBillNetCorrectly() {
         let forecast = CashFlowForecaster.project(
-            startingBalance: .usd(50_000),
+            startingBalance: .usd(50000),
             events: [
-                event(id: "rent", daysFromToday: 3, amount: 30_000, direction: .debit, kind: .billCharge),
+                event(id: "rent", daysFromToday: 3, amount: 30000, direction: .debit, kind: .billCharge),
                 event(id: "pay", daysFromToday: 14, amount: 200_000, direction: .credit, kind: .income),
             ],
             from: today
         )
-        #expect(forecast.endingBalance == .usd(50_000 - 30_000 + 200_000))
-        #expect(forecast.lowestPoint.projectedBalance == .usd(20_000))
+        #expect(forecast.endingBalance == .usd(50000 - 30000 + 200_000))
+        #expect(forecast.lowestPoint.projectedBalance == .usd(20000))
     }
 
     @Test func sameDayEventsCollapseToOneStep() {
         let forecast = CashFlowForecaster.project(
             startingBalance: .usd(100_000),
             events: [
-                event(id: "a", daysFromToday: 5, amount: 10_000, direction: .debit),
-                event(id: "b", daysFromToday: 5, amount: 5_000, direction: .debit),
+                event(id: "a", daysFromToday: 5, amount: 10000, direction: .debit),
+                event(id: "b", daysFromToday: 5, amount: 5000, direction: .debit),
             ],
             from: today
         )
         // start + one collapsed day + flat end
         #expect(forecast.points.count == 3)
-        #expect(forecast.endingBalance == .usd(85_000))
+        #expect(forecast.endingBalance == .usd(85000))
     }
 
     @Test func pastAndBeyondWindowEventsAreExcluded() {
         let forecast = CashFlowForecaster.project(
             startingBalance: .usd(100_000),
             events: [
-                event(id: "past", daysFromToday: -3, amount: 40_000, direction: .debit),
-                event(id: "beyond", daysFromToday: 45, amount: 40_000, direction: .debit),
-                event(id: "inside", daysFromToday: 10, amount: 20_000, direction: .debit),
+                event(id: "past", daysFromToday: -3, amount: 40000, direction: .debit),
+                event(id: "beyond", daysFromToday: 45, amount: 40000, direction: .debit),
+                event(id: "inside", daysFromToday: 10, amount: 20000, direction: .debit),
             ],
             from: today,
             windowDays: 30
         )
         #expect(forecast.events.map(\.id) == ["inside"])
-        #expect(forecast.endingBalance == .usd(80_000))
+        #expect(forecast.endingBalance == .usd(80000))
     }
 }
