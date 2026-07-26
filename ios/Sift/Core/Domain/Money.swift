@@ -38,6 +38,14 @@ struct Money: Codable, Equatable, Hashable, Comparable {
         return Money(amountMinor: lhs.amountMinor - rhs.amountMinor, currency: lhs.currency)
     }
 
+    static func += (lhs: inout Money, rhs: Money) {
+        lhs = lhs + rhs
+    }
+
+    static func -= (lhs: inout Money, rhs: Money) {
+        lhs = lhs - rhs
+    }
+
     static func sum(_ values: [Money], currency: String = "USD") throws -> Money {
         try values.reduce(Money(amountMinor: 0, currency: currency)) { partial, value in
             guard partial.currency == value.currency else {

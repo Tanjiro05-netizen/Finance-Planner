@@ -11,6 +11,14 @@ struct MoneyTests {
         #expect(try Money.sum([first, second]) == Money.usd(2848))
     }
 
+    @Test func compoundAssignmentMatchesOperators() {
+        var running = Money.usd(1000)
+        running += .usd(250)
+        #expect(running == .usd(1250))
+        running -= .usd(500)
+        #expect(running == .usd(750))
+    }
+
     @Test func cadenceMonthlyEquivalentRoundsInCents() {
         #expect(Cadence.monthly.monthlyEquivalent(for: .usd(1549)) == .usd(1549))
         #expect(Cadence.quarterly.monthlyEquivalent(for: .usd(3597)) == .usd(1199))

@@ -68,6 +68,26 @@ struct CashFlowForecasterTests {
         #expect(forecast.endingBalance == .usd(85000))
     }
 
+    @Test func eventLaterOnTheStartDayDoesNotRepeatOrRewindThePoint() {
+        // `today` is mid-morning UTC, so this event's start-of-day precedes the start point.
+        // Points are identified by date, so a naive step would both duplicate an id and
+        // walk the projection backwards in time.
+        let laterToday = CashFlowEvent(
+            id: "sameDay",
+            date: today.addingTimeInterval(4 * 3600),
+            label: "sameDay",
+            amount: .usd(2500),
+            direction: .debit,
+            kind: .subscriptionCharge
+        )
+        let forecast = CashFlowForecaster.project(startingBalance: .usd(100_000), events: [laterToday], from: today)
+
+        let dates = forecast.points.map(\.date)
+        #expect(dates == dates.sorted())
+        #expect(Set(dates).count == dates.count)
+        #expect(forecast.endingBalance == .usd(97500))
+    }
+
     @Test func pastAndBeyondWindowEventsAreExcluded() {
         let forecast = CashFlowForecaster.project(
             startingBalance: .usd(100_000),

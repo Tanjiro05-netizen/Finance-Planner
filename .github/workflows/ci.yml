@@ -29,6 +29,22 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             -enableCodeCoverage YES \
             -resultBundlePath ../build/SiftTests.xcresult
+      # On failure xcodebuild only prints the *names* of failing tests. The assertion text
+      # — and the crash report when the test process dies and takes every remaining test
+      # down with it — live in the result bundle, so surface them in the log.
+      - name: Failure diagnostics
+        if: failure()
+        run: |
+          xcrun xcresulttool get test-results summary \
+            --path ../build/SiftTests.xcresult --format json || true
+          echo "--- crash reports ---"
+          for report in "$HOME"/Library/Logs/DiagnosticReports/*.ips; do
+            [ -e "$report" ] || continue
+            echo "=== $report ==="
+            head -c 4000 "$report"
+            echo
+          done
+
       - name: Enforce coverage floor
         run: |
           xcrun xccov view --report --json ../build/SiftTests.xcresult > ../build/ios-coverage.json
@@ -46,5 +62,10 @@ jobs:
         run: brew install swiftlint swiftformat
       - name: SwiftFormat lint
         run: swiftformat --lint .
+      # Runs from the repo root: .swiftlint.yml lives there, and its included/excluded
+      # paths (ios/Sift, ios/SiftTests) are written relative to it. Running from ios/
+      # silently fell back to SwiftLint's defaults, which left the design-system custom
+      # rules (raw hex, font literals, inline animation timings) unenforced.
       - name: SwiftLint
-        run: swiftlint
+        run: swiftlint --config .swiftlint.yml
+        working-directory: .

@@ -68,12 +68,21 @@ enum CashFlowForecaster {
             for event in dayEvents {
                 switch event.direction {
                 case .credit:
-                    runningBalance = runningBalance + event.amount
+                    runningBalance += event.amount
                 case .debit:
-                    runningBalance = runningBalance - event.amount
+                    runningBalance -= event.amount
                 }
             }
-            points.append(CashFlowProjectionPoint(date: day, projectedBalance: runningBalance))
+
+            // An event later on the start day normalizes to a midnight that precedes
+            // `startDate`, so clamp it: the projection must never step backwards in time,
+            // and points are identified by date, so it must never repeat one either.
+            let stepDate = max(day, startDate)
+            if let last = points.last, last.date == stepDate {
+                points[points.count - 1] = CashFlowProjectionPoint(date: stepDate, projectedBalance: runningBalance)
+            } else {
+                points.append(CashFlowProjectionPoint(date: stepDate, projectedBalance: runningBalance))
+            }
         }
 
         // Hold the final balance flat to the end of the window so the line spans it.

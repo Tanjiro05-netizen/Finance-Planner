@@ -442,28 +442,35 @@ private extension SeedData {
     /// Everyday, non-recurring debits so the discretionary spend estimate (and thus the
     /// safe-to-spend comparison figure) has realistic data to average.
     static func makeDiscretionaryTransactions(userID: String) -> [Transaction] {
-        let entries: [(String, String, Int, Int)] = [
-            ("txn-grocery-jun05", "CORNER GROCERY", 6247, 5),
-            ("txn-coffee-jun07", "BLUE BOTTLE COFFEE", 780, 7),
-            ("txn-gas-jun09", "SHELL STATION 227", 5210, 9),
-            ("txn-pharmacy-jun11", "GREENLEAF PHARMACY", 2394, 11),
-            ("txn-lunch-jun14", "SAIGON KITCHEN", 3185, 14),
-            ("txn-grocery-jun19", "CORNER GROCERY", 5488, 19),
-            ("txn-hardware-jun22", "MADISON HARDWARE", 4103, 22),
-            ("txn-coffee-jun25", "BLUE BOTTLE COFFEE", 640, 25),
+        let entries = [
+            DiscretionaryEntry(id: "txn-grocery-jun05", merchant: "CORNER GROCERY", cents: 6247, day: 5),
+            DiscretionaryEntry(id: "txn-coffee-jun07", merchant: "BLUE BOTTLE COFFEE", cents: 780, day: 7),
+            DiscretionaryEntry(id: "txn-gas-jun09", merchant: "SHELL STATION 227", cents: 5210, day: 9),
+            DiscretionaryEntry(id: "txn-pharmacy-jun11", merchant: "GREENLEAF PHARMACY", cents: 2394, day: 11),
+            DiscretionaryEntry(id: "txn-lunch-jun14", merchant: "SAIGON KITCHEN", cents: 3185, day: 14),
+            DiscretionaryEntry(id: "txn-grocery-jun19", merchant: "CORNER GROCERY", cents: 5488, day: 19),
+            DiscretionaryEntry(id: "txn-hardware-jun22", merchant: "MADISON HARDWARE", cents: 4103, day: 22),
+            DiscretionaryEntry(id: "txn-coffee-jun25", merchant: "BLUE BOTTLE COFFEE", cents: 640, day: 25),
         ]
 
-        return entries.map { id, merchant, cents, day in
+        return entries.map { entry in
             Transaction(
-                id: id,
+                id: entry.id,
                 userID: userID,
                 accountID: ID.checking,
-                merchantRaw: merchant,
-                merchantKey: MerchantKey(merchant),
-                amount: .usd(cents),
-                date: date(year: 2026, month: 6, day: day)
+                merchantRaw: entry.merchant,
+                merchantKey: MerchantKey(entry.merchant),
+                amount: .usd(entry.cents),
+                date: date(year: 2026, month: 6, day: entry.day)
             )
         }
+    }
+
+    struct DiscretionaryEntry {
+        let id: String
+        let merchant: String
+        let cents: Int
+        let day: Int
     }
 
     static func makeRecurringIncome(userID: String) -> [RecurringIncome] {
