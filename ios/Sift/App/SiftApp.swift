@@ -10,6 +10,7 @@ struct SiftApp: App {
     private let apiClient: any SiftAPIClient
     private let plaidLinkPresenter: any PlaidLinkPresenting
     private let detectionService: any DetectionServing
+    private let incomeDetectionService: any IncomeDetectionServing
     private let notificationAuthorizer: any NotificationAuthorizing
     private let notificationScheduler: any NotificationScheduling
     private let notificationRouter: NotificationRouter
@@ -86,6 +87,7 @@ struct SiftApp: App {
             apiClient = mockAPIClient
             plaidLinkPresenter = MockPlaidLinkPresenter()
             detectionService = MockDetectionService()
+            incomeDetectionService = MockIncomeDetectionService()
             notificationAuthorizer = MockNotificationAuthorizer()
             biometricAuthenticator = MockBiometricAuthenticator(available: false)
             appLockEnabled = false
@@ -95,6 +97,7 @@ struct SiftApp: App {
             apiClient = FinanceKitAPIClient(store: financeStore)
             plaidLinkPresenter = FinanceKitLinkPresenter(store: financeStore)
             detectionService = LiveDetectionService(modelContainer: container)
+            incomeDetectionService = LiveIncomeDetectionService(modelContainer: container)
             notificationAuthorizer = UserNotificationAuthorizer()
             biometricAuthenticator = LocalAuthenticationGate()
             appLockEnabled = AppLockPreference().isEnabled
@@ -111,6 +114,7 @@ struct SiftApp: App {
                 apiClient: apiClient,
                 detectionService: detectionService,
                 repositories: configuredRepositories,
+                incomeDetectionService: incomeDetectionService,
                 notificationScheduler: notificationScheduler
             )
             let controller = BackgroundRefreshController { [refreshService] in
@@ -130,6 +134,7 @@ struct SiftApp: App {
                 .environment(\.repositories, repositories)
                 .environment(\.apiClient, apiClient)
                 .environment(\.detectionService, detectionService)
+                .environment(\.incomeDetectionService, incomeDetectionService)
                 .environment(\.notificationAuthorizer, notificationAuthorizer)
                 .environment(\.notificationScheduler, notificationScheduler)
                 .environment(\.notificationRouter, notificationRouter)

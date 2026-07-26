@@ -178,20 +178,69 @@ actor DetectionPersistenceActor: ModelActor {
     }
 
     func detect(referenceDate: Date, userID: String = SeedData.defaultUserID) throws -> DetectionResult {
-        let transactions = try transactionInputs(userID: userID)
-        return engine.detect(transactions: transactions, referenceDate: referenceDate)
+        splitCandidates(try rawDetect(referenceDate: referenceDate, userID: userID)).subscriptions
     }
 
     func recompute(referenceDate: Date, userID: String = SeedData.defaultUserID) throws -> DetectionResult {
-        let result = try detect(referenceDate: referenceDate, userID: userID)
-        try reconcile(result: result, userID: userID, referenceDate: referenceDate)
+        let split = splitCandidates(try rawDetect(referenceDate: referenceDate, userID: userID))
+        try reconcile(result: split.subscriptions, userID: userID, referenceDate: referenceDate)
+        try reconcileBills(candidates: split.bills, userID: userID, referenceDate: referenceDate)
         try modelContext.save()
-        return result
+        return split.subscriptions
     }
 
-    private func transactionInputs(userID: String) throws -> [Txn] {
+    private func rawDetect(referenceDate: Date, userID: String) throws -> DetectionResult {
+        let transactions = try transactionInputs(userID: userID, direction: .debit)
+        return engine.detect(transactions: transactions, referenceDate: referenceDate)
+    }
+
+    /// Partitions the engine's recurring-debit candidates into subscriptions and bills.
+    /// Bills are removed from the returned `DetectionResult` (candidates, price changes,
+    /// and flags) so nothing downstream — the Subscriptions tab, Home, Insights — ever
+    /// treats a rent or utility payment as a subscription.
+    private func splitCandidates(
+        _ result: DetectionResult
+    ) -> (subscriptions: DetectionResult, bills: [SubscriptionCandidate]) {
+        var subscriptionCandidates: [SubscriptionCandidate] = []
+        var billCandidates: [SubscriptionCandidate] = []
+        for candidate in result.candidates {
+            if BillClassifier.isBill(merchantKey: candidate.merchantKey, name: candidate.name) {
+                billCandidates.append(candidate)
+            } else {
+                subscriptionCandidates.append(candidate)
+            }
+        }
+
+        let subscriptionKeys = Set(subscriptionCandidates.map(\.merchantKey))
+        let subscriptions = DetectionResult(
+            candidates: subscriptionCandidates,
+            priceChanges: result.priceChanges.filter { subscriptionKeys.contains($0.merchantKey) },
+            flags: result.flags.filter { subscriptionKeys.contains($0.merchantKey) }
+        )
+        return (subscriptions, billCandidates)
+    }
+
+    func detectIncome(
+        referenceDate: Date,
+        userID: String = SeedData.defaultUserID
+    ) throws -> [RecurringIncomeCandidate] {
+        let transactions = try transactionInputs(userID: userID, direction: .credit)
+        return IncomeDetectionEngine().detect(transactions: transactions, referenceDate: referenceDate)
+    }
+
+    func recomputeIncome(
+        referenceDate: Date,
+        userID: String = SeedData.defaultUserID
+    ) throws -> [RecurringIncomeCandidate] {
+        let candidates = try detectIncome(referenceDate: referenceDate, userID: userID)
+        try reconcileIncome(candidates: candidates, userID: userID, referenceDate: referenceDate)
+        try modelContext.save()
+        return candidates
+    }
+
+    private func transactionInputs(userID: String, direction: TransactionDirection) throws -> [Txn] {
         try modelContext.fetch(FetchDescriptor<Transaction>())
-            .filter { $0.userID == userID && $0.direction == .debit }
+            .filter { $0.userID == userID && $0.direction == direction }
             .map { transaction in
                 Txn(
                     id: transaction.id,
@@ -202,6 +251,130 @@ actor DetectionPersistenceActor: ModelActor {
                     categoryHint: transaction.categoryHint
                 )
             }
+    }
+
+    private func reconcileIncome(
+        candidates: [RecurringIncomeCandidate],
+        userID: String,
+        referenceDate: Date
+    ) throws {
+        var incomeByMerchant = try Dictionary(
+            uniqueKeysWithValues: userRecurringIncome(userID: userID).map { ($0.merchantKey, $0) }
+        )
+
+        for candidate in candidates {
+            let income = incomeByMerchant[candidate.merchantKey]
+                ?? makeRecurringIncome(from: candidate, userID: userID)
+            apply(candidate: candidate, to: income)
+            if income.modelContext == nil {
+                modelContext.insert(income)
+            }
+            incomeByMerchant[candidate.merchantKey] = income
+        }
+
+        let candidatesByMerchant = Dictionary(uniqueKeysWithValues: candidates.map { ($0.merchantKey, $0) })
+        for income in incomeByMerchant.values where income.status != .stopped {
+            let lastReceived = candidatesByMerchant[income.merchantKey]?.lastReceived ?? income.lastReceived
+            let cadence = candidatesByMerchant[income.merchantKey]?.cadence ?? income.cadence
+            if isStopped(lastCharge: lastReceived, cadence: cadence, referenceDate: referenceDate) {
+                income.status = .stopped
+                income.nextExpected = nil
+            }
+        }
+    }
+
+    private func userRecurringIncome(userID: String) throws -> [RecurringIncome] {
+        try modelContext.fetch(FetchDescriptor<RecurringIncome>())
+            .filter { $0.userID == userID }
+    }
+
+    private func reconcileBills(
+        candidates: [SubscriptionCandidate],
+        userID: String,
+        referenceDate: Date
+    ) throws {
+        var billsByMerchant = try Dictionary(
+            uniqueKeysWithValues: userBills(userID: userID).map { ($0.merchantKey, $0) }
+        )
+
+        for candidate in candidates {
+            let bill = billsByMerchant[candidate.merchantKey] ?? makeBill(from: candidate, userID: userID)
+            applyBill(candidate: candidate, to: bill)
+            if bill.modelContext == nil {
+                modelContext.insert(bill)
+            }
+            billsByMerchant[candidate.merchantKey] = bill
+        }
+
+        let candidatesByMerchant = Dictionary(uniqueKeysWithValues: candidates.map { ($0.merchantKey, $0) })
+        for bill in billsByMerchant.values where bill.status != .stopped {
+            let lastCharge = candidatesByMerchant[bill.merchantKey]?.lastCharge ?? bill.lastCharge
+            let cadence = candidatesByMerchant[bill.merchantKey]?.cadence ?? bill.cadence
+            if isStopped(lastCharge: lastCharge, cadence: cadence, referenceDate: referenceDate) {
+                bill.status = .stopped
+                bill.nextDue = nil
+            }
+        }
+    }
+
+    private func userBills(userID: String) throws -> [Bill] {
+        try modelContext.fetch(FetchDescriptor<Bill>())
+            .filter { $0.userID == userID }
+    }
+
+    private func makeBill(from candidate: SubscriptionCandidate, userID: String) -> Bill {
+        Bill(
+            id: "bill-\(candidate.merchantKey.rawValue)",
+            userID: userID,
+            name: candidate.name,
+            merchantKey: candidate.merchantKey,
+            amount: candidate.amount,
+            cadence: candidate.cadence,
+            nextDue: candidate.nextRenewal,
+            categoryID: candidate.categoryID,
+            status: .active,
+            detectionConfidence: candidate.confidence,
+            firstSeen: candidate.firstSeen,
+            lastCharge: candidate.lastCharge
+        )
+    }
+
+    private func applyBill(candidate: SubscriptionCandidate, to bill: Bill) {
+        bill.name = candidate.name
+        bill.amount = candidate.amount
+        bill.cadence = candidate.cadence
+        bill.nextDue = candidate.nextRenewal
+        bill.detectionConfidence = candidate.confidence
+        bill.firstSeen = min(bill.firstSeen, candidate.firstSeen)
+        bill.lastCharge = candidate.lastCharge
+        bill.status = .active
+    }
+
+    private func makeRecurringIncome(from candidate: RecurringIncomeCandidate, userID: String) -> RecurringIncome {
+        RecurringIncome(
+            id: candidate.id,
+            userID: userID,
+            sourceName: candidate.sourceName,
+            merchantKey: candidate.merchantKey,
+            amount: candidate.amount,
+            cadence: candidate.cadence,
+            nextExpected: candidate.nextExpected,
+            status: .active,
+            detectionConfidence: candidate.confidence,
+            firstSeen: candidate.firstSeen,
+            lastReceived: candidate.lastReceived
+        )
+    }
+
+    private func apply(candidate: RecurringIncomeCandidate, to income: RecurringIncome) {
+        income.sourceName = candidate.sourceName
+        income.amount = candidate.amount
+        income.cadence = candidate.cadence
+        income.nextExpected = candidate.nextExpected
+        income.detectionConfidence = candidate.confidence
+        income.firstSeen = min(income.firstSeen, candidate.firstSeen)
+        income.lastReceived = candidate.lastReceived
+        income.status = .active
     }
 
     private func reconcile(

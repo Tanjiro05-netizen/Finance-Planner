@@ -32,6 +32,9 @@ enum SeedData {
         static let alertSettings = "alert-settings-preview"
 
         static let streamlineTransaction = "txn-streamline-jun"
+
+        static let payrollIncome = "income-northwind-labs"
+        static let rentBill = "bill-northgate-rent"
     }
 
     struct Snapshot {
@@ -42,6 +45,8 @@ enum SeedData {
         var categories: [Category]
         var priceChanges: [PriceChange]
         var alertSettings: AlertSettings
+        var recurringIncome: [RecurringIncome]
+        var bills: [Bill]
     }
 
     static func snapshot(userID: String = defaultUserID) -> Snapshot {
@@ -54,7 +59,10 @@ enum SeedData {
                 mask: "4821",
                 type: "Checking",
                 status: .connected,
-                lastSyncedAt: date(year: 2026, month: 6, day: 29, hour: 9)
+                lastSyncedAt: date(year: 2026, month: 6, day: 29, hour: 9),
+                currentBalance: .usd(Cents.dollars(2450, cents: 18)),
+                availableBalance: .usd(Cents.dollars(2450, cents: 18)),
+                balanceAsOf: date(year: 2026, month: 6, day: 29, hour: 9)
             ),
             LinkedAccount(
                 id: ID.travelCard,
@@ -64,7 +72,10 @@ enum SeedData {
                 mask: "1194",
                 type: "Credit",
                 status: .connected,
-                lastSyncedAt: date(year: 2026, month: 6, day: 29, hour: 9)
+                lastSyncedAt: date(year: 2026, month: 6, day: 29, hour: 9),
+                currentBalance: .usd(Cents.dollars(612, cents: 40)),
+                availableBalance: .usd(Cents.dollars(4387, cents: 60)),
+                balanceAsOf: date(year: 2026, month: 6, day: 29, hour: 9)
             ),
         ]
 
@@ -130,7 +141,9 @@ enum SeedData {
             cancellationRequests: requests,
             categories: categories,
             priceChanges: priceChanges,
-            alertSettings: alertSettings
+            alertSettings: alertSettings,
+            recurringIncome: makeRecurringIncome(userID: userID),
+            bills: makeBills(userID: userID)
         )
     }
 
@@ -148,6 +161,8 @@ enum SeedData {
         snapshot.subscriptions.forEach(context.insert)
         snapshot.cancellationRequests.forEach(context.insert)
         snapshot.priceChanges.forEach(context.insert)
+        snapshot.recurringIncome.forEach(context.insert)
+        snapshot.bills.forEach(context.insert)
         context.insert(snapshot.alertSettings)
         try context.save()
     }
@@ -420,6 +435,69 @@ private extension SeedData {
                 amount: .usd(Cents.dollars(119, cents: 88)),
                 date: date(year: 2026, month: 4, day: 5),
                 categoryHint: "Productivity"
+            ),
+        ] + makeDiscretionaryTransactions(userID: userID)
+    }
+
+    /// Everyday, non-recurring debits so the discretionary spend estimate (and thus the
+    /// safe-to-spend comparison figure) has realistic data to average.
+    static func makeDiscretionaryTransactions(userID: String) -> [Transaction] {
+        let entries: [(String, String, Int, Int)] = [
+            ("txn-grocery-jun05", "CORNER GROCERY", 6247, 5),
+            ("txn-coffee-jun07", "BLUE BOTTLE COFFEE", 780, 7),
+            ("txn-gas-jun09", "SHELL STATION 227", 5210, 9),
+            ("txn-pharmacy-jun11", "GREENLEAF PHARMACY", 2394, 11),
+            ("txn-lunch-jun14", "SAIGON KITCHEN", 3185, 14),
+            ("txn-grocery-jun19", "CORNER GROCERY", 5488, 19),
+            ("txn-hardware-jun22", "MADISON HARDWARE", 4103, 22),
+            ("txn-coffee-jun25", "BLUE BOTTLE COFFEE", 640, 25),
+        ]
+
+        return entries.map { id, merchant, cents, day in
+            Transaction(
+                id: id,
+                userID: userID,
+                accountID: ID.checking,
+                merchantRaw: merchant,
+                merchantKey: MerchantKey(merchant),
+                amount: .usd(cents),
+                date: date(year: 2026, month: 6, day: day)
+            )
+        }
+    }
+
+    static func makeRecurringIncome(userID: String) -> [RecurringIncome] {
+        [
+            RecurringIncome(
+                id: ID.payrollIncome,
+                userID: userID,
+                sourceName: "Northwind Labs",
+                merchantKey: MerchantKey("Northwind Labs Payroll"),
+                amount: .usd(Cents.dollars(2100)),
+                cadence: .biweekly,
+                nextExpected: date(year: 2026, month: 7, day: 3),
+                status: .active,
+                detectionConfidence: 0.94,
+                firstSeen: date(year: 2026, month: 1, day: 2),
+                lastReceived: date(year: 2026, month: 6, day: 19)
+            ),
+        ]
+    }
+
+    static func makeBills(userID: String) -> [Bill] {
+        [
+            Bill(
+                id: ID.rentBill,
+                userID: userID,
+                name: "Northgate Apartments",
+                merchantKey: MerchantKey("Northgate Apartments Rent"),
+                amount: .usd(Cents.dollars(1850)),
+                cadence: .monthly,
+                nextDue: date(year: 2026, month: 7, day: 1),
+                status: .active,
+                detectionConfidence: 0.9,
+                firstSeen: date(year: 2026, month: 1, day: 1),
+                lastCharge: date(year: 2026, month: 6, day: 1)
             ),
         ]
     }

@@ -106,6 +106,7 @@ struct DomainTypesTests {
     @Test func displayNameAndShortLabelCoverEveryCadence() {
         let expectations: [(Cadence, String, String)] = [
             (.weekly, "Weekly", "WEEKLY"),
+            (.biweekly, "Every 2 weeks", "BIWEEKLY"),
             (.monthly, "Monthly", "MONTHLY"),
             (.quarterly, "Quarterly", "QUARTERLY"),
             (.yearly, "Yearly", "YEARLY"),
@@ -120,6 +121,21 @@ struct DomainTypesTests {
 
     @Test func unknownCadenceMonthlyEquivalentPassesAmountThrough() {
         #expect(Cadence.unknown.monthlyEquivalent(for: .usd(1234)) == .usd(1234))
+    }
+
+    @Test func biweeklyMonthlyEquivalentUsesTwentySixPaymentsPerYear() {
+        // $1000 biweekly => 1000 * 26 / 12 = 2166.67 -> rounds to 216667 minor units.
+        #expect(Cadence.biweekly.monthlyEquivalent(for: .usd(100_000)) == .usd(216_667))
+    }
+
+    @Test func biweeklyDetectionConstants() {
+        #expect(Cadence.biweekly.detectionTargetDays == 14)
+        #expect(Cadence.biweekly.detectionToleranceDays == 12 ... 16)
+    }
+
+    @Test func recurringIncomeAndBillStatusRoundTrip() {
+        #expect(RecurringIncomeStatus.allCases == [.active, .stopped])
+        #expect(BillStatus(rawValue: "stopped") == .stopped)
     }
 
     // MARK: - SubscriptionCategoryGroup

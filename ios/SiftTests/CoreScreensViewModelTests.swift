@@ -93,6 +93,40 @@ struct CoreScreensViewModelTests {
         #expect(refresher.lastReferenceDate == Self.referenceDate)
     }
 
+    @Test func safeToSpendHiddenWhenLedgerFlagOff() {
+        let viewModel = HomeViewModel(
+            repositories: .mock(),
+            refresher: NoopSubscriptionRefreshService(),
+            featureFlags: SiftFeatureFlags(conciergeEnabled: false, ledgerEnabled: false),
+            referenceDateProvider: { SeedData.referenceDate }
+        )
+
+        viewModel.load()
+
+        #expect(viewModel.showsSafeToSpend == false)
+        #expect(viewModel.safeToSpend == nil)
+    }
+
+    @Test func safeToSpendAvailableWhenLedgerFlagOn() {
+        let viewModel = HomeViewModel(
+            repositories: .mock(),
+            refresher: NoopSubscriptionRefreshService(),
+            featureFlags: SiftFeatureFlags(conciergeEnabled: false, ledgerEnabled: true),
+            referenceDateProvider: { SeedData.referenceDate }
+        )
+
+        viewModel.load()
+
+        #expect(viewModel.showsSafeToSpend)
+        guard case let .available(result) = viewModel.safeToSpend else {
+            Issue.record("Expected an available safe-to-spend outcome from seeded balances")
+            return
+        }
+        // Seeded checking balance is spendable; the seeded payroll gives a real income horizon.
+        #expect(result.usedFallbackWindow == false)
+        #expect(result.horizonEndDate > SeedData.referenceDate)
+    }
+
     private static var referenceDate: Date {
         Calendar.utc.date(from: DateComponents(year: 2026, month: 7, day: 1, hour: 10)) ?? Date()
     }

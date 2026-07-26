@@ -207,6 +207,100 @@ final class Category {
     }
 }
 
+/// A detected stream of recurring income (payroll, pension, regular transfers in).
+/// Kept separate from `Subscription` so "next expected income date" is a cheap indexed
+/// read for safe-to-spend without re-running detection on every screen load.
+@Model
+final class RecurringIncome {
+    var id: String
+    var userID: String
+    var sourceName: String
+    var merchantKey: MerchantKey
+    var amount: Money
+    var cadence: Cadence
+    var nextExpected: Date?
+    var categoryID: String?
+    var status: RecurringIncomeStatus
+    var detectionConfidence: Double
+    var firstSeen: Date
+    var lastReceived: Date
+
+    init(
+        id: String,
+        userID: String,
+        sourceName: String,
+        merchantKey: MerchantKey,
+        amount: Money,
+        cadence: Cadence,
+        nextExpected: Date? = nil,
+        categoryID: String? = nil,
+        status: RecurringIncomeStatus,
+        detectionConfidence: Double,
+        firstSeen: Date,
+        lastReceived: Date
+    ) {
+        self.id = id
+        self.userID = userID
+        self.sourceName = sourceName
+        self.merchantKey = merchantKey
+        self.amount = amount
+        self.cadence = cadence
+        self.nextExpected = nextExpected
+        self.categoryID = categoryID
+        self.status = status
+        self.detectionConfidence = detectionConfidence
+        self.firstSeen = firstSeen
+        self.lastReceived = lastReceived
+    }
+}
+
+/// A recurring non-subscription obligation (rent, utilities, insurance, loans). Distinct
+/// from `Subscription` so bills never inherit subscription-only affordances like the
+/// cancel flow, trial-ending, or the "unused, cancel to save" nudge.
+@Model
+final class Bill {
+    var id: String
+    var userID: String
+    var name: String
+    var merchantKey: MerchantKey
+    var amount: Money
+    var cadence: Cadence
+    var nextDue: Date?
+    var categoryID: String?
+    var status: BillStatus
+    var detectionConfidence: Double
+    var firstSeen: Date
+    var lastCharge: Date
+
+    init(
+        id: String,
+        userID: String,
+        name: String,
+        merchantKey: MerchantKey,
+        amount: Money,
+        cadence: Cadence,
+        nextDue: Date? = nil,
+        categoryID: String? = nil,
+        status: BillStatus,
+        detectionConfidence: Double,
+        firstSeen: Date,
+        lastCharge: Date
+    ) {
+        self.id = id
+        self.userID = userID
+        self.name = name
+        self.merchantKey = merchantKey
+        self.amount = amount
+        self.cadence = cadence
+        self.nextDue = nextDue
+        self.categoryID = categoryID
+        self.status = status
+        self.detectionConfidence = detectionConfidence
+        self.firstSeen = firstSeen
+        self.lastCharge = lastCharge
+    }
+}
+
 @Model
 final class PriceChange {
     var id: String

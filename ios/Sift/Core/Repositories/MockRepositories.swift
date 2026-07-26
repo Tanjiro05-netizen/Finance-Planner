@@ -65,6 +65,18 @@ final class MockSubscriptionRepository: SubscriptionRepository, @unchecked Senda
     }
 
     @MainActor
+    func upcomingRenewals(from startDate: Date, to endDate: Date) throws -> [Subscription] {
+        try all()
+            .filter { subscription in
+                guard subscription.status != .cancelled, let renewal = subscription.nextRenewal else {
+                    return false
+                }
+                return renewal >= startDate && renewal <= endDate
+            }
+            .sorted { ($0.nextRenewal ?? .distantFuture) < ($1.nextRenewal ?? .distantFuture) }
+    }
+
+    @MainActor
     func unused(referenceDate: Date, staleAfterDays: Int) throws -> [Subscription] {
         try unusedSubscriptions(from: all(), referenceDate: referenceDate, staleAfterDays: staleAfterDays)
     }
@@ -406,4 +418,108 @@ final class MockSettingsRepository: SettingsRepository, @unchecked Sendable {
 
     @MainActor
     func deleteAll() throws {}
+}
+
+final class MockRecurringIncomeRepository: RecurringIncomeRepository, @unchecked Sendable {
+    private var incomes: [RecurringIncome]
+    private let userID: String
+
+    init(snapshot: SeedData.Snapshot = SeedData.snapshot(), userID: String = SeedData.defaultUserID) {
+        incomes = snapshot.recurringIncome
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [RecurringIncome] {
+        incomes
+            .filter { $0.userID == userID }
+            .sorted { $0.sourceName.localizedStandardCompare($1.sourceName) == .orderedAscending }
+    }
+
+    @MainActor
+    func recurringIncome(id: String) throws -> RecurringIncome? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ income: RecurringIncome) throws {
+        incomes.append(income)
+    }
+
+    @MainActor
+    func update(_: RecurringIncome) throws {}
+
+    @MainActor
+    func delete(id: String) throws {
+        incomes.removeAll { $0.id == id && $0.userID == userID }
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        incomes.removeAll { $0.userID == userID }
+    }
+
+    @MainActor
+    func nextExpectedIncome(after referenceDate: Date) throws -> RecurringIncome? {
+        try all()
+            .filter { income in
+                guard income.status == .active, let expected = income.nextExpected else {
+                    return false
+                }
+                return expected >= referenceDate
+            }
+            .min { ($0.nextExpected ?? .distantFuture) < ($1.nextExpected ?? .distantFuture) }
+    }
+}
+
+final class MockBillRepository: BillRepository, @unchecked Sendable {
+    private var bills: [Bill]
+    private let userID: String
+
+    init(snapshot: SeedData.Snapshot = SeedData.snapshot(), userID: String = SeedData.defaultUserID) {
+        bills = snapshot.bills
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [Bill] {
+        bills
+            .filter { $0.userID == userID }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    @MainActor
+    func bill(id: String) throws -> Bill? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ bill: Bill) throws {
+        bills.append(bill)
+    }
+
+    @MainActor
+    func update(_: Bill) throws {}
+
+    @MainActor
+    func delete(id: String) throws {
+        bills.removeAll { $0.id == id && $0.userID == userID }
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        bills.removeAll { $0.userID == userID }
+    }
+
+    @MainActor
+    func upcomingBills(from startDate: Date, to endDate: Date) throws -> [Bill] {
+        try all()
+            .filter { bill in
+                guard bill.status == .active, let due = bill.nextDue else {
+                    return false
+                }
+                return due >= startDate && due <= endDate
+            }
+            .sorted { ($0.nextDue ?? .distantFuture) < ($1.nextDue ?? .distantFuture) }
+    }
 }

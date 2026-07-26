@@ -37,11 +37,14 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
 
 enum HomeRoute: Hashable, CaseIterable {
     case settings
+    case cashFlowForecast
 
     var title: String {
         switch self {
         case .settings:
             "Settings"
+        case .cashFlowForecast:
+            "Cash Flow"
         }
     }
 }

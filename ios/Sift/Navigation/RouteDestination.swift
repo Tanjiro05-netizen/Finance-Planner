@@ -7,6 +7,8 @@ enum RouteDestination {
         switch route {
         case .settings:
             SettingsView()
+        case .cashFlowForecast:
+            CashFlowForecastRouteView()
         }
     }
 

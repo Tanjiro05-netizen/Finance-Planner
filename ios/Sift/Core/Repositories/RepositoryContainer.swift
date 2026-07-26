@@ -9,6 +9,8 @@ struct RepositoryContainer {
     let categories: any CategoryRepository
     let priceChanges: any PriceChangeRepository
     let settings: any SettingsRepository
+    let recurringIncome: any RecurringIncomeRepository
+    let bills: any BillRepository
 
     static func live(modelContext: ModelContext, userID: String = SeedData.defaultUserID) -> RepositoryContainer {
         RepositoryContainer(
@@ -18,7 +20,9 @@ struct RepositoryContainer {
             cancellations: LiveCancellationRepository(modelContext: modelContext, userID: userID),
             categories: LiveCategoryRepository(modelContext: modelContext, userID: userID),
             priceChanges: LivePriceChangeRepository(modelContext: modelContext, userID: userID),
-            settings: LiveSettingsRepository(modelContext: modelContext, userID: userID)
+            settings: LiveSettingsRepository(modelContext: modelContext, userID: userID),
+            recurringIncome: LiveRecurringIncomeRepository(modelContext: modelContext, userID: userID),
+            bills: LiveBillRepository(modelContext: modelContext, userID: userID)
         )
     }
 
@@ -31,7 +35,9 @@ struct RepositoryContainer {
             cancellations: MockCancellationRepository(snapshot: snapshot, userID: userID),
             categories: MockCategoryRepository(snapshot: snapshot, userID: userID),
             priceChanges: MockPriceChangeRepository(snapshot: snapshot, userID: userID),
-            settings: MockSettingsRepository(snapshot: snapshot)
+            settings: MockSettingsRepository(snapshot: snapshot),
+            recurringIncome: MockRecurringIncomeRepository(snapshot: snapshot, userID: userID),
+            bills: MockBillRepository(snapshot: snapshot, userID: userID)
         )
     }
 
@@ -51,7 +57,9 @@ struct RepositoryContainer {
                 trialEndings: true,
                 unusedNudges: true,
                 weeklySummary: false
-            )
+            ),
+            recurringIncome: [],
+            bills: []
         )
 
         return RepositoryContainer(
@@ -61,7 +69,9 @@ struct RepositoryContainer {
             cancellations: MockCancellationRepository(snapshot: snapshot, userID: userID),
             categories: MockCategoryRepository(snapshot: snapshot, userID: userID),
             priceChanges: MockPriceChangeRepository(snapshot: snapshot, userID: userID),
-            settings: MockSettingsRepository(snapshot: snapshot)
+            settings: MockSettingsRepository(snapshot: snapshot),
+            recurringIncome: MockRecurringIncomeRepository(snapshot: snapshot, userID: userID),
+            bills: MockBillRepository(snapshot: snapshot, userID: userID)
         )
     }
 
@@ -79,6 +89,8 @@ struct RepositoryContainer {
         try accounts.deleteAll()
         try categories.deleteAll()
         try settings.deleteAll()
+        try recurringIncome.deleteAll()
+        try bills.deleteAll()
     }
 }
 
@@ -92,6 +104,8 @@ extension EnvironmentValues {
     @Entry var plaidLinkPresenter: any PlaidLinkPresenting = MockPlaidLinkPresenter(result: .cancelled)
 
     @Entry var detectionService: any DetectionServing = MockDetectionService()
+
+    @Entry var incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService()
 
     @Entry var notificationAuthorizer: any NotificationAuthorizing = MockNotificationAuthorizer()
 

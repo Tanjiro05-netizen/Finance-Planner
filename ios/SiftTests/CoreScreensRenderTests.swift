@@ -59,6 +59,24 @@ struct CoreScreensRenderTests {
         }
     }
 
+    @Test func cashFlowForecastRenders() {
+        assertRenders {
+            CashFlowForecastView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func cashFlowForecastUnavailableStateRenders() {
+        assertRenders {
+            CashFlowForecastView(
+                repositories: .emptyMock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
     private func assertRenders(@ViewBuilder content: () -> some View) {
         render(content(), dynamicTypeSize: .large)
         render(content(), dynamicTypeSize: .accessibility2)

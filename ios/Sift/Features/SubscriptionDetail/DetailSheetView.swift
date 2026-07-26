@@ -12,6 +12,7 @@ struct DetailSheetView: View {
         repositories: RepositoryContainer = .mock(),
         apiClient: any SiftAPIClient = MockSiftAPIClient(),
         detectionService: any DetectionServing = MockDetectionService(),
+        incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(),
         notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
         referenceDateProvider: @escaping () -> Date = { Date() }
     ) {
@@ -20,6 +21,7 @@ struct DetailSheetView: View {
             apiClient: apiClient,
             detectionService: detectionService,
             repositories: repositories,
+            incomeDetectionService: incomeDetectionService,
             notificationScheduler: notificationScheduler
         )
         _viewModel = State(initialValue: SubscriptionDetailViewModel(

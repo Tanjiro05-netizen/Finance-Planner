@@ -75,6 +75,8 @@ extension Cadence {
         switch self {
         case .weekly:
             7
+        case .biweekly:
+            14
         case .monthly:
             30
         case .quarterly:
@@ -90,6 +92,8 @@ extension Cadence {
         switch self {
         case .weekly:
             6 ... 8
+        case .biweekly:
+            12 ... 16
         case .monthly:
             28 ... 33
         case .quarterly:
@@ -105,6 +109,8 @@ extension Cadence {
         switch self {
         case .weekly:
             10
+        case .biweekly:
+            12
         case .monthly:
             18
         case .quarterly:
@@ -120,6 +126,8 @@ extension Cadence {
         switch self {
         case .weekly:
             calendar.date(byAdding: .day, value: 7, to: date) ?? date
+        case .biweekly:
+            calendar.date(byAdding: .day, value: 14, to: date) ?? date
         case .monthly:
             calendar.date(byAdding: .month, value: 1, to: date) ?? date
         case .quarterly:
@@ -129,5 +137,25 @@ extension Cadence {
         case .unknown:
             date
         }
+    }
+
+    /// Every occurrence strictly after `date` up to and including `endDate`, stepping
+    /// by this cadence. Used to expand a recurring item into concrete forecast events.
+    func occurrences(after date: Date, through endDate: Date, calendar: Calendar = .utc) -> [Date] {
+        guard self != .unknown else {
+            return []
+        }
+
+        var results: [Date] = []
+        var next = dateAfter(date, calendar: calendar)
+        while next <= endDate {
+            results.append(next)
+            let advanced = dateAfter(next, calendar: calendar)
+            guard advanced > next else {
+                break
+            }
+            next = advanced
+        }
+        return results
     }
 }

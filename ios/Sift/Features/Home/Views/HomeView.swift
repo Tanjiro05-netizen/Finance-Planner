@@ -9,18 +9,22 @@ struct HomeView: View {
         repositories: RepositoryContainer = .mock(),
         apiClient: any SiftAPIClient = MockSiftAPIClient(),
         detectionService: any DetectionServing = MockDetectionService(),
+        incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(),
         notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
+        featureFlags: SiftFeatureFlags = .launchDefault,
         referenceDateProvider: @escaping () -> Date = { Date() }
     ) {
         let refresher = DefaultSubscriptionRefreshService(
             apiClient: apiClient,
             detectionService: detectionService,
             repositories: repositories,
+            incomeDetectionService: incomeDetectionService,
             notificationScheduler: notificationScheduler
         )
         _viewModel = State(initialValue: HomeViewModel(
             repositories: repositories,
             refresher: refresher,
+            featureFlags: featureFlags,
             referenceDateProvider: referenceDateProvider
         ))
     }
@@ -69,9 +73,13 @@ struct HomeView: View {
                 systemImage: SiftIcon.subscriptions
             )
         } else {
-            DashboardContentView(viewModel: viewModel) { subscriptionID in
-                appModel.present(.subscriptionDetail(id: subscriptionID))
-            }
+            DashboardContentView(
+                viewModel: viewModel,
+                openDetail: { subscriptionID in
+                    appModel.present(.subscriptionDetail(id: subscriptionID))
+                },
+                openForecast: { appModel.push(.cashFlowForecast, in: .home) }
+            )
         }
     }
 
@@ -94,9 +102,14 @@ struct HomeView: View {
 private struct DashboardContentView: View {
     let viewModel: HomeViewModel
     let openDetail: (String) -> Void
+    let openForecast: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
+            if viewModel.showsSafeToSpend, let safeToSpend = viewModel.safeToSpend {
+                SafeToSpendCard(outcome: safeToSpend, onTap: openForecast)
+            }
+
             DashboardHeroCard(viewModel: viewModel)
 
             if let unusedNudge = viewModel.unusedNudge {

@@ -6,6 +6,7 @@ struct RootView: View {
     @Environment(AppModel.self) private var appModel
     @Environment(\.apiClient) private var apiClient
     @Environment(\.detectionService) private var detectionService
+    @Environment(\.incomeDetectionService) private var incomeDetectionService
     @Environment(\.notificationAuthorizer) private var notificationAuthorizer
     @Environment(\.notificationRouter) private var notificationRouter
     @Environment(\.notificationScheduler) private var notificationScheduler
@@ -164,7 +165,9 @@ struct RootView: View {
                     repositories: repositories,
                     apiClient: apiClient,
                     detectionService: detectionService,
-                    notificationScheduler: notificationScheduler
+                    incomeDetectionService: incomeDetectionService,
+                    notificationScheduler: notificationScheduler,
+                    featureFlags: featureFlags
                 )
                 .withHomeDestinations()
             }
@@ -180,6 +183,7 @@ struct RootView: View {
                     repositories: repositories,
                     apiClient: apiClient,
                     detectionService: detectionService,
+                    incomeDetectionService: incomeDetectionService,
                     notificationScheduler: notificationScheduler
                 )
                 .withSubscriptionsDestinations()
@@ -196,6 +200,7 @@ struct RootView: View {
                     repositories: repositories,
                     apiClient: apiClient,
                     detectionService: detectionService,
+                    incomeDetectionService: incomeDetectionService,
                     notificationScheduler: notificationScheduler
                 )
                 .withInsightsDestinations()

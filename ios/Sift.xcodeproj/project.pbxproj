@@ -68,6 +68,15 @@
 		B0000000000000000000C002 /* SubscriptionRefreshServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T002 /* SubscriptionRefreshServiceTests.swift */; };
 		B0000000000000000000C003 /* TokenStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T003 /* TokenStoreTests.swift */; };
 		B0000000000000000000C004 /* DomainTypesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T004 /* DomainTypesTests.swift */; };
+		D0000000000000000000C001 /* CadenceInferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000T001 /* CadenceInferenceTests.swift */; };
+		D0000000000000000000C002 /* IncomeDetectionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000T002 /* IncomeDetectionEngineTests.swift */; };
+		D0000000000000000000C003 /* RecurringIncomeRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000T003 /* RecurringIncomeRepositoryTests.swift */; };
+		D0000000000000000000C004 /* BillClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000T004 /* BillClassifierTests.swift */; };
+		D0000000000000000000C005 /* BillRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000T005 /* BillRepositoryTests.swift */; };
+		D0000000000000000000C006 /* SafeToSpendCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000T006 /* SafeToSpendCalculatorTests.swift */; };
+		D0000000000000000000C007 /* DiscretionarySpendEstimatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000T007 /* DiscretionarySpendEstimatorTests.swift */; };
+		D0000000000000000000C008 /* CashFlowForecasterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000T008 /* CashFlowForecasterTests.swift */; };
+		D0000000000000000000C009 /* CashFlowForecastViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000T009 /* CashFlowForecastViewModelTests.swift */; };
 		B0000000000000000000C005 /* TransactionClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T005 /* TransactionClassifierTests.swift */; };
 		B0000000000000000000C006 /* CategoryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T006 /* CategoryServiceTests.swift */; };
 		B0000000000000000000C007 /* TransactionRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T007 /* TransactionRepositoryTests.swift */; };
@@ -75,6 +84,16 @@
 		60000000000000000000B001 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F001 /* Models.swift */; };
 		60000000000000000000B002 /* MerchantNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F002 /* MerchantNormalizer.swift */; };
 		60000000000000000000B003 /* DetectionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F003 /* DetectionEngine.swift */; };
+		D0000000000000000000B001 /* CadenceInference.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F001 /* CadenceInference.swift */; };
+		D0000000000000000000B002 /* IncomeDetectionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F002 /* IncomeDetectionEngine.swift */; };
+		D0000000000000000000B003 /* IncomeDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F003 /* IncomeDetectionService.swift */; };
+		D0000000000000000000B004 /* BillClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F004 /* BillClassifier.swift */; };
+		D0000000000000000000B005 /* SafeToSpendCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F005 /* SafeToSpendCalculator.swift */; };
+		D0000000000000000000B006 /* DiscretionarySpendEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F006 /* DiscretionarySpendEstimator.swift */; };
+		D0000000000000000000B007 /* CashFlowForecaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F007 /* CashFlowForecaster.swift */; };
+		D0000000000000000000B008 /* SafeToSpendCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F008 /* SafeToSpendCard.swift */; };
+		D0000000000000000000B009 /* CashFlowForecastViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F009 /* CashFlowForecastViewModel.swift */; };
+		D0000000000000000000B010 /* CashFlowForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0000000000000000000F010 /* CashFlowForecastView.swift */; };
 		60000000000000000000B004 /* DetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F004 /* DetectionService.swift */; };
 		40000000000000000000B001 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40000000000000000000F001 /* APIClient.swift */; };
 		40000000000000000000B002 /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40000000000000000000F002 /* TokenStore.swift */; };
@@ -211,6 +230,15 @@
 		B0000000000000000000T002 /* SubscriptionRefreshServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRefreshServiceTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T003 /* TokenStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStoreTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T004 /* DomainTypesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainTypesTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000T001 /* CadenceInferenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceInferenceTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000T002 /* IncomeDetectionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomeDetectionEngineTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000T003 /* RecurringIncomeRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecurringIncomeRepositoryTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000T004 /* BillClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillClassifierTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000T005 /* BillRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillRepositoryTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000T006 /* SafeToSpendCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeToSpendCalculatorTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000T007 /* DiscretionarySpendEstimatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscretionarySpendEstimatorTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000T008 /* CashFlowForecasterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashFlowForecasterTests.swift; sourceTree = "<group>"; };
+		D0000000000000000000T009 /* CashFlowForecastViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashFlowForecastViewModelTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T005 /* TransactionClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionClassifierTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T006 /* CategoryServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryServiceTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T007 /* TransactionRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionRepositoryTests.swift; sourceTree = "<group>"; };
@@ -218,6 +246,16 @@
 		60000000000000000000F001 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		60000000000000000000F002 /* MerchantNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantNormalizer.swift; sourceTree = "<group>"; };
 		60000000000000000000F003 /* DetectionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionEngine.swift; sourceTree = "<group>"; };
+		D0000000000000000000F001 /* CadenceInference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadenceInference.swift; sourceTree = "<group>"; };
+		D0000000000000000000F002 /* IncomeDetectionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomeDetectionEngine.swift; sourceTree = "<group>"; };
+		D0000000000000000000F003 /* IncomeDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomeDetectionService.swift; sourceTree = "<group>"; };
+		D0000000000000000000F004 /* BillClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillClassifier.swift; sourceTree = "<group>"; };
+		D0000000000000000000F005 /* SafeToSpendCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeToSpendCalculator.swift; sourceTree = "<group>"; };
+		D0000000000000000000F006 /* DiscretionarySpendEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscretionarySpendEstimator.swift; sourceTree = "<group>"; };
+		D0000000000000000000F007 /* CashFlowForecaster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashFlowForecaster.swift; sourceTree = "<group>"; };
+		D0000000000000000000F008 /* SafeToSpendCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeToSpendCard.swift; sourceTree = "<group>"; };
+		D0000000000000000000F009 /* CashFlowForecastViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashFlowForecastViewModel.swift; sourceTree = "<group>"; };
+		D0000000000000000000F010 /* CashFlowForecastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashFlowForecastView.swift; sourceTree = "<group>"; };
 		60000000000000000000F004 /* DetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionService.swift; sourceTree = "<group>"; };
 		60000000000000000000F005 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		40000000000000000000F001 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -359,6 +397,15 @@
 				B0000000000000000000T002 /* SubscriptionRefreshServiceTests.swift */,
 				B0000000000000000000T003 /* TokenStoreTests.swift */,
 				B0000000000000000000T004 /* DomainTypesTests.swift */,
+				D0000000000000000000T001 /* CadenceInferenceTests.swift */,
+				D0000000000000000000T002 /* IncomeDetectionEngineTests.swift */,
+				D0000000000000000000T003 /* RecurringIncomeRepositoryTests.swift */,
+				D0000000000000000000T004 /* BillClassifierTests.swift */,
+				D0000000000000000000T005 /* BillRepositoryTests.swift */,
+				D0000000000000000000T006 /* SafeToSpendCalculatorTests.swift */,
+				D0000000000000000000T007 /* DiscretionarySpendEstimatorTests.swift */,
+				D0000000000000000000T008 /* CashFlowForecasterTests.swift */,
+				D0000000000000000000T009 /* CashFlowForecastViewModelTests.swift */,
 				B0000000000000000000T005 /* TransactionClassifierTests.swift */,
 				B0000000000000000000T006 /* CategoryServiceTests.swift */,
 				B0000000000000000000T007 /* TransactionRepositoryTests.swift */,
@@ -513,10 +560,28 @@
 			path = Integrations;
 			sourceTree = "<group>";
 		};
+		D0000000000000000000G001 /* CashFlow */ = {
+			isa = PBXGroup;
+			children = (
+				D0000000000000000000F009 /* CashFlowForecastViewModel.swift */,
+				D0000000000000000000G002 /* Views */,
+			);
+			path = CashFlow;
+			sourceTree = "<group>";
+		};
+		D0000000000000000000G002 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D0000000000000000000F010 /* CashFlowForecastView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		C0000000000000000000G001 /* Categorization */ = {
 			isa = PBXGroup;
 			children = (
 				C0000000000000000000F001 /* CategoryService.swift */,
+				D0000000000000000000F004 /* BillClassifier.swift */,
 				C0000000000000000000F002 /* TransactionClassifier.swift */,
 			);
 			path = Categorization;
@@ -554,6 +619,9 @@
 			isa = PBXGroup;
 			children = (
 				30000000000000000000F001 /* Money.swift */,
+				D0000000000000000000F007 /* CashFlowForecaster.swift */,
+				D0000000000000000000F006 /* DiscretionarySpendEstimator.swift */,
+				D0000000000000000000F005 /* SafeToSpendCalculator.swift */,
 				30000000000000000000F002 /* DomainTypes.swift */,
 			);
 			path = Domain;
@@ -602,6 +670,9 @@
 				60000000000000000000F001 /* Models.swift */,
 				60000000000000000000F002 /* MerchantNormalizer.swift */,
 				60000000000000000000F003 /* DetectionEngine.swift */,
+				D0000000000000000000F003 /* IncomeDetectionService.swift */,
+				D0000000000000000000F002 /* IncomeDetectionEngine.swift */,
+				D0000000000000000000F001 /* CadenceInference.swift */,
 				60000000000000000000F004 /* DetectionService.swift */,
 				60000000000000000000F005 /* README.md */,
 			);
@@ -619,6 +690,7 @@
 				200000000000000000000015 /* Cancellation */,
 				200000000000000000000016 /* Settings */,
 				C0000000000000000000G002 /* Transactions */,
+				D0000000000000000000G001 /* CashFlow */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -657,6 +729,7 @@
 			isa = PBXGroup;
 			children = (
 				10000000000000000000F044 /* HomeView.swift */,
+				D0000000000000000000F008 /* SafeToSpendCard.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -908,6 +981,16 @@
 				60000000000000000000B001 /* Models.swift in Sources */,
 				60000000000000000000B002 /* MerchantNormalizer.swift in Sources */,
 				60000000000000000000B003 /* DetectionEngine.swift in Sources */,
+				D0000000000000000000B001 /* CadenceInference.swift in Sources */,
+				D0000000000000000000B002 /* IncomeDetectionEngine.swift in Sources */,
+				D0000000000000000000B003 /* IncomeDetectionService.swift in Sources */,
+				D0000000000000000000B004 /* BillClassifier.swift in Sources */,
+				D0000000000000000000B005 /* SafeToSpendCalculator.swift in Sources */,
+				D0000000000000000000B006 /* DiscretionarySpendEstimator.swift in Sources */,
+				D0000000000000000000B007 /* CashFlowForecaster.swift in Sources */,
+				D0000000000000000000B008 /* SafeToSpendCard.swift in Sources */,
+				D0000000000000000000B009 /* CashFlowForecastViewModel.swift in Sources */,
+				D0000000000000000000B010 /* CashFlowForecastView.swift in Sources */,
 				60000000000000000000B004 /* DetectionService.swift in Sources */,
 				40000000000000000000B001 /* APIClient.swift in Sources */,
 				40000000000000000000B002 /* TokenStore.swift in Sources */,
@@ -990,6 +1073,15 @@
 				B0000000000000000000C002 /* SubscriptionRefreshServiceTests.swift in Sources */,
 				B0000000000000000000C003 /* TokenStoreTests.swift in Sources */,
 				B0000000000000000000C004 /* DomainTypesTests.swift in Sources */,
+				D0000000000000000000C001 /* CadenceInferenceTests.swift in Sources */,
+				D0000000000000000000C002 /* IncomeDetectionEngineTests.swift in Sources */,
+				D0000000000000000000C003 /* RecurringIncomeRepositoryTests.swift in Sources */,
+				D0000000000000000000C004 /* BillClassifierTests.swift in Sources */,
+				D0000000000000000000C005 /* BillRepositoryTests.swift in Sources */,
+				D0000000000000000000C006 /* SafeToSpendCalculatorTests.swift in Sources */,
+				D0000000000000000000C007 /* DiscretionarySpendEstimatorTests.swift in Sources */,
+				D0000000000000000000C008 /* CashFlowForecasterTests.swift in Sources */,
+				D0000000000000000000C009 /* CashFlowForecastViewModelTests.swift in Sources */,
 				B0000000000000000000C005 /* TransactionClassifierTests.swift in Sources */,
 				B0000000000000000000C006 /* CategoryServiceTests.swift in Sources */,
 				B0000000000000000000C007 /* TransactionRepositoryTests.swift in Sources */,

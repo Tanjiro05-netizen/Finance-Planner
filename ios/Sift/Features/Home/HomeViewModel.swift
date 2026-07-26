@@ -24,6 +24,7 @@ struct DashboardTimelineMark: Identifiable, Equatable {
 final class HomeViewModel {
     private let repositories: RepositoryContainer
     private let refresher: any SubscriptionRefreshing
+    private let featureFlags: SiftFeatureFlags
     private let referenceDateProvider: () -> Date
     private var nudgeDismissedSubscriptionIDs = Set<String>()
 
@@ -40,15 +41,22 @@ final class HomeViewModel {
     var timelineMarks: [DashboardTimelineMark] = []
     var timelineMonthLabel = ""
     var trend = DashboardTrend(text: "No change", direction: .neutral)
+    var safeToSpend: SafeToSpendOutcome?
 
     init(
         repositories: RepositoryContainer,
         refresher: any SubscriptionRefreshing,
+        featureFlags: SiftFeatureFlags = .launchDefault,
         referenceDateProvider: @escaping () -> Date = { Date() }
     ) {
         self.repositories = repositories
         self.refresher = refresher
+        self.featureFlags = featureFlags
         self.referenceDateProvider = referenceDateProvider
+    }
+
+    var showsSafeToSpend: Bool {
+        featureFlags.ledgerEnabled
     }
 
     var isEmpty: Bool {
@@ -135,10 +143,44 @@ final class HomeViewModel {
             let timeline = makeTimeline(from: subscriptions)
             timelineMarks = timeline.marks
             timelineMonthLabel = timeline.monthLabel
+            safeToSpend = showsSafeToSpend ? try computeSafeToSpend() : nil
             errorMessage = nil
         } catch {
             errorMessage = userFacingMessage(for: error)
         }
+    }
+
+    private func computeSafeToSpend() throws -> SafeToSpendOutcome {
+        let today = referenceDateProvider()
+        let calendar = Calendar.utc
+        let balance = try repositories.accounts.totalBalance()
+        let nextIncome = try repositories.recurringIncome.nextExpectedIncome(after: today)
+        let horizon = nextIncome?.nextExpected
+            ?? calendar.date(byAdding: .day, value: SafeToSpendCalculator.fallbackWindowDays, to: today)
+            ?? today
+
+        let upcomingSubscriptions = try repositories.subscriptions.upcomingRenewals(from: today, to: horizon)
+        let upcomingBills = try repositories.bills.upcomingBills(from: today, to: horizon)
+        let upcomingDebits = upcomingSubscriptions.map(\.amount) + upcomingBills.map(\.amount)
+
+        let windowStart = calendar.date(byAdding: .day, value: -30, to: today) ?? today
+        let recentTransactions = try repositories.transactions.transactions(from: windowStart, to: today)
+        let recurringKeys = Set(try repositories.subscriptions.all().map(\.merchantKey))
+            .union(try repositories.bills.all().map(\.merchantKey))
+        let dailySpend = DiscretionarySpendEstimator.dailyRate(
+            recentTransactions: recentTransactions,
+            knownRecurringMerchantKeys: recurringKeys,
+            window: DateInterval(start: windowStart, end: today)
+        )
+
+        return SafeToSpendCalculator.calculate(input: SafeToSpendInput(
+            currentBalance: balance,
+            upcomingDebits: upcomingDebits,
+            upcomingCredits: [],
+            recentDailySpend: dailySpend,
+            today: today,
+            nextExpectedIncomeDate: nextIncome?.nextExpected
+        ))
     }
 
     private func countRenewalsThisWeek(in subscriptions: [Subscription]) -> Int {

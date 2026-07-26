@@ -74,6 +74,18 @@ final class LiveSubscriptionRepository: SubscriptionRepository, @unchecked Senda
     }
 
     @MainActor
+    func upcomingRenewals(from startDate: Date, to endDate: Date) throws -> [Subscription] {
+        try all()
+            .filter { subscription in
+                guard subscription.status != .cancelled, let renewal = subscription.nextRenewal else {
+                    return false
+                }
+                return renewal >= startDate && renewal <= endDate
+            }
+            .sorted { ($0.nextRenewal ?? .distantFuture) < ($1.nextRenewal ?? .distantFuture) }
+    }
+
+    @MainActor
     func unused(referenceDate: Date, staleAfterDays: Int) throws -> [Subscription] {
         try unusedSubscriptions(from: all(), referenceDate: referenceDate, staleAfterDays: staleAfterDays)
     }
@@ -513,6 +525,134 @@ final class LiveSettingsRepository: SettingsRepository, @unchecked Sendable {
     }
 }
 
+final class LiveRecurringIncomeRepository: RecurringIncomeRepository, @unchecked Sendable {
+    private let context: ModelContext
+    private let userID: String
+
+    init(modelContext: ModelContext, userID: String = SeedData.defaultUserID) {
+        context = modelContext
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [RecurringIncome] {
+        try fetchUserScoped(RecurringIncome.self, in: context, userID: userID)
+            .sorted { $0.sourceName.localizedStandardCompare($1.sourceName) == .orderedAscending }
+    }
+
+    @MainActor
+    func recurringIncome(id: String) throws -> RecurringIncome? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ income: RecurringIncome) throws {
+        context.insert(income)
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ income: RecurringIncome) throws {
+        guard income.userID == userID else {
+            throw SiftError.notFound("Recurring income")
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let income = try recurringIncome(id: id) else {
+            throw SiftError.notFound("Recurring income")
+        }
+        context.delete(income)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        for income in try all() {
+            context.delete(income)
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func nextExpectedIncome(after referenceDate: Date) throws -> RecurringIncome? {
+        try all()
+            .filter { income in
+                guard income.status == .active, let expected = income.nextExpected else {
+                    return false
+                }
+                return expected >= referenceDate
+            }
+            .min { ($0.nextExpected ?? .distantFuture) < ($1.nextExpected ?? .distantFuture) }
+    }
+}
+
+final class LiveBillRepository: BillRepository, @unchecked Sendable {
+    private let context: ModelContext
+    private let userID: String
+
+    init(modelContext: ModelContext, userID: String = SeedData.defaultUserID) {
+        context = modelContext
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [Bill] {
+        try fetchUserScoped(Bill.self, in: context, userID: userID)
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    @MainActor
+    func bill(id: String) throws -> Bill? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ bill: Bill) throws {
+        context.insert(bill)
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ bill: Bill) throws {
+        guard bill.userID == userID else {
+            throw SiftError.notFound("Bill")
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let bill = try bill(id: id) else {
+            throw SiftError.notFound("Bill")
+        }
+        context.delete(bill)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        for bill in try all() {
+            context.delete(bill)
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func upcomingBills(from startDate: Date, to endDate: Date) throws -> [Bill] {
+        try all()
+            .filter { bill in
+                guard bill.status == .active, let due = bill.nextDue else {
+                    return false
+                }
+                return due >= startDate && due <= endDate
+            }
+            .sorted { ($0.nextDue ?? .distantFuture) < ($1.nextDue ?? .distantFuture) }
+    }
+}
+
 @MainActor
 private func fetchUserScoped<Model: PersistentModel>(
     _: Model.Type,
@@ -536,6 +676,10 @@ private func fetchUserScoped<Model: PersistentModel>(
             priceChange.userID == userID
         case let settings as AlertSettings:
             settings.userID == userID
+        case let income as RecurringIncome:
+            income.userID == userID
+        case let bill as Bill:
+            bill.userID == userID
         default:
             false
         }

@@ -4,6 +4,7 @@ struct SubscriptionRefreshResult: Equatable {
     let synced: TransactionSyncResponse
     let importedTransactionCount: Int
     let detectionResult: DetectionResult
+    var incomeDetectionResult: IncomeDetectionResult = .empty
 }
 
 protocol SubscriptionRefreshing: Sendable {
@@ -21,6 +22,7 @@ extension SubscriptionRefreshing {
 final class DefaultSubscriptionRefreshService: SubscriptionRefreshing, @unchecked Sendable {
     private let apiClient: any SiftAPIClient
     private let detectionService: any DetectionServing
+    private let incomeDetectionService: any IncomeDetectionServing
     private let notificationScheduler: any NotificationScheduling
     private let repositories: RepositoryContainer
     private let userID: String
@@ -29,11 +31,13 @@ final class DefaultSubscriptionRefreshService: SubscriptionRefreshing, @unchecke
         apiClient: any SiftAPIClient,
         detectionService: any DetectionServing,
         repositories: RepositoryContainer,
+        incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(detections: []),
         notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
         userID: String = SeedData.defaultUserID
     ) {
         self.apiClient = apiClient
         self.detectionService = detectionService
+        self.incomeDetectionService = incomeDetectionService
         self.repositories = repositories
         self.notificationScheduler = notificationScheduler
         self.userID = userID
@@ -45,12 +49,14 @@ final class DefaultSubscriptionRefreshService: SubscriptionRefreshing, @unchecke
         let importedCount = try await importSyncedTransactions()
         try await importAccounts()
         let result = try await detectionService.recompute(referenceDate: referenceDate)
+        let incomeResult = try await incomeDetectionService.recompute(referenceDate: referenceDate)
         try await notificationScheduler.reconcile(referenceDate: referenceDate)
 
         return SubscriptionRefreshResult(
             synced: synced,
             importedTransactionCount: importedCount,
-            detectionResult: result
+            detectionResult: result,
+            incomeDetectionResult: incomeResult
         )
     }
 

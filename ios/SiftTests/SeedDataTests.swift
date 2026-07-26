@@ -28,6 +28,18 @@ struct SeedDataTests {
         #expect(try context.fetchCount(FetchDescriptor<Subscription>()) == 12)
         #expect(try context.fetchCount(FetchDescriptor<LinkedAccount>()) == 2)
         #expect(try context.fetchCount(FetchDescriptor<AlertSettings>()) == 1)
+        #expect(try context.fetchCount(FetchDescriptor<RecurringIncome>()) == 1)
+        #expect(try context.fetchCount(FetchDescriptor<Bill>()) == 1)
+    }
+
+    @Test func seededAccountsCarrySpendableBalance() throws {
+        let snapshot = SeedData.snapshot()
+        let checking = try #require(snapshot.accounts.first { $0.id == SeedData.ID.checking })
+        #expect(checking.currentBalance == .usd(245_018))
+
+        // Credit accounts are excluded from spendable balance.
+        let repository = MockAccountRepository(snapshot: snapshot)
+        #expect(try repository.totalBalance() == .usd(245_018))
     }
 
     @Test func releaseReadinessArtifactsExist() throws {

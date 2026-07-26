@@ -156,6 +156,8 @@ struct NotificationContentBuilder {
         switch cadence {
         case .weekly:
             "/wk"
+        case .biweekly:
+            "/2wk"
         case .monthly:
             "/mo"
         case .quarterly:

@@ -114,6 +114,52 @@ struct DetectionServiceTests {
         #expect(result.candidates.isEmpty)
         #expect(subscriptions.isEmpty)
     }
+
+    @Test func recomputeIncomePersistsBiweeklyPayroll() async throws {
+        let container = try SiftModelContainerFactory.makeContainer(inMemory: true)
+        let payroll = (0 ..< 6).map { index -> Transaction in
+            transaction(
+                id: "pay-\(index)",
+                merchant: "NORTHWIND LABS PAYROLL",
+                amount: 210_000,
+                date: Calendar.utc.date(byAdding: .day, value: index * 14, to: date(2026, 1, 2)) ?? date(2026, 1, 2),
+                direction: .credit
+            )
+        }
+        try insertTransactions(payroll, into: container)
+        let service = LiveIncomeDetectionService(modelContainer: container)
+
+        let result = try await service.recompute(referenceDate: date(2026, 5, 1))
+
+        #expect(result.candidates.count == 1)
+        let incomes = try fetchRecurringIncome(in: container)
+        #expect(incomes.count == 1)
+        #expect(incomes[0].cadence == .biweekly)
+        #expect(incomes[0].status == .active)
+    }
+
+    @Test func recurringDebitWithBillKeywordRoutesToBillNotSubscription() async throws {
+        let container = try SiftModelContainerFactory.makeContainer(inMemory: true)
+        try insertTransactions(
+            monthlyPersistentSeries(
+                merchant: "NORTHGATE APARTMENTS RENT",
+                amountByIndex: { _ in 185_000 },
+                firstCharge: date(2026, 1, 1),
+                count: 6
+            ),
+            into: container
+        )
+        let service = LiveDetectionService(modelContainer: container)
+
+        let result = try await service.recompute(referenceDate: date(2026, 6, 15))
+
+        #expect(result.candidates.isEmpty)
+        #expect(try fetchSubscriptions(in: container).isEmpty)
+        let bills = try fetchBills(in: container)
+        #expect(bills.count == 1)
+        #expect(bills[0].cadence == .monthly)
+        #expect(bills[0].status == .active)
+    }
 }
 
 private func monthlyPersistentSeries(
@@ -170,6 +216,18 @@ private func fetchSubscriptions(in container: ModelContainer) throws -> [Subscri
 private func fetchPriceChanges(in container: ModelContainer) throws -> [PriceChange] {
     let context = ModelContext(container)
     return try context.fetch(FetchDescriptor<PriceChange>())
+        .filter { $0.userID == SeedData.defaultUserID }
+}
+
+private func fetchRecurringIncome(in container: ModelContainer) throws -> [RecurringIncome] {
+    let context = ModelContext(container)
+    return try context.fetch(FetchDescriptor<RecurringIncome>())
+        .filter { $0.userID == SeedData.defaultUserID }
+}
+
+private func fetchBills(in container: ModelContainer) throws -> [Bill] {
+    let context = ModelContext(container)
+    return try context.fetch(FetchDescriptor<Bill>())
         .filter { $0.userID == SeedData.defaultUserID }
 }
 

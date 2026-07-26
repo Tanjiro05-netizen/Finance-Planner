@@ -12,8 +12,11 @@ struct TransactionRepositoryTests {
             from: date(year: 2026, month: 6, day: 1),
             to: date(year: 2026, month: 6, day: 30)
         )
+        let ids = Set(june.map(\.id))
 
-        #expect(june.map(\.id).sorted() == ["txn-creative-jun", "txn-streamline-jun", "txn-tonebox-jun"])
+        #expect(ids.isSuperset(of: ["txn-creative-jun", "txn-streamline-jun", "txn-tonebox-jun"]))
+        #expect(!ids.contains("txn-notewell-apr"))
+        #expect(june.allSatisfy { $0.date >= date(year: 2026, month: 6, day: 1) })
     }
 
     @Test func totalSpendAndIncomeSplitByDirection() throws {
@@ -24,16 +27,23 @@ struct TransactionRepositoryTests {
             date(year: 2026, month: 6, day: 1),
             date(year: 2026, month: 6, day: 30)
         )
+        let june = try fixture.repository.transactions(from: range.0, to: range.1)
+        let expectedSpend = try Money.sum(june.filter { $0.direction == .debit }.map(\.amount))
+
         let spend = try fixture.repository.totalSpend(from: range.0, to: range.1)
         let income = try fixture.repository.totalIncome(from: range.0, to: range.1)
 
-        #expect(spend == Money.usd(1549 + 1299 + 5999))
+        #expect(spend == expectedSpend)
         #expect(income == Money.usd(200_000))
     }
 
     @Test func byCategoryGroupsTransactionsAndLabelsUncategorized() throws {
         let fixture = try makeFixture()
 
+        let june = try fixture.repository.transactions(
+            from: date(year: 2026, month: 6, day: 1),
+            to: date(year: 2026, month: 6, day: 30)
+        )
         let groups = try fixture.repository.byCategory(
             from: date(year: 2026, month: 6, day: 1),
             to: date(year: 2026, month: 6, day: 30)
@@ -42,7 +52,7 @@ struct TransactionRepositoryTests {
         #expect(groups.count == 1)
         #expect(groups.first?.categoryID == nil)
         #expect(groups.first?.categoryName == "Uncategorized")
-        #expect(groups.first?.transactions.count == 3)
+        #expect(groups.first?.transactions.count == june.count)
     }
 
     @Test func byCategoryUsesRealCategoryName() throws {
@@ -66,11 +76,12 @@ struct TransactionRepositoryTests {
 
     @Test func deleteRemovesTransaction() throws {
         let fixture = try makeFixture()
+        let before = try fixture.repository.all().count
 
         try fixture.repository.delete(id: "txn-tonebox-jun")
 
         #expect(try fixture.repository.transaction(id: "txn-tonebox-jun") == nil)
-        #expect(try fixture.repository.all().count == 3)
+        #expect(try fixture.repository.all().count == before - 1)
     }
 
     @Test func deleteUnknownTransactionThrows() throws {

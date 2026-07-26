@@ -95,6 +95,7 @@ struct NoopAnalyticsRecorder: AnalyticsRecording {
 
 enum Cadence: String, Codable, CaseIterable {
     case weekly
+    case biweekly
     case monthly
     case quarterly
     case yearly
@@ -104,6 +105,8 @@ enum Cadence: String, Codable, CaseIterable {
         switch self {
         case .weekly:
             "Weekly"
+        case .biweekly:
+            "Every 2 weeks"
         case .monthly:
             "Monthly"
         case .quarterly:
@@ -119,6 +122,8 @@ enum Cadence: String, Codable, CaseIterable {
         switch self {
         case .weekly:
             "WEEKLY"
+        case .biweekly:
+            "BIWEEKLY"
         case .monthly:
             "MONTHLY"
         case .quarterly:
@@ -134,6 +139,8 @@ enum Cadence: String, Codable, CaseIterable {
         switch self {
         case .weekly:
             money.multiplied(by: 52).divided(by: 12)
+        case .biweekly:
+            money.multiplied(by: 26).divided(by: 12)
         case .monthly:
             money
         case .quarterly:
@@ -180,6 +187,16 @@ enum SubscriptionStatus: String, Codable, CaseIterable {
     case active
     case unused
     case cancelled
+}
+
+enum RecurringIncomeStatus: String, Codable, CaseIterable {
+    case active
+    case stopped
+}
+
+enum BillStatus: String, Codable, CaseIterable {
+    case active
+    case stopped
 }
 
 enum CancellationMethod: String, Codable, CaseIterable {

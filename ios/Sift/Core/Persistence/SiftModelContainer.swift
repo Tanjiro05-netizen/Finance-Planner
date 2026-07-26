@@ -10,6 +10,8 @@ enum SiftModelContainerFactory {
             Category.self,
             PriceChange.self,
             AlertSettings.self,
+            RecurringIncome.self,
+            Bill.self,
         ])
     }
 
