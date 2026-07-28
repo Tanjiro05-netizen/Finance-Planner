@@ -7,9 +7,20 @@ import Testing
 struct BillRepositoryTests {
     private let referenceDate = Date(timeIntervalSince1970: 1_720_000_000)
 
-    private func makeRepository() throws -> LiveBillRepository {
+    /// The fixture holds the container: a repository keeps only the `ModelContext`, so
+    /// letting the container go out of scope leaves the context without a live store and
+    /// the next write traps inside SwiftData.
+    private struct Fixture {
+        let container: ModelContainer
+        let repository: LiveBillRepository
+    }
+
+    private func makeFixture() throws -> Fixture {
         let container = try SiftModelContainerFactory.makeContainer(inMemory: true)
-        return LiveBillRepository(modelContext: container.mainContext)
+        return Fixture(
+            container: container,
+            repository: LiveBillRepository(modelContext: container.mainContext)
+        )
     }
 
     private func bill(
@@ -34,28 +45,33 @@ struct BillRepositoryTests {
     }
 
     @Test func insertReadUpdateDelete() throws {
-        let repository = try makeRepository()
-        try repository.insert(bill(id: "bill-1", nextDue: referenceDate.addingTimeInterval(10 * 86400)))
+        let fixture = try makeFixture()
+        try fixture.repository.insert(bill(id: "bill-1", nextDue: referenceDate.addingTimeInterval(10 * 86400)))
 
-        #expect(try repository.all().count == 1)
-        let fetched = try #require(try repository.bill(id: "bill-1"))
+        #expect(try fixture.repository.all().count == 1)
+        let fetched = try #require(try fixture.repository.bill(id: "bill-1"))
         #expect(fetched.name == "Rent")
 
         fetched.name = "New Rent"
-        try repository.update(fetched)
-        #expect(try repository.bill(id: "bill-1")?.name == "New Rent")
+        try fixture.repository.update(fetched)
+        #expect(try fixture.repository.bill(id: "bill-1")?.name == "New Rent")
 
-        try repository.delete(id: "bill-1")
-        #expect(try repository.all().isEmpty)
+        try fixture.repository.delete(id: "bill-1")
+        #expect(try fixture.repository.all().isEmpty)
     }
 
     @Test func upcomingBillsFilterByWindowAndStatus() throws {
-        let repository = try makeRepository()
-        try repository.insert(bill(id: "in", name: "Rent", nextDue: referenceDate.addingTimeInterval(5 * 86400)))
-        try repository.insert(bill(id: "beyond", name: "Insurance", nextDue: referenceDate.addingTimeInterval(60 * 86400)))
-        try repository.insert(bill(id: "stopped", name: "Old Loan", nextDue: referenceDate.addingTimeInterval(3 * 86400), status: .stopped))
+        let fixture = try makeFixture()
+        try fixture.repository.insert(bill(id: "in", name: "Rent", nextDue: referenceDate.addingTimeInterval(5 * 86400)))
+        try fixture.repository.insert(bill(id: "beyond", name: "Insurance", nextDue: referenceDate.addingTimeInterval(60 * 86400)))
+        try fixture.repository.insert(bill(
+            id: "stopped",
+            name: "Old Loan",
+            nextDue: referenceDate.addingTimeInterval(3 * 86400),
+            status: .stopped
+        ))
 
-        let upcoming = try repository.upcomingBills(from: referenceDate, to: referenceDate.addingTimeInterval(30 * 86400))
+        let upcoming = try fixture.repository.upcomingBills(from: referenceDate, to: referenceDate.addingTimeInterval(30 * 86400))
         #expect(upcoming.map(\.id) == ["in"])
     }
 }
