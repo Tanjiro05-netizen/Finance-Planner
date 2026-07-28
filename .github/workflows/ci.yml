@@ -38,12 +38,7 @@ jobs:
           xcrun xcresulttool get test-results summary \
             --path ../build/SiftTests.xcresult --format json || true
           echo "--- crash reports ---"
-          for report in "$HOME"/Library/Logs/DiagnosticReports/*.ips; do
-            [ -e "$report" ] || continue
-            echo "=== $report ==="
-            head -c 4000 "$report"
-            echo
-          done
+          python3 ../scripts/print-crash-report.py "$HOME/Library/Logs/DiagnosticReports" || true
 
       - name: Enforce coverage floor
         run: |
