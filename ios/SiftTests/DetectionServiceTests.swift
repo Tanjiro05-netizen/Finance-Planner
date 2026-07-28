@@ -117,19 +117,26 @@ struct DetectionServiceTests {
 
     @Test func recomputeIncomePersistsBiweeklyPayroll() async throws {
         let container = try SiftModelContainerFactory.makeContainer(inMemory: true)
+        let firstPayroll = date(2026, 1, 2)
         let payroll = (0 ..< 6).map { index -> Transaction in
             transaction(
                 id: "pay-\(index)",
                 merchant: "NORTHWIND LABS PAYROLL",
                 amount: 210_000,
-                date: Calendar.utc.date(byAdding: .day, value: index * 14, to: date(2026, 1, 2)) ?? date(2026, 1, 2),
+                date: Calendar.utc.date(byAdding: .day, value: index * 14, to: firstPayroll) ?? firstPayroll,
                 direction: .credit
             )
         }
         try insertTransactions(payroll, into: container)
         let service = LiveIncomeDetectionService(modelContainer: container)
 
-        let result = try await service.recompute(referenceDate: date(2026, 5, 1))
+        // A biweekly stream goes stale 14 days (one cycle) plus its 12-day grace after the
+        // last deposit, so recompute inside that window. Derived from the series rather
+        // than hardcoded so changing the occurrence count can't silently push the
+        // reference date past the deadline and reclassify the run as stopped.
+        let lastPayroll = try #require(Calendar.utc.date(byAdding: .day, value: 5 * 14, to: firstPayroll))
+        let referenceDate = try #require(Calendar.utc.date(byAdding: .day, value: 7, to: lastPayroll))
+        let result = try await service.recompute(referenceDate: referenceDate)
 
         #expect(result.candidates.count == 1)
         let incomes = try fetchRecurringIncome(in: container)
