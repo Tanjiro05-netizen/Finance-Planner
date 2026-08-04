@@ -49,10 +49,15 @@ struct TransactionRepositoryTests {
             to: date(year: 2026, month: 6, day: 30)
         )
 
-        #expect(groups.count == 1)
-        #expect(groups.first?.categoryID == nil)
-        #expect(groups.first?.categoryName == "Uncategorized")
-        #expect(groups.first?.transactions.count == june.count)
+        // Derived from the ledger rather than hardcoded: the seed data now carries real
+        // category IDs on everyday spending, and this assertion should track that instead
+        // of pinning a count that changes whenever the fixtures grow.
+        #expect(groups.count == Set(june.map(\.categoryID)).count)
+        #expect(groups.map(\.transactions.count).reduce(0, +) == june.count)
+
+        let uncategorized = try #require(groups.first { $0.categoryID == nil })
+        #expect(uncategorized.categoryName == "Uncategorized")
+        #expect(uncategorized.transactions.allSatisfy { $0.categoryID == nil })
     }
 
     @Test func byCategoryUsesRealCategoryName() throws {
