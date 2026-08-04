@@ -34,7 +34,7 @@ struct SeedDataTests {
         #expect(try context.fetchCount(FetchDescriptor<Category>()) == 8)
     }
 
-    @Test func seededBudgetsCoverCategoriesThatHaveSpend() throws {
+    @Test func seededBudgetsCoverCategoriesThatHaveSpend() {
         let snapshot = SeedData.snapshot()
         let categoryIDs = Set(snapshot.categories.map(\.id))
         let budgetedCategoryIDs = Set(snapshot.budgets.map(\.categoryID))
