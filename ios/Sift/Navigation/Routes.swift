@@ -59,11 +59,14 @@ enum SubscriptionsRoute: Hashable {
 
 enum InsightsRoute: Hashable, CaseIterable {
     case savingsBreakdown
+    case budgets
 
     var title: String {
         switch self {
         case .savingsBreakdown:
             "Savings"
+        case .budgets:
+            "Budgets"
         }
     }
 }
@@ -74,6 +77,9 @@ enum AppSheet: Hashable, Identifiable {
     case cancellationRequests
     case manualTransactionEntry
     case transactionDetail(id: String)
+    /// nil creates a new budget; a value edits the existing one.
+    case budgetEditor(budgetID: String?)
+    case affordabilityCheck
 
     var id: String {
         switch self {
@@ -87,6 +93,10 @@ enum AppSheet: Hashable, Identifiable {
             "manual-transaction-entry"
         case let .transactionDetail(id):
             "transaction-detail-\(id)"
+        case let .budgetEditor(budgetID):
+            "budget-editor-\(budgetID ?? "new")"
+        case .affordabilityCheck:
+            "affordability-check"
         }
     }
 
@@ -97,6 +107,9 @@ enum AppSheet: Hashable, Identifiable {
             .cancellationRequests,
             .manualTransactionEntry,
             .transactionDetail(id: SampleRouteID.transaction),
+            .budgetEditor(budgetID: nil),
+            .budgetEditor(budgetID: SampleRouteID.budget),
+            .affordabilityCheck,
         ]
     }
 }
@@ -109,9 +122,11 @@ enum DeepLink: Hashable {
     case settings
     case subscriptionDetail(id: String)
     case cancellation(subscriptionID: String)
+    case budgets
 }
 
 enum SampleRouteID {
     static let subscription = SeedData.ID.streamline
     static let transaction = SeedData.ID.streamlineTransaction
+    static let budget = SeedData.ID.groceriesBudget
 }

@@ -77,6 +77,43 @@ struct CoreScreensRenderTests {
         }
     }
 
+    @Test func budgetsRendersAtDefaultAndLargeDynamicType() {
+        assertRenders {
+            BudgetsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func budgetsEmptyStateRenders() {
+        assertRenders {
+            BudgetsView(
+                repositories: .emptyMock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func budgetEditorRenders() {
+        assertRenders {
+            BudgetEditorSheetView(
+                budgetID: SeedData.ID.groceriesBudget,
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func affordabilityCheckRenders() {
+        assertRenders {
+            AffordabilityCheckSheetView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
     private func assertRenders(@ViewBuilder content: () -> some View) {
         render(content(), dynamicTypeSize: .large)
         render(content(), dynamicTypeSize: .accessibility2)

@@ -301,6 +301,42 @@ final class Bill {
     }
 }
 
+/// A spending allowance for one category over a repeating period. Actuals are never stored
+/// here — they're derived from the ledger at read time, so a budget can't drift out of sync
+/// with the transactions it measures.
+@Model
+final class Budget {
+    var id: String
+    var userID: String
+    var categoryID: String
+    var amount: Money
+    var period: BudgetPeriod
+    /// When on, an underspent period's remainder carries into the next one.
+    var rolloverEnabled: Bool
+    var startDate: Date
+    var status: BudgetStatus
+
+    init(
+        id: String,
+        userID: String,
+        categoryID: String,
+        amount: Money,
+        period: BudgetPeriod,
+        rolloverEnabled: Bool = false,
+        startDate: Date,
+        status: BudgetStatus = .active
+    ) {
+        self.id = id
+        self.userID = userID
+        self.categoryID = categoryID
+        self.amount = amount
+        self.period = period
+        self.rolloverEnabled = rolloverEnabled
+        self.startDate = startDate
+        self.status = status
+    }
+}
+
 @Model
 final class PriceChange {
     var id: String
@@ -337,6 +373,7 @@ final class AlertSettings {
     var unusedNudges: Bool
     var weeklySummary: Bool
     var autoCategorizeSubscriptions: Bool
+    var budgetAlerts: Bool
 
     init(
         id: String,
@@ -346,7 +383,8 @@ final class AlertSettings {
         trialEndings: Bool,
         unusedNudges: Bool,
         weeklySummary: Bool,
-        autoCategorizeSubscriptions: Bool = true
+        autoCategorizeSubscriptions: Bool = true,
+        budgetAlerts: Bool = true
     ) {
         self.id = id
         self.userID = userID
@@ -356,5 +394,6 @@ final class AlertSettings {
         self.unusedNudges = unusedNudges
         self.weeklySummary = weeklySummary
         self.autoCategorizeSubscriptions = autoCategorizeSubscriptions
+        self.budgetAlerts = budgetAlerts
     }
 }

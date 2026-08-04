@@ -100,6 +100,7 @@ struct SafeToSpendCard: View {
         SafeToSpendCard(
             outcome: .available(SafeToSpendResult(
                 dailyAmount: .usd(1842),
+                netAvailable: .usd(16578),
                 horizonEndDate: Date().addingTimeInterval(9 * 86400),
                 daysRemaining: 9,
                 isOverspent: false,

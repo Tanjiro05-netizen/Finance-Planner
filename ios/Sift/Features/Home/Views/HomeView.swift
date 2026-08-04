@@ -78,7 +78,11 @@ struct HomeView: View {
                 openDetail: { subscriptionID in
                     appModel.present(.subscriptionDetail(id: subscriptionID))
                 },
-                openForecast: { appModel.push(.cashFlowForecast, in: .home) }
+                openForecast: { appModel.push(.cashFlowForecast, in: .home) },
+                openBudgets: {
+                    appModel.select(tab: .insights)
+                    appModel.push(.budgets, in: .insights)
+                }
             )
         }
     }
@@ -103,11 +107,16 @@ private struct DashboardContentView: View {
     let viewModel: HomeViewModel
     let openDetail: (String) -> Void
     let openForecast: () -> Void
+    let openBudgets: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             if viewModel.showsSafeToSpend, let safeToSpend = viewModel.safeToSpend {
                 SafeToSpendCard(outcome: safeToSpend, onTap: openForecast)
+            }
+
+            if viewModel.showsBudgetNudge {
+                BudgetNudgeCard(rows: viewModel.overPaceBudgets, onTap: openBudgets)
             }
 
             DashboardHeroCard(viewModel: viewModel)

@@ -43,6 +43,44 @@ struct DomainTypesTests {
         #expect(SiftFeatureFlags.launchDefault.conciergeEnabled == false)
         #expect(SiftFeatureFlags.current().ledgerEnabled == false)
         #expect(SiftFeatureFlags.launchDefault.ledgerEnabled == false)
+        #expect(SiftFeatureFlags.current().budgetsEnabled == false)
+        #expect(SiftFeatureFlags.launchDefault.budgetsEnabled == false)
+    }
+
+    @Test func featureFlagsDefaultEachParameterIndependently() {
+        // The defaulted init is what keeps adding a flag from breaking every call site.
+        #expect(SiftFeatureFlags(budgetsEnabled: true).budgetsEnabled)
+        #expect(SiftFeatureFlags(budgetsEnabled: true).ledgerEnabled == false)
+        #expect(SiftFeatureFlags(ledgerEnabled: true).budgetsEnabled == false)
+    }
+
+    @Test func budgetEnumsRoundTripRawValues() {
+        #expect(BudgetStatus.allCases.map(\.rawValue) == ["active", "archived"])
+        #expect(BudgetPace.allCases.map(\.rawValue) == ["under", "onTrack", "over"])
+
+        for period in BudgetPeriod.allCases {
+            #expect(BudgetPeriod(rawValue: period.rawValue) == period)
+            #expect(period.displayName.isEmpty == false)
+            #expect(period.shortLabel == period.shortLabel.uppercased())
+        }
+    }
+
+    @Test func budgetPeriodMapsToItsCalendarUnit() {
+        #expect(BudgetPeriod.weekly.calendarComponent == .weekOfYear)
+        #expect(BudgetPeriod.monthly.calendarComponent == .month)
+    }
+
+    @Test func editableAmountTextRoundTripsThroughDecimal() {
+        // The text field form must parse back, unlike formatted() which adds a symbol
+        // and thousands separators.
+        for minor in [0, 5, 999, 100_000, -2500] {
+            let money = Money.usd(minor)
+            let parsed = Decimal(string: money.editableAmountText)
+            #expect(parsed != nil)
+        }
+
+        #expect(Money.usd(123_456).editableAmountText == "1234.56")
+        #expect(Money.usd(5).editableAmountText == "0.05")
     }
 
     // MARK: - Transaction enums

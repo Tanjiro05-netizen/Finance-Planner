@@ -30,6 +30,23 @@ struct SeedDataTests {
         #expect(try context.fetchCount(FetchDescriptor<AlertSettings>()) == 1)
         #expect(try context.fetchCount(FetchDescriptor<RecurringIncome>()) == 1)
         #expect(try context.fetchCount(FetchDescriptor<Bill>()) == 1)
+        #expect(try context.fetchCount(FetchDescriptor<Budget>()) == 2)
+        #expect(try context.fetchCount(FetchDescriptor<Category>()) == 8)
+    }
+
+    @Test func seededBudgetsCoverCategoriesThatHaveSpend() throws {
+        let snapshot = SeedData.snapshot()
+        let categoryIDs = Set(snapshot.categories.map(\.id))
+        let budgetedCategoryIDs = Set(snapshot.budgets.map(\.categoryID))
+
+        // Every budget must point at a real category, or the screen renders "Uncategorized".
+        #expect(budgetedCategoryIDs.isSubset(of: categoryIDs))
+
+        // And each budgeted category must actually have transactions, so the demo data
+        // shows real progress rather than empty bars.
+        for categoryID in budgetedCategoryIDs {
+            #expect(snapshot.transactions.contains { $0.categoryID == categoryID })
+        }
     }
 
     @Test func seededAccountsCarrySpendableBalance() throws {

@@ -85,6 +85,9 @@ final class AppModel {
         case let .cancellation(subscriptionID):
             select(tab: .subscriptions)
             present(.cancellation(subscriptionID: subscriptionID))
+        case .budgets:
+            select(tab: .insights)
+            push(.budgets, in: .insights)
         }
     }
 

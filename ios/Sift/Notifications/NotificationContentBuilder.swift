@@ -7,6 +7,7 @@ enum SiftNotificationKind: String, CaseIterable {
     case trialEnding = "trial-ending"
     case unusedNudge = "unused-nudge"
     case weeklySummary = "weekly-summary"
+    case budgetOverspend = "budget-overspend"
 
     var identifierPrefix: String {
         switch self {
@@ -20,6 +21,8 @@ enum SiftNotificationKind: String, CaseIterable {
             "unused-"
         case .weeklySummary:
             "weekly-summary"
+        case .budgetOverspend:
+            "budget-"
         }
     }
 }
@@ -58,6 +61,8 @@ enum SiftNotificationPayload {
             return .insights
         case .weeklySummary:
             return .home
+        case .budgetOverspend:
+            return .budgets
         }
     }
 }
@@ -123,6 +128,18 @@ struct NotificationContentBuilder {
             title: "Your Sift summary",
             body: "You are tracking \(summary.monthlyTotal.formatted())/mo across \(subscriptionText). \(priceText) this week.",
             kind: .weeklySummary
+        )
+    }
+
+    /// Fires when a category's spending has passed its allowance for the period. Names the
+    /// overage rather than just flagging the breach, so the notification is actionable
+    /// without opening the app.
+    func budgetOverspendContent(categoryName: String, progress: BudgetProgress) -> UNMutableNotificationContent {
+        let over = Money(amountMinor: abs(progress.remaining.amountMinor), currency: progress.remaining.currency)
+        return baseContent(
+            title: "\(categoryName) budget is spent",
+            body: "You are \(over.formatted()) over your \(progress.budgeted.formatted()) \(categoryName) budget this period.",
+            kind: .budgetOverspend
         )
     }
 

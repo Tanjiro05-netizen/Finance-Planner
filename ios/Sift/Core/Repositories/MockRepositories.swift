@@ -523,3 +523,48 @@ final class MockBillRepository: BillRepository, @unchecked Sendable {
             .sorted { ($0.nextDue ?? .distantFuture) < ($1.nextDue ?? .distantFuture) }
     }
 }
+
+final class MockBudgetRepository: BudgetRepository, @unchecked Sendable {
+    private var budgets: [Budget]
+    private let userID: String
+
+    init(snapshot: SeedData.Snapshot = SeedData.snapshot(), userID: String = SeedData.defaultUserID) {
+        budgets = snapshot.budgets
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [Budget] {
+        budgets
+            .filter { $0.userID == userID }
+            .sorted { $0.categoryID.localizedStandardCompare($1.categoryID) == .orderedAscending }
+    }
+
+    @MainActor
+    func budget(id: String) throws -> Budget? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func budget(forCategory categoryID: String) throws -> Budget? {
+        try all().first { $0.categoryID == categoryID && $0.status == .active }
+    }
+
+    @MainActor
+    func insert(_ budget: Budget) throws {
+        budgets.append(budget)
+    }
+
+    @MainActor
+    func update(_: Budget) throws {}
+
+    @MainActor
+    func delete(id: String) throws {
+        budgets.removeAll { $0.id == id && $0.userID == userID }
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        budgets.removeAll { $0.userID == userID }
+    }
+}

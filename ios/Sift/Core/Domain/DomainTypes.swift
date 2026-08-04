@@ -60,21 +60,35 @@ enum SiftError: Error, Equatable, LocalizedError {
 struct SiftFeatureFlags: Equatable {
     var conciergeEnabled: Bool
     var ledgerEnabled: Bool
+    var budgetsEnabled: Bool
 
-    static let launchDefault = SiftFeatureFlags(conciergeEnabled: false, ledgerEnabled: false)
+    /// Defaulted so adding a flag stays additive — call sites that only care about one
+    /// flag don't have to be updated every time a new one lands.
+    init(conciergeEnabled: Bool = false, ledgerEnabled: Bool = false, budgetsEnabled: Bool = false) {
+        self.conciergeEnabled = conciergeEnabled
+        self.ledgerEnabled = ledgerEnabled
+        self.budgetsEnabled = budgetsEnabled
+    }
+
+    static let launchDefault = SiftFeatureFlags()
 
     static func current(processInfo: ProcessInfo = .processInfo) -> SiftFeatureFlags {
-        let arguments = processInfo.arguments
-        let environment = processInfo.environment
-        let envValue = environment["SIFT_CONCIERGE_ENABLED"]?.lowercased()
-        let enabledByEnvironment = envValue == "1" || envValue == "true" || envValue == "yes"
-        let ledgerEnvValue = environment["SIFT_LEDGER_ENABLED"]?.lowercased()
-        let ledgerEnabledByEnvironment = ledgerEnvValue == "1" || ledgerEnvValue == "true" || ledgerEnvValue == "yes"
-
-        return SiftFeatureFlags(
-            conciergeEnabled: arguments.contains("-siftConciergeEnabled") || enabledByEnvironment,
-            ledgerEnabled: arguments.contains("-siftLedgerEnabled") || ledgerEnabledByEnvironment
+        SiftFeatureFlags(
+            conciergeEnabled: isEnabled("-siftConciergeEnabled", "SIFT_CONCIERGE_ENABLED", processInfo),
+            ledgerEnabled: isEnabled("-siftLedgerEnabled", "SIFT_LEDGER_ENABLED", processInfo),
+            budgetsEnabled: isEnabled("-siftBudgetsEnabled", "SIFT_BUDGETS_ENABLED", processInfo)
         )
+    }
+
+    /// A flag is on when either the launch argument is present or the environment variable
+    /// reads as truthy, so UI tests and CI can each use whichever is available to them.
+    private static func isEnabled(_ argument: String, _ variable: String, _ processInfo: ProcessInfo) -> Bool {
+        if processInfo.arguments.contains(argument) {
+            return true
+        }
+
+        let value = processInfo.environment[variable]?.lowercased()
+        return value == "1" || value == "true" || value == "yes"
     }
 }
 
@@ -197,6 +211,54 @@ enum RecurringIncomeStatus: String, Codable, CaseIterable {
 enum BillStatus: String, Codable, CaseIterable {
     case active
     case stopped
+}
+
+enum BudgetStatus: String, Codable, CaseIterable {
+    case active
+    case archived
+}
+
+/// How often a budget's allowance resets. Weekly and monthly cover the way people
+/// actually think about discretionary spending; longer horizons belong to goals.
+enum BudgetPeriod: String, Codable, CaseIterable {
+    case weekly
+    case monthly
+
+    var displayName: String {
+        switch self {
+        case .weekly:
+            "Weekly"
+        case .monthly:
+            "Monthly"
+        }
+    }
+
+    var shortLabel: String {
+        switch self {
+        case .weekly:
+            "WEEKLY"
+        case .monthly:
+            "MONTHLY"
+        }
+    }
+
+    /// The `Calendar.Component` this period resets on, so period math has one source of truth.
+    var calendarComponent: Calendar.Component {
+        switch self {
+        case .weekly:
+            .weekOfYear
+        case .monthly:
+            .month
+        }
+    }
+}
+
+/// Whether spending is tracking ahead of, behind, or in line with an even burn-down of the
+/// budget across the period. This is what turns a budget from a scoreboard into a warning.
+enum BudgetPace: String, Codable, CaseIterable {
+    case under
+    case onTrack
+    case over
 }
 
 enum CancellationMethod: String, Codable, CaseIterable {

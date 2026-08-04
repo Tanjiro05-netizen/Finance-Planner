@@ -79,6 +79,17 @@ protocol BillRepository: AnyObject, Sendable {
     @MainActor func upcomingBills(from startDate: Date, to endDate: Date) throws -> [Bill]
 }
 
+protocol BudgetRepository: AnyObject, Sendable {
+    @MainActor func all() throws -> [Budget]
+    @MainActor func budget(id: String) throws -> Budget?
+    /// The active budget for a category, if one exists. A category has at most one.
+    @MainActor func budget(forCategory categoryID: String) throws -> Budget?
+    @MainActor func insert(_ budget: Budget) throws
+    @MainActor func update(_ budget: Budget) throws
+    @MainActor func delete(id: String) throws
+    @MainActor func deleteAll() throws
+}
+
 protocol TransactionRepository: AnyObject, Sendable {
     @MainActor func all() throws -> [Transaction]
     @MainActor func recent(limit: Int) throws -> [Transaction]

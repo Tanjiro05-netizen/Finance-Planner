@@ -653,6 +653,63 @@ final class LiveBillRepository: BillRepository, @unchecked Sendable {
     }
 }
 
+final class LiveBudgetRepository: BudgetRepository, @unchecked Sendable {
+    private let context: ModelContext
+    private let userID: String
+
+    init(modelContext: ModelContext, userID: String = SeedData.defaultUserID) {
+        context = modelContext
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [Budget] {
+        try fetchUserScoped(Budget.self, in: context, userID: userID)
+            .sorted { $0.categoryID.localizedStandardCompare($1.categoryID) == .orderedAscending }
+    }
+
+    @MainActor
+    func budget(id: String) throws -> Budget? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func budget(forCategory categoryID: String) throws -> Budget? {
+        try all().first { $0.categoryID == categoryID && $0.status == .active }
+    }
+
+    @MainActor
+    func insert(_ budget: Budget) throws {
+        context.insert(budget)
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ budget: Budget) throws {
+        guard budget.userID == userID else {
+            throw SiftError.notFound("Budget")
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let budget = try budget(id: id) else {
+            throw SiftError.notFound("Budget")
+        }
+        context.delete(budget)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        for budget in try all() {
+            context.delete(budget)
+        }
+        try context.save()
+    }
+}
+
 @MainActor
 private func fetchUserScoped<Model: PersistentModel>(
     _: Model.Type,
@@ -680,6 +737,8 @@ private func fetchUserScoped<Model: PersistentModel>(
             income.userID == userID
         case let bill as Bill:
             bill.userID == userID
+        case let budget as Budget:
+            budget.userID == userID
         default:
             false
         }

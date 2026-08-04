@@ -27,6 +27,8 @@ enum RouteDestination {
         switch route {
         case .savingsBreakdown:
             SavingsBreakdownView()
+        case .budgets:
+            BudgetsRouteView()
         }
     }
 
@@ -69,6 +71,10 @@ enum RouteDestination {
             ManualTransactionEntrySheetView(repositories: repositories)
         case let .transactionDetail(id):
             TransactionDetailSheetView(transactionID: id)
+        case let .budgetEditor(budgetID):
+            BudgetEditorSheetView(budgetID: budgetID, repositories: repositories)
+        case .affordabilityCheck:
+            AffordabilityCheckSheetView(repositories: repositories)
         }
     }
 }

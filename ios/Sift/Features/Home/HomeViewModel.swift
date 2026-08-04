@@ -42,6 +42,8 @@ final class HomeViewModel {
     var timelineMonthLabel = ""
     var trend = DashboardTrend(text: "No change", direction: .neutral)
     var safeToSpend: SafeToSpendOutcome?
+    /// Budgets that are spending ahead of pace, surfaced as a nudge on Home.
+    var overPaceBudgets: [BudgetRowModel] = []
 
     init(
         repositories: RepositoryContainer,
@@ -57,6 +59,10 @@ final class HomeViewModel {
 
     var showsSafeToSpend: Bool {
         featureFlags.ledgerEnabled
+    }
+
+    var showsBudgetNudge: Bool {
+        featureFlags.budgetsEnabled && !overPaceBudgets.isEmpty
     }
 
     var isEmpty: Bool {
@@ -144,6 +150,7 @@ final class HomeViewModel {
             timelineMarks = timeline.marks
             timelineMonthLabel = timeline.monthLabel
             safeToSpend = showsSafeToSpend ? try computeSafeToSpend() : nil
+            overPaceBudgets = featureFlags.budgetsEnabled ? try computeOverPaceBudgets() : []
             errorMessage = nil
         } catch {
             errorMessage = userFacingMessage(for: error)
@@ -151,37 +158,20 @@ final class HomeViewModel {
     }
 
     private func computeSafeToSpend() throws -> SafeToSpendOutcome {
-        let today = referenceDateProvider()
-        let calendar = Calendar.utc
-        let balance = try repositories.accounts.totalBalance()
-        let nextIncome = try repositories.recurringIncome.nextExpectedIncome(after: today)
-        let horizon = nextIncome?.nextExpected
-            ?? calendar.date(byAdding: .day, value: SafeToSpendCalculator.fallbackWindowDays, to: today)
-            ?? today
+        try SafeToSpendProvider.outcome(repositories: repositories, today: referenceDateProvider())
+    }
 
-        let upcomingSubscriptions = try repositories.subscriptions.upcomingRenewals(from: today, to: horizon)
-        let upcomingBills = try repositories.bills.upcomingBills(from: today, to: horizon)
-        let upcomingDebits = upcomingSubscriptions.map(\.amount) + upcomingBills.map(\.amount)
+    /// Reuses `BudgetsViewModel` rather than re-deriving progress here, so Home and the
+    /// budgets screen can never disagree about whether a budget is over pace.
+    private func computeOverPaceBudgets() throws -> [BudgetRowModel] {
+        let budgets = BudgetsViewModel(repositories: repositories, referenceDateProvider: referenceDateProvider)
+        budgets.load()
 
-        let windowStart = calendar.date(byAdding: .day, value: -30, to: today) ?? today
-        let recentTransactions = try repositories.transactions.transactions(from: windowStart, to: today)
-        let subscriptionKeys = try repositories.subscriptions.all().map(\.merchantKey)
-        let billKeys = try repositories.bills.all().map(\.merchantKey)
-        let recurringKeys = Set(subscriptionKeys).union(billKeys)
-        let dailySpend = DiscretionarySpendEstimator.dailyRate(
-            recentTransactions: recentTransactions,
-            knownRecurringMerchantKeys: recurringKeys,
-            window: DateInterval(start: windowStart, end: today)
-        )
+        if let errorMessage = budgets.errorMessage {
+            throw SiftError.persistence(errorMessage)
+        }
 
-        return SafeToSpendCalculator.calculate(input: SafeToSpendInput(
-            currentBalance: balance,
-            upcomingDebits: upcomingDebits,
-            upcomingCredits: [],
-            recentDailySpend: dailySpend,
-            today: today,
-            nextExpectedIncomeDate: nextIncome?.nextExpected
-        ))
+        return budgets.overPaceRows
     }
 
     private func countRenewalsThisWeek(in subscriptions: [Subscription]) -> Int {

@@ -65,6 +65,15 @@ struct Money: Codable, Equatable, Hashable, Comparable {
         return Money(amountMinor: roundedQuotient(amountMinor, divisor: divisor), currency: currency)
     }
 
+    /// Plain `123.45` with no symbol or grouping — the form a text field can round-trip
+    /// back through `Decimal(string:)`. `formatted()` is for display only; its symbol and
+    /// thousands separators would fail to parse.
+    var editableAmountText: String {
+        let absolute = abs(amountMinor)
+        let sign = amountMinor < 0 ? "-" : ""
+        return "\(sign)\(absolute / 100).\(String(format: "%02d", absolute % 100))"
+    }
+
     func formatted(showZeroFraction: Bool = true) -> String {
         let absolute = abs(amountMinor)
         let major = absolute / 100

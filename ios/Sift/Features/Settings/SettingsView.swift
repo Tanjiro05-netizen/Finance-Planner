@@ -746,6 +746,7 @@ final class AlertSettingsViewModel {
     var trialEndings = true
     var unusedNudges = true
     var weeklySummary = false
+    var budgetAlerts = true
     var errorMessage: String?
 
     init(
@@ -764,6 +765,7 @@ final class AlertSettingsViewModel {
             trialEndings = settings.trialEndings
             unusedNudges = settings.unusedNudges
             weeklySummary = settings.weeklySummary
+            budgetAlerts = settings.budgetAlerts
             errorMessage = nil
         } catch {
             errorMessage = userFacingMessage(for: error)
@@ -788,6 +790,10 @@ final class AlertSettingsViewModel {
 
     func setWeeklySummary(_ value: Bool) {
         update { $0.weeklySummary = value }
+    }
+
+    func setBudgetAlerts(_ value: Bool) {
+        update { $0.budgetAlerts = value }
     }
 
     private func update(_ mutation: (AlertSettings) -> Void) {
@@ -883,6 +889,16 @@ struct AlertSettingsView: View {
                         )
                     )
                     .accessibilityIdentifier("alert-weekly-summary-toggle")
+
+                    AlertToggleRow(
+                        title: "Budget alerts",
+                        detail: "When a category budget is spent",
+                        isOn: Binding(
+                            get: { viewModel.budgetAlerts },
+                            set: { viewModel.setBudgetAlerts($0) }
+                        )
+                    )
+                    .accessibilityIdentifier("alert-budget-toggle")
                 }
 
                 if let errorMessage = viewModel.errorMessage {

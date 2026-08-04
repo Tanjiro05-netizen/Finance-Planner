@@ -22,6 +22,10 @@ enum SafeToSpendUnavailableReason: Equatable {
 struct SafeToSpendResult: Equatable {
     /// Safe daily spend; negative when already over-committed before the horizon.
     let dailyAmount: Money
+    /// The whole pool available before the horizon, i.e. balance minus known commitments.
+    /// `dailyAmount` is this spread across `daysRemaining`; callers reasoning about a single
+    /// purchase (rather than a daily rate) should use this rather than re-deriving it.
+    let netAvailable: Money
     let horizonEndDate: Date
     let daysRemaining: Int
     let isOverspent: Bool
@@ -63,6 +67,7 @@ enum SafeToSpendCalculator {
 
         return .available(SafeToSpendResult(
             dailyAmount: netAvailable.divided(by: daysUntilHorizon),
+            netAvailable: netAvailable,
             horizonEndDate: horizonEnd,
             daysRemaining: isOverspent ? 0 : daysUntilHorizon,
             isOverspent: isOverspent,

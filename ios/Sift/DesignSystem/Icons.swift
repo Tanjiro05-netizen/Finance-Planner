@@ -21,4 +21,6 @@ enum SiftIcon {
     static let warning = "exclamationmark.triangle"
     static let calendar = "calendar"
     static let support = "envelope"
+    static let budget = "chart.pie"
+    static let affordability = "questionmark.circle"
 }

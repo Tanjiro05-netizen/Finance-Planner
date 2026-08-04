@@ -15,6 +15,8 @@ enum SeedData {
         static let productivity = "cat-productivity"
         static let security = "cat-security"
         static let health = "cat-health"
+        static let groceries = "cat-groceries"
+        static let dining = "cat-dining"
 
         static let streamline = "sub-streamline-plus"
         static let tonebox = "sub-tonebox"
@@ -35,6 +37,9 @@ enum SeedData {
 
         static let payrollIncome = "income-northwind-labs"
         static let rentBill = "bill-northgate-rent"
+
+        static let groceriesBudget = "budget-groceries"
+        static let diningBudget = "budget-dining"
     }
 
     struct Snapshot {
@@ -47,6 +52,7 @@ enum SeedData {
         var alertSettings: AlertSettings
         var recurringIncome: [RecurringIncome]
         var bills: [Bill]
+        var budgets: [Budget]
     }
 
     static func snapshot(userID: String = defaultUserID) -> Snapshot {
@@ -86,6 +92,8 @@ enum SeedData {
             Category(id: ID.productivity, userID: userID, name: "Productivity", iconToken: "square.and.pencil", isAuto: true),
             Category(id: ID.security, userID: userID, name: "Security", iconToken: "lock.shield", isAuto: true),
             Category(id: ID.health, userID: userID, name: "Health", iconToken: "heart.text.square", isAuto: true),
+            Category(id: ID.groceries, userID: userID, name: "Groceries", iconToken: "basket", isAuto: true),
+            Category(id: ID.dining, userID: userID, name: "Dining", iconToken: "fork.knife", isAuto: true),
         ]
 
         let subscriptions = makeSubscriptions(userID: userID)
@@ -143,7 +151,8 @@ enum SeedData {
             priceChanges: priceChanges,
             alertSettings: alertSettings,
             recurringIncome: makeRecurringIncome(userID: userID),
-            bills: makeBills(userID: userID)
+            bills: makeBills(userID: userID),
+            budgets: makeBudgets(userID: userID)
         )
     }
 
@@ -163,6 +172,7 @@ enum SeedData {
         snapshot.priceChanges.forEach(context.insert)
         snapshot.recurringIncome.forEach(context.insert)
         snapshot.bills.forEach(context.insert)
+        snapshot.budgets.forEach(context.insert)
         context.insert(snapshot.alertSettings)
         try context.save()
     }
@@ -443,14 +453,14 @@ private extension SeedData {
     /// safe-to-spend comparison figure) has realistic data to average.
     static func makeDiscretionaryTransactions(userID: String) -> [Transaction] {
         let entries = [
-            DiscretionaryEntry(id: "txn-grocery-jun05", merchant: "CORNER GROCERY", cents: 6247, day: 5),
-            DiscretionaryEntry(id: "txn-coffee-jun07", merchant: "BLUE BOTTLE COFFEE", cents: 780, day: 7),
-            DiscretionaryEntry(id: "txn-gas-jun09", merchant: "SHELL STATION 227", cents: 5210, day: 9),
-            DiscretionaryEntry(id: "txn-pharmacy-jun11", merchant: "GREENLEAF PHARMACY", cents: 2394, day: 11),
-            DiscretionaryEntry(id: "txn-lunch-jun14", merchant: "SAIGON KITCHEN", cents: 3185, day: 14),
-            DiscretionaryEntry(id: "txn-grocery-jun19", merchant: "CORNER GROCERY", cents: 5488, day: 19),
-            DiscretionaryEntry(id: "txn-hardware-jun22", merchant: "MADISON HARDWARE", cents: 4103, day: 22),
-            DiscretionaryEntry(id: "txn-coffee-jun25", merchant: "BLUE BOTTLE COFFEE", cents: 640, day: 25),
+            DiscretionaryEntry(id: "txn-grocery-jun05", merchant: "CORNER GROCERY", cents: 6247, day: 5, categoryID: ID.groceries),
+            DiscretionaryEntry(id: "txn-coffee-jun07", merchant: "BLUE BOTTLE COFFEE", cents: 780, day: 7, categoryID: ID.dining),
+            DiscretionaryEntry(id: "txn-gas-jun09", merchant: "SHELL STATION 227", cents: 5210, day: 9, categoryID: nil),
+            DiscretionaryEntry(id: "txn-pharmacy-jun11", merchant: "GREENLEAF PHARMACY", cents: 2394, day: 11, categoryID: ID.health),
+            DiscretionaryEntry(id: "txn-lunch-jun14", merchant: "SAIGON KITCHEN", cents: 3185, day: 14, categoryID: ID.dining),
+            DiscretionaryEntry(id: "txn-grocery-jun19", merchant: "CORNER GROCERY", cents: 5488, day: 19, categoryID: ID.groceries),
+            DiscretionaryEntry(id: "txn-hardware-jun22", merchant: "MADISON HARDWARE", cents: 4103, day: 22, categoryID: nil),
+            DiscretionaryEntry(id: "txn-coffee-jun25", merchant: "BLUE BOTTLE COFFEE", cents: 640, day: 25, categoryID: ID.dining),
         ]
 
         return entries.map { entry in
@@ -461,7 +471,8 @@ private extension SeedData {
                 merchantRaw: entry.merchant,
                 merchantKey: MerchantKey(entry.merchant),
                 amount: .usd(entry.cents),
-                date: date(year: 2026, month: 6, day: entry.day)
+                date: date(year: 2026, month: 6, day: entry.day),
+                categoryID: entry.categoryID
             )
         }
     }
@@ -471,6 +482,8 @@ private extension SeedData {
         let merchant: String
         let cents: Int
         let day: Int
+        /// Pre-categorised so the seeded budgets have real spend to measure against.
+        let categoryID: String?
     }
 
     static func makeRecurringIncome(userID: String) -> [RecurringIncome] {
@@ -505,6 +518,32 @@ private extension SeedData {
                 detectionConfidence: 0.9,
                 firstSeen: date(year: 2026, month: 1, day: 1),
                 lastCharge: date(year: 2026, month: 6, day: 1)
+            ),
+        ]
+    }
+
+    /// Two monthly budgets over the pre-categorised everyday spend, so the budgets screen
+    /// has something real to render. Deliberately both healthy — overspent and
+    /// over-pace states are exercised in tests rather than baked into demo data.
+    static func makeBudgets(userID: String) -> [Budget] {
+        [
+            Budget(
+                id: ID.groceriesBudget,
+                userID: userID,
+                categoryID: ID.groceries,
+                amount: .usd(Cents.dollars(400)),
+                period: .monthly,
+                rolloverEnabled: false,
+                startDate: date(year: 2026, month: 1, day: 1)
+            ),
+            Budget(
+                id: ID.diningBudget,
+                userID: userID,
+                categoryID: ID.dining,
+                amount: .usd(Cents.dollars(100)),
+                period: .monthly,
+                rolloverEnabled: true,
+                startDate: date(year: 2026, month: 1, day: 1)
             ),
         ]
     }
