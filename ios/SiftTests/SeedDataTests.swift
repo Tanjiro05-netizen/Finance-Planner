@@ -31,7 +31,8 @@ struct SeedDataTests {
         #expect(try context.fetchCount(FetchDescriptor<RecurringIncome>()) == 1)
         #expect(try context.fetchCount(FetchDescriptor<Bill>()) == 1)
         #expect(try context.fetchCount(FetchDescriptor<Budget>()) == 2)
-        #expect(try context.fetchCount(FetchDescriptor<Category>()) == 8)
+        // Qualified: `Category` alone is ambiguous here against another module's type.
+        #expect(try context.fetchCount(FetchDescriptor<Sift.Category>()) == 8)
     }
 
     @Test func seededBudgetsCoverCategoriesThatHaveSpend() {
