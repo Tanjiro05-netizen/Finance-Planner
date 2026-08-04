@@ -51,11 +51,12 @@ final class AffordabilityCheckViewModel {
             let today = referenceDateProvider()
             let amount = Money(amountMinor: amountMinor, currency: "USD")
             let safeToSpend = try SafeToSpendProvider.outcome(repositories: repositories, today: today)
+            let progress = try budgetProgress(today: today)
 
-            assessment = try AffordabilityAdvisor.assess(
+            assessment = AffordabilityAdvisor.assess(
                 amount: amount,
                 safeToSpend: safeToSpend,
-                budgetProgress: budgetProgress(today: today)
+                budgetProgress: progress
             )
             errorMessage = nil
         } catch {
