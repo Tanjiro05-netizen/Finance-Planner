@@ -127,10 +127,10 @@ enum SpendReportBuilder {
         calendar: Calendar = .utc
     ) -> SpendComparison {
         let currentMonth = calendar.dateInterval(of: .month, for: referenceDate)
-            ?? DateInterval(start: referenceDate, duration: 0)
+            ?? DateInterval(start: referenceDate, end: referenceDate)
         let previousMonthAnchor = calendar.date(byAdding: .month, value: -1, to: currentMonth.start) ?? currentMonth.start
         let previousMonth = calendar.dateInterval(of: .month, for: previousMonthAnchor)
-            ?? DateInterval(start: previousMonthAnchor, duration: 0)
+            ?? DateInterval(start: previousMonthAnchor, end: previousMonthAnchor)
 
         let daysInCurrentMonth = calendar.dateComponents([.day], from: currentMonth.start, to: currentMonth.end).day ?? 0
         let elapsedDays = (calendar.dateComponents([.day], from: currentMonth.start, to: referenceDate).day ?? 0) + 1
