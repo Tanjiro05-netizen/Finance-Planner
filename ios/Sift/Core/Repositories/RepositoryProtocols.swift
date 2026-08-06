@@ -90,6 +90,21 @@ protocol BudgetRepository: AnyObject, Sendable {
     @MainActor func deleteAll() throws
 }
 
+/// Covers both `Goal` and `GoalContribution`. A contribution is never reached except through
+/// its goal, so a second repository would add ceremony without adding a seam — and keeping
+/// `deleteAll()` responsible for both is what keeps `wipeLocalData()` honest.
+protocol GoalRepository: AnyObject, Sendable {
+    @MainActor func all() throws -> [Goal]
+    @MainActor func goal(id: String) throws -> Goal?
+    @MainActor func insert(_ goal: Goal) throws
+    @MainActor func update(_ goal: Goal) throws
+    @MainActor func delete(id: String) throws
+    @MainActor func deleteAll() throws
+    @MainActor func contributions(forGoal goalID: String) throws -> [GoalContribution]
+    @MainActor func addContribution(_ contribution: GoalContribution) throws
+    @MainActor func deleteContribution(id: String) throws
+}
+
 protocol TransactionRepository: AnyObject, Sendable {
     @MainActor func all() throws -> [Transaction]
     @MainActor func recent(limit: Int) throws -> [Transaction]

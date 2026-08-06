@@ -12,6 +12,7 @@ struct RepositoryContainer {
     let recurringIncome: any RecurringIncomeRepository
     let bills: any BillRepository
     let budgets: any BudgetRepository
+    let goals: any GoalRepository
 
     static func live(modelContext: ModelContext, userID: String = SeedData.defaultUserID) -> RepositoryContainer {
         RepositoryContainer(
@@ -24,7 +25,8 @@ struct RepositoryContainer {
             settings: LiveSettingsRepository(modelContext: modelContext, userID: userID),
             recurringIncome: LiveRecurringIncomeRepository(modelContext: modelContext, userID: userID),
             bills: LiveBillRepository(modelContext: modelContext, userID: userID),
-            budgets: LiveBudgetRepository(modelContext: modelContext, userID: userID)
+            budgets: LiveBudgetRepository(modelContext: modelContext, userID: userID),
+            goals: LiveGoalRepository(modelContext: modelContext, userID: userID)
         )
     }
 
@@ -40,7 +42,8 @@ struct RepositoryContainer {
             settings: MockSettingsRepository(snapshot: snapshot),
             recurringIncome: MockRecurringIncomeRepository(snapshot: snapshot, userID: userID),
             bills: MockBillRepository(snapshot: snapshot, userID: userID),
-            budgets: MockBudgetRepository(snapshot: snapshot, userID: userID)
+            budgets: MockBudgetRepository(snapshot: snapshot, userID: userID),
+            goals: MockGoalRepository(snapshot: snapshot, userID: userID)
         )
     }
 
@@ -63,7 +66,9 @@ struct RepositoryContainer {
             ),
             recurringIncome: [],
             bills: [],
-            budgets: []
+            budgets: [],
+            goals: [],
+            goalContributions: []
         )
 
         return RepositoryContainer(
@@ -76,7 +81,8 @@ struct RepositoryContainer {
             settings: MockSettingsRepository(snapshot: snapshot),
             recurringIncome: MockRecurringIncomeRepository(snapshot: snapshot, userID: userID),
             bills: MockBillRepository(snapshot: snapshot, userID: userID),
-            budgets: MockBudgetRepository(snapshot: snapshot, userID: userID)
+            budgets: MockBudgetRepository(snapshot: snapshot, userID: userID),
+            goals: MockGoalRepository(snapshot: snapshot, userID: userID)
         )
     }
 
@@ -97,6 +103,7 @@ struct RepositoryContainer {
         try recurringIncome.deleteAll()
         try bills.deleteAll()
         try budgets.deleteAll()
+        try goals.deleteAll()
     }
 }
 

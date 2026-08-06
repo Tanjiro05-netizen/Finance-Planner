@@ -568,3 +568,64 @@ final class MockBudgetRepository: BudgetRepository, @unchecked Sendable {
         budgets.removeAll { $0.userID == userID }
     }
 }
+
+final class MockGoalRepository: GoalRepository, @unchecked Sendable {
+    private var goals: [Goal]
+    private var goalContributions: [GoalContribution]
+    private let userID: String
+
+    init(snapshot: SeedData.Snapshot = SeedData.snapshot(), userID: String = SeedData.defaultUserID) {
+        goals = snapshot.goals
+        goalContributions = snapshot.goalContributions
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [Goal] {
+        goals
+            .filter { $0.userID == userID }
+            .sorted { $0.createdAt > $1.createdAt }
+    }
+
+    @MainActor
+    func goal(id: String) throws -> Goal? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ goal: Goal) throws {
+        goals.append(goal)
+    }
+
+    @MainActor
+    func update(_: Goal) throws {}
+
+    @MainActor
+    func delete(id: String) throws {
+        goals.removeAll { $0.id == id && $0.userID == userID }
+        goalContributions.removeAll { $0.goalID == id && $0.userID == userID }
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        goals.removeAll { $0.userID == userID }
+        goalContributions.removeAll { $0.userID == userID }
+    }
+
+    @MainActor
+    func contributions(forGoal goalID: String) throws -> [GoalContribution] {
+        goalContributions
+            .filter { $0.userID == userID && $0.goalID == goalID }
+            .sorted { $0.date > $1.date }
+    }
+
+    @MainActor
+    func addContribution(_ contribution: GoalContribution) throws {
+        goalContributions.append(contribution)
+    }
+
+    @MainActor
+    func deleteContribution(id: String) throws {
+        goalContributions.removeAll { $0.id == id && $0.userID == userID }
+    }
+}

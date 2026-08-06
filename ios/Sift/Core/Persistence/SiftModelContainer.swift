@@ -13,6 +13,8 @@ enum SiftModelContainerFactory {
             RecurringIncome.self,
             Bill.self,
             Budget.self,
+            Goal.self,
+            GoalContribution.self,
         ])
     }
 

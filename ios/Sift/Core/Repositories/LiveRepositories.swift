@@ -710,6 +710,95 @@ final class LiveBudgetRepository: BudgetRepository, @unchecked Sendable {
     }
 }
 
+final class LiveGoalRepository: GoalRepository, @unchecked Sendable {
+    private let context: ModelContext
+    private let userID: String
+
+    init(modelContext: ModelContext, userID: String = SeedData.defaultUserID) {
+        context = modelContext
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [Goal] {
+        try fetchUserScoped(Goal.self, in: context, userID: userID)
+            .sorted { $0.createdAt > $1.createdAt }
+    }
+
+    @MainActor
+    func goal(id: String) throws -> Goal? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ goal: Goal) throws {
+        context.insert(goal)
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ goal: Goal) throws {
+        guard goal.userID == userID else {
+            throw SiftError.notFound("Goal")
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let goal = try goal(id: id) else {
+            throw SiftError.notFound("Goal")
+        }
+
+        // Contributions are owned by the goal, so they go with it. Leaving them behind would
+        // strand rows that nothing can ever reach or delete.
+        for contribution in try contributions(forGoal: id) {
+            context.delete(contribution)
+        }
+
+        context.delete(goal)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        for contribution in try allContributions() {
+            context.delete(contribution)
+        }
+        for goal in try all() {
+            context.delete(goal)
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func contributions(forGoal goalID: String) throws -> [GoalContribution] {
+        try allContributions()
+            .filter { $0.goalID == goalID }
+            .sorted { $0.date > $1.date }
+    }
+
+    @MainActor
+    func addContribution(_ contribution: GoalContribution) throws {
+        context.insert(contribution)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteContribution(id: String) throws {
+        guard let contribution = try allContributions().first(where: { $0.id == id }) else {
+            throw SiftError.notFound("Contribution")
+        }
+        context.delete(contribution)
+        try context.save()
+    }
+
+    @MainActor
+    private func allContributions() throws -> [GoalContribution] {
+        try fetchUserScoped(GoalContribution.self, in: context, userID: userID)
+    }
+}
+
 @MainActor
 private func fetchUserScoped<Model: PersistentModel>(
     _: Model.Type,
@@ -739,6 +828,10 @@ private func fetchUserScoped<Model: PersistentModel>(
             bill.userID == userID
         case let budget as Budget:
             budget.userID == userID
+        case let goal as Goal:
+            goal.userID == userID
+        case let contribution as GoalContribution:
+            contribution.userID == userID
         default:
             false
         }

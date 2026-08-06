@@ -45,6 +45,16 @@ struct DomainTypesTests {
         #expect(SiftFeatureFlags.launchDefault.ledgerEnabled == false)
         #expect(SiftFeatureFlags.current().budgetsEnabled == false)
         #expect(SiftFeatureFlags.launchDefault.budgetsEnabled == false)
+        #expect(SiftFeatureFlags.current().goalsEnabled == false)
+        #expect(SiftFeatureFlags.launchDefault.goalsEnabled == false)
+    }
+
+    @Test func goalStatusRoundTripsRawValues() {
+        #expect(GoalStatus.allCases.map(\.rawValue) == ["active", "reached", "archived"])
+
+        for status in GoalStatus.allCases {
+            #expect(GoalStatus(rawValue: status.rawValue) == status)
+        }
     }
 
     @Test func featureFlagsDefaultEachParameterIndependently() {

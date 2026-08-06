@@ -337,6 +337,76 @@ final class Budget {
     }
 }
 
+/// Something the user is saving toward. Progress is never stored here — it's summed from
+/// `GoalContribution` rows, so a withdrawal can't leave the goal claiming money that's gone.
+///
+/// `targetDate` and `monthlyContribution` are both optional on purpose: the user supplies any
+/// two of {target, date, contribution} and `GoalProjector` derives the third. With only the
+/// target, there is genuinely nothing to project, and the UI says so rather than inventing it.
+@Model
+final class Goal {
+    var id: String
+    var userID: String
+    var name: String
+    var targetAmount: Money
+    var targetDate: Date?
+    var monthlyContribution: Money?
+    var status: GoalStatus
+    var createdAt: Date
+    var note: String?
+
+    init(
+        id: String,
+        userID: String,
+        name: String,
+        targetAmount: Money,
+        targetDate: Date? = nil,
+        monthlyContribution: Money? = nil,
+        status: GoalStatus = .active,
+        createdAt: Date,
+        note: String? = nil
+    ) {
+        self.id = id
+        self.userID = userID
+        self.name = name
+        self.targetAmount = targetAmount
+        self.targetDate = targetDate
+        self.monthlyContribution = monthlyContribution
+        self.status = status
+        self.createdAt = createdAt
+        self.note = note
+    }
+}
+
+/// One movement into or out of a goal. `amount` is signed — a negative entry is a withdrawal.
+/// Keeping withdrawals as first-class entries rather than silent edits means the running total
+/// always reconciles with the history the user can see.
+@Model
+final class GoalContribution {
+    var id: String
+    var userID: String
+    var goalID: String
+    var amount: Money
+    var date: Date
+    var note: String?
+
+    init(
+        id: String,
+        userID: String,
+        goalID: String,
+        amount: Money,
+        date: Date,
+        note: String? = nil
+    ) {
+        self.id = id
+        self.userID = userID
+        self.goalID = goalID
+        self.amount = amount
+        self.date = date
+        self.note = note
+    }
+}
+
 @Model
 final class PriceChange {
     var id: String

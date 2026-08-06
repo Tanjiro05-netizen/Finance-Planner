@@ -33,6 +33,37 @@ struct SeedDataTests {
         #expect(try context.fetchCount(FetchDescriptor<Budget>()) == 2)
         // Qualified: `Category` alone is ambiguous here against another module's type.
         #expect(try context.fetchCount(FetchDescriptor<Sift.Category>()) == 8)
+        #expect(try context.fetchCount(FetchDescriptor<Goal>()) == 2)
+        #expect(try context.fetchCount(FetchDescriptor<GoalContribution>()) == 8)
+    }
+
+    @Test func seededHistoryStaysClearOfTheTrailingThirtyDayWindow() throws {
+        // Safe-to-spend averages the trailing 30 days from the reference date, and the June
+        // budget cycle is pinned by several other tests. Seeded history must therefore sit
+        // either inside June or strictly before 30 May 2026, so it can grow without
+        // disturbing either. This guards the invariant, not a count.
+        let cutoff = try #require(
+            Calendar.utc.date(from: DateComponents(year: 2026, month: 5, day: 30, hour: 0))
+        )
+        let juneStart = try #require(
+            Calendar.utc.date(from: DateComponents(year: 2026, month: 6, day: 1, hour: 0))
+        )
+        let transactions = SeedData.snapshot().transactions
+
+        let history = transactions.filter { $0.date < juneStart }
+        #expect(history.isEmpty == false)
+        #expect(history.allSatisfy { $0.date < cutoff })
+    }
+
+    @Test func seededGoalsHaveContributionsAndAtLeastOneWithdrawal() {
+        let snapshot = SeedData.snapshot()
+        let goalIDs = Set(snapshot.goals.map(\.id))
+
+        #expect(snapshot.goalContributions.isEmpty == false)
+        // Every contribution must belong to a real goal, or progress silently vanishes.
+        #expect(snapshot.goalContributions.allSatisfy { goalIDs.contains($0.goalID) })
+        // A withdrawal in the demo data keeps the signed-amount behaviour visible.
+        #expect(snapshot.goalContributions.contains { $0.amount.amountMinor < 0 })
     }
 
     @Test func seededBudgetsCoverCategoriesThatHaveSpend() {

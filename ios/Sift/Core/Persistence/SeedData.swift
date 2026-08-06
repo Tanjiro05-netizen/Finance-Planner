@@ -40,6 +40,9 @@ enum SeedData {
 
         static let groceriesBudget = "budget-groceries"
         static let diningBudget = "budget-dining"
+
+        static let emergencyGoal = "goal-emergency-fund"
+        static let laptopGoal = "goal-new-laptop"
     }
 
     struct Snapshot {
@@ -53,6 +56,8 @@ enum SeedData {
         var recurringIncome: [RecurringIncome]
         var bills: [Bill]
         var budgets: [Budget]
+        var goals: [Goal]
+        var goalContributions: [GoalContribution]
     }
 
     static func snapshot(userID: String = defaultUserID) -> Snapshot {
@@ -152,7 +157,9 @@ enum SeedData {
             alertSettings: alertSettings,
             recurringIncome: makeRecurringIncome(userID: userID),
             bills: makeBills(userID: userID),
-            budgets: makeBudgets(userID: userID)
+            budgets: makeBudgets(userID: userID),
+            goals: makeGoals(userID: userID),
+            goalContributions: makeGoalContributions(userID: userID)
         )
     }
 
@@ -173,6 +180,8 @@ enum SeedData {
         snapshot.recurringIncome.forEach(context.insert)
         snapshot.bills.forEach(context.insert)
         snapshot.budgets.forEach(context.insert)
+        snapshot.goals.forEach(context.insert)
+        snapshot.goalContributions.forEach(context.insert)
         context.insert(snapshot.alertSettings)
         try context.save()
     }
@@ -446,7 +455,7 @@ private extension SeedData {
                 date: date(year: 2026, month: 4, day: 5),
                 categoryHint: "Productivity"
             ),
-        ] + makeDiscretionaryTransactions(userID: userID)
+        ] + makeDiscretionaryTransactions(userID: userID) + makeHistoricalTransactions(userID: userID)
     }
 
     /// Everyday, non-recurring debits so the discretionary spend estimate (and thus the
@@ -546,6 +555,120 @@ private extension SeedData {
                 startDate: date(year: 2026, month: 1, day: 1)
             ),
         ]
+    }
+
+    /// Two goals in deliberately different states: one comfortably on track with a date, one
+    /// with a contribution but no date so the "derive the completion estimate" path renders.
+    static func makeGoals(userID: String) -> [Goal] {
+        [
+            Goal(
+                id: ID.emergencyGoal,
+                userID: userID,
+                name: "Emergency fund",
+                targetAmount: .usd(Cents.dollars(3000)),
+                targetDate: date(year: 2026, month: 12, day: 1),
+                monthlyContribution: .usd(Cents.dollars(250)),
+                createdAt: date(year: 2026, month: 1, day: 6)
+            ),
+            Goal(
+                id: ID.laptopGoal,
+                userID: userID,
+                name: "New laptop",
+                targetAmount: .usd(Cents.dollars(1800)),
+                monthlyContribution: .usd(Cents.dollars(150)),
+                createdAt: date(year: 2026, month: 3, day: 14)
+            ),
+        ]
+    }
+
+    /// Monthly deposits plus one withdrawal, so the signed-contribution behaviour is visible
+    /// in previews rather than only in tests.
+    static func makeGoalContributions(userID: String) -> [GoalContribution] {
+        let emergency = (0 ..< 5).map { index in
+            GoalContribution(
+                id: "contrib-emergency-\(index)",
+                userID: userID,
+                goalID: ID.emergencyGoal,
+                amount: .usd(Cents.dollars(250)),
+                date: date(year: 2026, month: index + 1, day: 6)
+            )
+        }
+
+        let laptop = [
+            GoalContribution(
+                id: "contrib-laptop-0",
+                userID: userID,
+                goalID: ID.laptopGoal,
+                amount: .usd(Cents.dollars(150)),
+                date: date(year: 2026, month: 4, day: 14)
+            ),
+            GoalContribution(
+                id: "contrib-laptop-1",
+                userID: userID,
+                goalID: ID.laptopGoal,
+                amount: .usd(Cents.dollars(150)),
+                date: date(year: 2026, month: 5, day: 14)
+            ),
+            GoalContribution(
+                id: "contrib-laptop-withdrawal",
+                userID: userID,
+                goalID: ID.laptopGoal,
+                amount: .usd(-Cents.dollars(60)),
+                date: date(year: 2026, month: 5, day: 20),
+                note: "Borrowed for a repair"
+            ),
+        ]
+
+        return emergency + laptop
+    }
+
+    /// Five months of everyday spending before June, so the trend and month-over-month
+    /// reports have real shape.
+    ///
+    /// Every date here is **29 May 2026 or earlier, deliberately**. The safe-to-spend
+    /// discretionary estimate averages the trailing 30 days from the 29 June reference date,
+    /// and the budget cycle covers June — so keeping this history strictly before 30 May
+    /// leaves every existing June-derived assertion untouched.
+    static func makeHistoricalTransactions(userID: String) -> [Transaction] {
+        let entries: [HistoricalEntry] = [
+            HistoricalEntry(month: 1, day: 8, merchant: "CORNER GROCERY", cents: 7120, categoryID: ID.groceries),
+            HistoricalEntry(month: 1, day: 17, merchant: "SAIGON KITCHEN", cents: 2890, categoryID: ID.dining),
+            HistoricalEntry(month: 1, day: 24, merchant: "SHELL STATION 227", cents: 4870, categoryID: nil),
+            HistoricalEntry(month: 2, day: 6, merchant: "CORNER GROCERY", cents: 6640, categoryID: ID.groceries),
+            HistoricalEntry(month: 2, day: 13, merchant: "BLUE BOTTLE COFFEE", cents: 920, categoryID: ID.dining),
+            HistoricalEntry(month: 2, day: 21, merchant: "GREENLEAF PHARMACY", cents: 3140, categoryID: ID.health),
+            HistoricalEntry(month: 3, day: 4, merchant: "CORNER GROCERY", cents: 8215, categoryID: ID.groceries),
+            HistoricalEntry(month: 3, day: 12, merchant: "SAIGON KITCHEN", cents: 4460, categoryID: ID.dining),
+            HistoricalEntry(month: 3, day: 26, merchant: "MADISON HARDWARE", cents: 5330, categoryID: nil),
+            HistoricalEntry(month: 4, day: 9, merchant: "CORNER GROCERY", cents: 5980, categoryID: ID.groceries),
+            HistoricalEntry(month: 4, day: 18, merchant: "BLUE BOTTLE COFFEE", cents: 1240, categoryID: ID.dining),
+            HistoricalEntry(month: 4, day: 27, merchant: "GREENLEAF PHARMACY", cents: 2075, categoryID: ID.health),
+            HistoricalEntry(month: 5, day: 5, merchant: "CORNER GROCERY", cents: 9410, categoryID: ID.groceries),
+            HistoricalEntry(month: 5, day: 14, merchant: "SAIGON KITCHEN", cents: 3720, categoryID: ID.dining),
+            HistoricalEntry(month: 5, day: 22, merchant: "SHELL STATION 227", cents: 5115, categoryID: nil),
+            HistoricalEntry(month: 5, day: 27, merchant: "BLUE BOTTLE COFFEE", cents: 860, categoryID: ID.dining),
+        ]
+
+        return entries.map { entry in
+            Transaction(
+                id: "txn-hist-\(entry.month)-\(entry.day)",
+                userID: userID,
+                accountID: ID.checking,
+                merchantRaw: entry.merchant,
+                merchantKey: MerchantKey(entry.merchant),
+                amount: .usd(entry.cents),
+                date: date(year: 2026, month: entry.month, day: entry.day),
+                categoryID: entry.categoryID
+            )
+        }
+    }
+
+    struct HistoricalEntry {
+        let month: Int
+        let day: Int
+        let merchant: String
+        let cents: Int
+        let categoryID: String?
     }
 
     static func date(year: Int, month: Int, day: Int, hour: Int = 12) -> Date {
