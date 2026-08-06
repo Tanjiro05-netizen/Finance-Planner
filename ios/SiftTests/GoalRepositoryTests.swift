@@ -82,7 +82,7 @@ struct GoalRepositoryTests {
         try fixture.repository.addContribution(contribution(id: "in", goalID: "g1", cents: 5000))
         try fixture.repository.addContribution(contribution(id: "out", goalID: "g1", cents: -2000))
 
-        let saved = GoalProjector.saved(from: try fixture.repository.contributions(forGoal: "g1"))
+        let saved = try GoalProjector.saved(from: fixture.repository.contributions(forGoal: "g1"))
         #expect(saved == .usd(3000))
     }
 
