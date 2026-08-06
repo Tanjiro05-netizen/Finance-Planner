@@ -160,6 +160,8 @@
 		E0000000000000000000C003 /* AffordabilityAdvisorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000G003 /* AffordabilityAdvisorTests.swift */; };
 		E0000000000000000000C004 /* BudgetRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000G004 /* BudgetRepositoryTests.swift */; };
 		E0000000000000000000C005 /* BudgetsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000G005 /* BudgetsViewModelTests.swift */; };
+		E0000000000000000000C010 /* BudgetEditorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000G010 /* BudgetEditorViewModelTests.swift */; };
+		E0000000000000000000C011 /* AffordabilityCheckViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000G011 /* AffordabilityCheckViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -338,6 +340,8 @@
 		E0000000000000000000G003 /* AffordabilityAdvisorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AffordabilityAdvisorTests.swift; sourceTree = "<group>"; };
 		E0000000000000000000G004 /* BudgetRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetRepositoryTests.swift; sourceTree = "<group>"; };
 		E0000000000000000000G005 /* BudgetsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetsViewModelTests.swift; sourceTree = "<group>"; };
+		E0000000000000000000G010 /* BudgetEditorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetEditorViewModelTests.swift; sourceTree = "<group>"; };
+		E0000000000000000000G011 /* AffordabilityCheckViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AffordabilityCheckViewModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -409,6 +413,8 @@
 				E0000000000000000000G003 /* AffordabilityAdvisorTests.swift */,
 				E0000000000000000000G004 /* BudgetRepositoryTests.swift */,
 				E0000000000000000000G005 /* BudgetsViewModelTests.swift */,
+				E0000000000000000000G010 /* BudgetEditorViewModelTests.swift */,
+				E0000000000000000000G011 /* AffordabilityCheckViewModelTests.swift */,
 				10000000000000000000T001 /* TokensTests.swift */,
 				10000000000000000000T002 /* MoneyTextTests.swift */,
 				10000000000000000000T003 /* TypographyTests.swift */,
@@ -1125,6 +1131,8 @@
 				E0000000000000000000C003 /* AffordabilityAdvisorTests.swift in Sources */,
 				E0000000000000000000C004 /* BudgetRepositoryTests.swift in Sources */,
 				E0000000000000000000C005 /* BudgetsViewModelTests.swift in Sources */,
+				E0000000000000000000C010 /* BudgetEditorViewModelTests.swift in Sources */,
+				E0000000000000000000C011 /* AffordabilityCheckViewModelTests.swift in Sources */,
 				10000000000000000000C001 /* TokensTests.swift in Sources */,
 				10000000000000000000C002 /* MoneyTextTests.swift in Sources */,
 				10000000000000000000C003 /* TypographyTests.swift in Sources */,
