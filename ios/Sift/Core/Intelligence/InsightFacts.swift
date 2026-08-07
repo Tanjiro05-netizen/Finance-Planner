@@ -37,11 +37,6 @@ struct InsightFacts: Equatable, Sendable {
 struct BudgetFactInput: Equatable, Sendable {
     let categoryName: String
     let progress: BudgetProgress
-
-    init(categoryName: String, progress: BudgetProgress) {
-        self.categoryName = categoryName
-        self.progress = progress
-    }
 }
 
 /// A goal, reduced to what the narrator needs. Same layering reason as `BudgetFactInput`.
@@ -49,12 +44,6 @@ struct GoalFactInput: Equatable, Sendable {
     let name: String
     let targetAmount: Money
     let outcome: GoalOutcome
-
-    init(name: String, targetAmount: Money, outcome: GoalOutcome) {
-        self.name = name
-        self.targetAmount = targetAmount
-        self.outcome = outcome
-    }
 }
 
 /// Builds `InsightFacts` from the output of the deterministic layer.
