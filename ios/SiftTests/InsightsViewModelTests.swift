@@ -105,7 +105,7 @@ struct InsightsViewModelTests {
         await viewModel.load()
 
         let comparison = try #require(viewModel.spendComparison)
-        let names = Set(try repositories.categories.all().map(\.name))
+        let names = try Set(repositories.categories.all().map(\.name))
         let resolved = (comparison.currentByCategory + comparison.previousByCategory)
             .filter { $0.categoryID != nil }
 
