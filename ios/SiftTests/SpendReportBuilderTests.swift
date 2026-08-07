@@ -174,8 +174,9 @@ struct SpendReportBuilderTests {
                 // Groceries up $50 on a $100 base — material.
                 transaction(id: "g-now", cents: 15000, month: 6, day: 3, category: "groceries"),
                 transaction(id: "g-then", cents: 10000, month: 5, day: 3, category: "groceries"),
-                // Sweets up 200% but only $4 — noise.
-                transaction(id: "s-now", cents: 600, month: 6, day: 4, category: "sweets"),
+                // Sweets up 500% on a $2 base. The $10 move clears the delta floor, so this
+                // isolates the base guard rather than being caught by both.
+                transaction(id: "s-now", cents: 1200, month: 6, day: 4, category: "sweets"),
                 transaction(id: "s-then", cents: 200, month: 5, day: 4, category: "sweets"),
                 // Dining down $30.
                 transaction(id: "d-now", cents: 2000, month: 6, day: 5, category: "dining"),
@@ -225,6 +226,52 @@ struct SpendReportBuilderTests {
         let movers = SpendReportBuilder.topMovers(comparison: comparisonForMovers(), limit: 1)
 
         #expect(movers.count == 1)
+    }
+
+    @Test func largeCategoriesThatBarelyMovedAreExcluded() {
+        let comparison = SpendReportBuilder.comparison(
+            transactions: [
+                // Well clear of the base floor, but a 25-cent movement.
+                transaction(id: "steady-now", cents: 4605, month: 6, day: 3, category: "dining"),
+                transaction(id: "steady-then", cents: 4580, month: 5, day: 3, category: "dining"),
+            ],
+            referenceDate: date(2026, 6, 6)
+        )
+
+        #expect(SpendReportBuilder.topMovers(comparison: comparison).isEmpty)
+    }
+
+    @Test func theDeltaFloorIsIndependentOfTheBaseFloor() {
+        // Groceries clear both floors; sweets clears neither; dining clears base but not delta.
+        let comparison = SpendReportBuilder.comparison(
+            transactions: [
+                transaction(id: "g-now", cents: 15000, month: 6, day: 3, category: "groceries"),
+                transaction(id: "g-then", cents: 10000, month: 5, day: 3, category: "groceries"),
+                transaction(id: "d-now", cents: 4605, month: 6, day: 5, category: "dining"),
+                transaction(id: "d-then", cents: 4580, month: 5, day: 5, category: "dining"),
+            ],
+            referenceDate: date(2026, 6, 6)
+        )
+
+        let movers = SpendReportBuilder.topMovers(comparison: comparison)
+        #expect(movers.map(\.categoryID) == ["groceries"])
+
+        // Lowering the delta floor lets the quiet category back in, so the two guards are
+        // genuinely separate rather than one dressed as two.
+        let relaxed = SpendReportBuilder.topMovers(comparison: comparison, minimumDelta: .usd(1))
+        #expect(relaxed.contains { $0.categoryID == "dining" })
+    }
+
+    @Test func aZeroDeltaFloorStillExcludesCategoriesThatDidNotMove() {
+        let comparison = SpendReportBuilder.comparison(
+            transactions: [
+                transaction(id: "a", cents: 5000, month: 6, day: 3, category: "same"),
+                transaction(id: "b", cents: 5000, month: 5, day: 3, category: "same"),
+            ],
+            referenceDate: date(2026, 6, 6)
+        )
+
+        #expect(SpendReportBuilder.topMovers(comparison: comparison, minimumDelta: .zeroUSD).isEmpty)
     }
 
     @Test func unchangedCategoriesAreNotMovers() {

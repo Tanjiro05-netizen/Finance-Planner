@@ -87,6 +87,11 @@ enum SpendReportBuilder {
     /// change is worth ranking on. Without it, $2 → $6 tops the list at +200%.
     static let defaultMinimumMoverBase = Money.usd(2000)
 
+    /// And it must actually have *moved* by at least this much. The base guard alone lets a
+    /// large, stable category through on a few cents of drift — $45.80 → $46.05 is not a
+    /// "top mover", and on a sparse ledger it is exactly the row that has space to show up.
+    static let defaultMinimumMoverDelta = Money.usd(500)
+
     /// Total settled spend per calendar month, oldest first, **including months with no
     /// spend** so the chart shows real gaps instead of silently compressing time.
     static func monthlyTotals(
@@ -165,9 +170,14 @@ enum SpendReportBuilder {
     ///
     /// Ranked on absolute money rather than percentage, because a percentage on a small base
     /// is noise. `fractionChange` is still reported so the UI can show both.
+    ///
+    /// Two independent guards, and a category has to clear both: `minimumBase` keeps a tiny
+    /// category from topping the list on a big percentage, and `minimumDelta` keeps a big
+    /// category from occupying a slot on a movement nobody would call one.
     static func topMovers(
         comparison: SpendComparison,
         minimumBase: Money = defaultMinimumMoverBase,
+        minimumDelta: Money = defaultMinimumMoverDelta,
         limit: Int = 5
     ) -> [CategoryMover] {
         var previousByID: [String: CategorySpendTotal] = [:]
@@ -193,7 +203,10 @@ enum SpendReportBuilder {
             let previousTotal = previous?.total ?? .zeroUSD
             let delta = currentTotal - previousTotal
 
-            guard delta.amountMinor != 0 else {
+            // Non-zero is checked separately so a caller passing a zero floor still can't
+            // surface categories that didn't move at all.
+            let movement = abs(delta.amountMinor)
+            guard movement > 0, movement >= minimumDelta.amountMinor else {
                 return nil
             }
 
