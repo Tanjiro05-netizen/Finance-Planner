@@ -47,13 +47,15 @@ enum InsightAvailability: Equatable, Sendable {
 
 /// Why narration failed after it was attempted.
 ///
-/// Every case maps from a `LanguageModelError` case in the live adapter. Raw framework
-/// error text is never surfaced — it names internals and reads as a crash report.
+/// Each case maps from a `LanguageModelSession.GenerationError` case in the live adapter.
+/// Raw framework error text is never surfaced — it names internals and reads as a crash
+/// report. Kept deliberately coarse: the framework's case list has changed between SDK
+/// versions, so this enum encodes what a person can act on, not the framework's taxonomy.
 enum InsightNarrationFailure: String, Equatable, Sendable, Error {
     case tooMuchContext
     case rateLimited
     case refused
-    case timedOut
+    case modelUnavailable
     case unsupportedLanguage
     case unknown
 
@@ -65,8 +67,8 @@ enum InsightNarrationFailure: String, Equatable, Sendable, Error {
             "Insights are catching up. Try again in a moment."
         case .refused, .unknown:
             "Sift couldn't write up your insights this time."
-        case .timedOut:
-            "Writing your insights took too long."
+        case .modelUnavailable:
+            "Apple Intelligence isn't ready yet. Check back shortly."
         case .unsupportedLanguage:
             "Written insights aren't available in this language yet."
         }

@@ -55,7 +55,7 @@ import Foundation
                         detail: note.detail
                     )
                 }
-            } catch let error as LanguageModelError {
+            } catch let error as LanguageModelSession.GenerationError {
                 throw Self.map(error)
             } catch {
                 throw InsightNarrationFailure.unknown
@@ -75,16 +75,20 @@ import Foundation
             }
         }
 
-        private static func map(_ error: LanguageModelError) -> InsightNarrationFailure {
+        /// Only the cases a person could act on differently are named; `default` absorbs the
+        /// rest, which also keeps this compiling as Apple adds cases. Apple's published
+        /// documentation currently describes a newer `LanguageModelError` that this SDK does
+        /// not have — `GenerationError` is the type that actually exists here.
+        private static func map(_ error: LanguageModelSession.GenerationError) -> InsightNarrationFailure {
             switch error {
-            case .contextSizeExceeded:
+            case .exceededContextWindowSize:
                 .tooMuchContext
-            case .rateLimited:
+            case .rateLimited, .concurrentRequests:
                 .rateLimited
             case .refusal, .guardrailViolation:
                 .refused
-            case .timeout:
-                .timedOut
+            case .assetsUnavailable:
+                .modelUnavailable
             case .unsupportedLanguageOrLocale:
                 .unsupportedLanguage
             default:

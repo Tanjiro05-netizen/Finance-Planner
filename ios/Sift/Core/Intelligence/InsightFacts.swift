@@ -161,17 +161,23 @@ enum InsightPromptBuilder {
 
     /// Instructions are static and carry no user data, so they're safe to keep as a constant
     /// and cheap to prewarm against.
-    static let instructions = """
-    You write short, calm observations about someone's personal finances.
-
-    Every number you mention must be copied exactly from the figures you are given. \
-    Never calculate, estimate, combine, or round a number yourself — if a figure is not \
-    listed, do not state it.
-
-    Lead with what is going well before what needs attention. Do not give investment advice, \
-    do not tell the person what to buy or sell, and do not moralise about their spending. \
-    Keep each observation to one or two sentences.
-    """
+    ///
+    /// Assembled from paragraphs rather than written as one literal: a blank line inside a
+    /// multi-line string literal is something SwiftFormat's `indent` and `trailingSpace`
+    /// rules disagree about, and joining sidesteps it.
+    static let instructions = [
+        "You write short, calm observations about someone's personal finances.",
+        """
+        Every number you mention must be copied exactly from the figures you are given. \
+        Never calculate, estimate, combine, or round a number yourself — if a figure is \
+        not listed, do not state it.
+        """,
+        """
+        Lead with what is going well before what needs attention. Do not give investment \
+        advice, do not tell the person what to buy or sell, and do not moralise about \
+        their spending. Keep each observation to one or two sentences.
+        """,
+    ].joined(separator: "\n\n")
 
     /// Category and goal names come from the user's own records. Truncated so an absurdly
     /// long name can't crowd out the rest of the context window, and newline-stripped so a
