@@ -38,6 +38,9 @@ final class InsightsViewModel {
     var categorySpend: [CategorySpend] = []
     var priceChangeRows: [PriceChangeAlertRow] = []
     var trialEndingRows: [TrialEndingAlertRow] = []
+    var monthlySpend: [MonthlySpendPoint] = []
+    var spendComparison: SpendComparison?
+    var topMovers: [CategoryMover] = []
 
     init(
         repositories: RepositoryContainer,
@@ -63,6 +66,9 @@ final class InsightsViewModel {
         potentialSavings.multiplied(by: 12)
     }
 
+    /// Deliberately subscription-derived only. The spending reports have their own
+    /// `showsSpendReports` gate, and folding them in here would change what the existing
+    /// "no savings surfaced yet" empty state means.
     var isEmpty: Bool {
         hasLoaded
             && potentialSavings == .zeroUSD
@@ -74,6 +80,16 @@ final class InsightsViewModel {
 
     var maxCategorySpend: Money {
         categorySpend.map(\.total).max() ?? .zeroUSD
+    }
+
+    /// Reports only earn their space once there's real spend behind them — three empty
+    /// charts is worse than no charts.
+    var showsSpendReports: Bool {
+        monthlySpend.contains { $0.total.amountMinor > 0 }
+    }
+
+    var maxMonthlySpend: Money {
+        monthlySpend.map(\.total).max() ?? .zeroUSD
     }
 
     func load() async {
@@ -119,10 +135,50 @@ final class InsightsViewModel {
                 .sorted { $0.total.amountMinor > $1.total.amountMinor }
             priceChangeRows = try makePriceChangeRows()
             trialEndingRows = try await makeTrialEndingRows()
+            try loadSpendReports()
             errorMessage = nil
         } catch {
             errorMessage = userFacingMessage(for: error)
         }
+    }
+
+    /// One ledger read covering the widest window the reports need, then every aggregation
+    /// happens in memory — the same shape as `BudgetsViewModel.buildRows()`, and the reason
+    /// six months of trend costs one query rather than six.
+    private func loadSpendReports() throws {
+        let today = referenceDateProvider()
+        let calendar = Calendar.utc
+        let currentMonth = calendar.dateInterval(of: .month, for: today)
+            ?? DateInterval(start: today, end: today)
+        let windowStart = calendar.date(
+            byAdding: .month,
+            value: -(SpendReportBuilder.defaultMonths - 1),
+            to: currentMonth.start
+        ) ?? currentMonth.start
+
+        let transactions = try repositories.transactions.transactions(from: windowStart, to: currentMonth.end)
+
+        // Names come from the category store rather than `TransactionRepository.byCategory`,
+        // whose mock hands back the raw id as the display name.
+        let categoryNames = try Dictionary(
+            repositories.categories.all().map { ($0.id, $0.name) },
+            uniquingKeysWith: { first, _ in first }
+        )
+
+        monthlySpend = SpendReportBuilder.monthlyTotals(
+            transactions: transactions,
+            endingAt: today,
+            calendar: calendar
+        )
+
+        let comparison = SpendReportBuilder.comparison(
+            transactions: transactions,
+            referenceDate: today,
+            categoryNames: categoryNames,
+            calendar: calendar
+        )
+        spendComparison = comparison
+        topMovers = SpendReportBuilder.topMovers(comparison: comparison)
     }
 
     private func makePriceChangeRows() throws -> [PriceChangeAlertRow] {

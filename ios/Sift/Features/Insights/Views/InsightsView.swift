@@ -99,6 +99,15 @@ private struct InsightsContentView: View {
             PriceChangesSection(rows: viewModel.priceChangeRows)
             TrialEndingSection(rows: viewModel.trialEndingRows)
 
+            if viewModel.showsSpendReports {
+                SpendReportSections(
+                    monthlySpend: viewModel.monthlySpend,
+                    maxMonthlySpend: viewModel.maxMonthlySpend,
+                    comparison: viewModel.spendComparison,
+                    movers: viewModel.topMovers
+                )
+            }
+
             SecondaryButton(title: "View savings") {
                 openSavings()
             }
