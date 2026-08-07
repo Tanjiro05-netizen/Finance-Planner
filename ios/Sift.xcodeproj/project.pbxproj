@@ -167,6 +167,16 @@
 		F0000000000000000000C001 /* GoalProjectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G001 /* GoalProjectorTests.swift */; };
 		F0000000000000000000C002 /* SpendReportBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G002 /* SpendReportBuilderTests.swift */; };
 		F0000000000000000000C003 /* GoalRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G003 /* GoalRepositoryTests.swift */; };
+		F0000000000000000000B010 /* GoalsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F010 /* GoalsViewModel.swift */; };
+		F0000000000000000000B011 /* GoalEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F011 /* GoalEditorViewModel.swift */; };
+		F0000000000000000000B012 /* GoalContributionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F012 /* GoalContributionViewModel.swift */; };
+		F0000000000000000000B013 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F013 /* GoalsView.swift */; };
+		F0000000000000000000B014 /* GoalEditorSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F014 /* GoalEditorSheetView.swift */; };
+		F0000000000000000000B015 /* GoalContributionSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F015 /* GoalContributionSheetView.swift */; };
+		F0000000000000000000B016 /* GoalComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F016 /* GoalComponents.swift */; };
+		F0000000000000000000C010 /* GoalsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G010 /* GoalsViewModelTests.swift */; };
+		F0000000000000000000C011 /* GoalEditorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G011 /* GoalEditorViewModelTests.swift */; };
+		F0000000000000000000C012 /* GoalContributionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G012 /* GoalContributionViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -352,6 +362,16 @@
 		F0000000000000000000G001 /* GoalProjectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalProjectorTests.swift; sourceTree = "<group>"; };
 		F0000000000000000000G002 /* SpendReportBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendReportBuilderTests.swift; sourceTree = "<group>"; };
 		F0000000000000000000G003 /* GoalRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalRepositoryTests.swift; sourceTree = "<group>"; };
+		F0000000000000000000F010 /* GoalsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsViewModel.swift; sourceTree = "<group>"; };
+		F0000000000000000000F011 /* GoalEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalEditorViewModel.swift; sourceTree = "<group>"; };
+		F0000000000000000000F012 /* GoalContributionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalContributionViewModel.swift; sourceTree = "<group>"; };
+		F0000000000000000000F013 /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
+		F0000000000000000000F014 /* GoalEditorSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalEditorSheetView.swift; sourceTree = "<group>"; };
+		F0000000000000000000F015 /* GoalContributionSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalContributionSheetView.swift; sourceTree = "<group>"; };
+		F0000000000000000000F016 /* GoalComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalComponents.swift; sourceTree = "<group>"; };
+		F0000000000000000000G010 /* GoalsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsViewModelTests.swift; sourceTree = "<group>"; };
+		F0000000000000000000G011 /* GoalEditorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalEditorViewModelTests.swift; sourceTree = "<group>"; };
+		F0000000000000000000G012 /* GoalContributionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalContributionViewModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -418,6 +438,9 @@
 		100000000000000000000005 /* SiftTests */ = {
 			isa = PBXGroup;
 			children = (
+				F0000000000000000000G010 /* GoalsViewModelTests.swift */,
+				F0000000000000000000G011 /* GoalEditorViewModelTests.swift */,
+				F0000000000000000000G012 /* GoalContributionViewModelTests.swift */,
 				F0000000000000000000G001 /* GoalProjectorTests.swift */,
 				F0000000000000000000G002 /* SpendReportBuilderTests.swift */,
 				F0000000000000000000G003 /* GoalRepositoryTests.swift */,
@@ -494,6 +517,7 @@
 				10000000000000000000F052 /* ScreenHeader.swift */,
 				C0000000000000000000F003 /* TransactionComponents.swift */,
 				E0000000000000000000F005 /* BudgetComponents.swift */,
+				F0000000000000000000F016 /* GoalComponents.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -615,6 +639,27 @@
 				B0000000000000000000F003 /* FinanceKitStore.swift */,
 			);
 			path = Integrations;
+			sourceTree = "<group>";
+		};
+		F0000000000000000000GA01 /* Goals */ = {
+			isa = PBXGroup;
+			children = (
+				F0000000000000000000F010 /* GoalsViewModel.swift */,
+				F0000000000000000000F011 /* GoalEditorViewModel.swift */,
+				F0000000000000000000F012 /* GoalContributionViewModel.swift */,
+				F0000000000000000000GA02 /* Views */,
+			);
+			path = Goals;
+			sourceTree = "<group>";
+		};
+		F0000000000000000000GA02 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				F0000000000000000000F013 /* GoalsView.swift */,
+				F0000000000000000000F014 /* GoalEditorSheetView.swift */,
+				F0000000000000000000F015 /* GoalContributionSheetView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 		E0000000000000000000GA01 /* Budgets */ = {
@@ -776,6 +821,7 @@
 				C0000000000000000000G002 /* Transactions */,
 				D0000000000000000000G001 /* CashFlow */,
 				E0000000000000000000GA01 /* Budgets */,
+				F0000000000000000000GA01 /* Goals */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -1078,6 +1124,13 @@
 				D0000000000000000000B010 /* CashFlowForecastView.swift in Sources */,
 				E0000000000000000000B001 /* BudgetPeriodCalculator.swift in Sources */,
 				F0000000000000000000B001 /* GoalProjector.swift in Sources */,
+				F0000000000000000000B010 /* GoalsViewModel.swift in Sources */,
+				F0000000000000000000B011 /* GoalEditorViewModel.swift in Sources */,
+				F0000000000000000000B012 /* GoalContributionViewModel.swift in Sources */,
+				F0000000000000000000B013 /* GoalsView.swift in Sources */,
+				F0000000000000000000B014 /* GoalEditorSheetView.swift in Sources */,
+				F0000000000000000000B015 /* GoalContributionSheetView.swift in Sources */,
+				F0000000000000000000B016 /* GoalComponents.swift in Sources */,
 				F0000000000000000000B002 /* SpendReportBuilder.swift in Sources */,
 				E0000000000000000000B002 /* BudgetProgressCalculator.swift in Sources */,
 				E0000000000000000000B003 /* AffordabilityAdvisor.swift in Sources */,
@@ -1143,6 +1196,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F0000000000000000000C010 /* GoalsViewModelTests.swift in Sources */,
+				F0000000000000000000C011 /* GoalEditorViewModelTests.swift in Sources */,
+				F0000000000000000000C012 /* GoalContributionViewModelTests.swift in Sources */,
 				F0000000000000000000C001 /* GoalProjectorTests.swift in Sources */,
 				F0000000000000000000C002 /* SpendReportBuilderTests.swift in Sources */,
 				F0000000000000000000C003 /* GoalRepositoryTests.swift in Sources */,

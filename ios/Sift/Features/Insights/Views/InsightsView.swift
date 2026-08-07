@@ -11,7 +11,8 @@ struct InsightsView: View {
         detectionService: any DetectionServing = MockDetectionService(),
         incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(),
         notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
-        referenceDateProvider: @escaping () -> Date = { Date() }
+        referenceDateProvider: @escaping () -> Date = { Date() },
+        featureFlags: SiftFeatureFlags = .launchDefault
     ) {
         let refresher = DefaultSubscriptionRefreshService(
             apiClient: apiClient,
@@ -24,7 +25,8 @@ struct InsightsView: View {
             repositories: repositories,
             detectionService: detectionService,
             refresher: refresher,
-            referenceDateProvider: referenceDateProvider
+            referenceDateProvider: referenceDateProvider,
+            featureFlags: featureFlags
         ))
     }
 
@@ -73,9 +75,11 @@ struct InsightsView: View {
                 systemImage: SiftIcon.insights
             )
         } else {
-            InsightsContentView(viewModel: viewModel) {
-                appModel.push(.savingsBreakdown, in: .insights)
-            }
+            InsightsContentView(
+                viewModel: viewModel,
+                openSavings: { appModel.push(.savingsBreakdown, in: .insights) },
+                openGoals: { appModel.push(.goals, in: .insights) }
+            )
         }
     }
 }
@@ -83,6 +87,7 @@ struct InsightsView: View {
 private struct InsightsContentView: View {
     let viewModel: InsightsViewModel
     let openSavings: () -> Void
+    let openGoals: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
@@ -96,6 +101,13 @@ private struct InsightsContentView: View {
 
             SecondaryButton(title: "View savings") {
                 openSavings()
+            }
+
+            if viewModel.showsGoalsEntry {
+                SecondaryButton(title: "Savings goals") {
+                    openGoals()
+                }
+                .accessibilityIdentifier("insights-goals-button")
             }
         }
     }

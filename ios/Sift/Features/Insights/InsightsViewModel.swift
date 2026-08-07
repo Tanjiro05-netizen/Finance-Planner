@@ -28,6 +28,7 @@ final class InsightsViewModel {
     private let detectionService: any DetectionServing
     private let refresher: any SubscriptionRefreshing
     private let referenceDateProvider: () -> Date
+    private let featureFlags: SiftFeatureFlags
 
     var isLoading = false
     var isRefreshing = false
@@ -42,12 +43,20 @@ final class InsightsViewModel {
         repositories: RepositoryContainer,
         detectionService: any DetectionServing,
         refresher: any SubscriptionRefreshing,
-        referenceDateProvider: @escaping () -> Date = { Date() }
+        referenceDateProvider: @escaping () -> Date = { Date() },
+        featureFlags: SiftFeatureFlags = .launchDefault
     ) {
         self.repositories = repositories
         self.detectionService = detectionService
         self.refresher = refresher
         self.referenceDateProvider = referenceDateProvider
+        self.featureFlags = featureFlags
+    }
+
+    /// Goals are reached from Insights, mirroring Budgets. Gated so the route stays dark
+    /// until the flag is on.
+    var showsGoalsEntry: Bool {
+        featureFlags.goalsEnabled
     }
 
     var annualSavings: Money {

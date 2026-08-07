@@ -88,6 +88,9 @@ final class AppModel {
         case .budgets:
             select(tab: .insights)
             push(.budgets, in: .insights)
+        case .goals:
+            select(tab: .insights)
+            push(.goals, in: .insights)
         }
     }
 

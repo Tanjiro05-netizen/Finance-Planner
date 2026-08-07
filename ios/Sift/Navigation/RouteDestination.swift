@@ -29,6 +29,8 @@ enum RouteDestination {
             SavingsBreakdownView()
         case .budgets:
             BudgetsRouteView()
+        case .goals:
+            GoalsRouteView()
         }
     }
 
@@ -75,6 +77,10 @@ enum RouteDestination {
             BudgetEditorSheetView(budgetID: budgetID, repositories: repositories)
         case .affordabilityCheck:
             AffordabilityCheckSheetView(repositories: repositories)
+        case let .goalEditor(goalID):
+            GoalEditorSheetView(goalID: goalID, repositories: repositories)
+        case let .goalContribution(goalID):
+            GoalContributionSheetView(goalID: goalID, repositories: repositories)
         }
     }
 }

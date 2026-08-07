@@ -60,6 +60,7 @@ enum SubscriptionsRoute: Hashable {
 enum InsightsRoute: Hashable, CaseIterable {
     case savingsBreakdown
     case budgets
+    case goals
 
     var title: String {
         switch self {
@@ -67,6 +68,8 @@ enum InsightsRoute: Hashable, CaseIterable {
             "Savings"
         case .budgets:
             "Budgets"
+        case .goals:
+            "Goals"
         }
     }
 }
@@ -80,6 +83,9 @@ enum AppSheet: Hashable, Identifiable {
     /// nil creates a new budget; a value edits the existing one.
     case budgetEditor(budgetID: String?)
     case affordabilityCheck
+    /// nil creates a new goal; a value edits the existing one.
+    case goalEditor(goalID: String?)
+    case goalContribution(goalID: String)
 
     var id: String {
         switch self {
@@ -97,6 +103,10 @@ enum AppSheet: Hashable, Identifiable {
             "budget-editor-\(budgetID ?? "new")"
         case .affordabilityCheck:
             "affordability-check"
+        case let .goalEditor(goalID):
+            "goal-editor-\(goalID ?? "new")"
+        case let .goalContribution(goalID):
+            "goal-contribution-\(goalID)"
         }
     }
 
@@ -110,6 +120,9 @@ enum AppSheet: Hashable, Identifiable {
             .budgetEditor(budgetID: nil),
             .budgetEditor(budgetID: SampleRouteID.budget),
             .affordabilityCheck,
+            .goalEditor(goalID: nil),
+            .goalEditor(goalID: SampleRouteID.goal),
+            .goalContribution(goalID: SampleRouteID.goal),
         ]
     }
 }
@@ -123,10 +136,12 @@ enum DeepLink: Hashable {
     case subscriptionDetail(id: String)
     case cancellation(subscriptionID: String)
     case budgets
+    case goals
 }
 
 enum SampleRouteID {
     static let subscription = SeedData.ID.streamline
     static let transaction = SeedData.ID.streamlineTransaction
     static let budget = SeedData.ID.groceriesBudget
+    static let goal = SeedData.ID.emergencyGoal
 }

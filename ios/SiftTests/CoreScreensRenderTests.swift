@@ -114,6 +114,44 @@ struct CoreScreensRenderTests {
         }
     }
 
+    @Test func goalsRendersAtDefaultAndLargeDynamicType() {
+        assertRenders {
+            GoalsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func goalsEmptyStateRenders() {
+        assertRenders {
+            GoalsView(
+                repositories: .emptyMock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func goalEditorRenders() {
+        assertRenders {
+            GoalEditorSheetView(
+                goalID: SeedData.ID.emergencyGoal,
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func goalContributionRenders() {
+        assertRenders {
+            GoalContributionSheetView(
+                goalID: SeedData.ID.emergencyGoal,
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
     private func assertRenders(@ViewBuilder content: () -> some View) {
         render(content(), dynamicTypeSize: .large)
         render(content(), dynamicTypeSize: .accessibility2)

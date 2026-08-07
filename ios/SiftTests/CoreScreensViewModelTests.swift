@@ -59,6 +59,25 @@ struct CoreScreensViewModelTests {
         #expect(viewModel.priceChangeRows.first?.subscriptionName == "Streamline+")
     }
 
+    @Test func insightsHidesTheGoalsEntryUntilTheFlagIsOn() {
+        let offViewModel = InsightsViewModel(
+            repositories: .mock(),
+            detectionService: MockDetectionService(),
+            refresher: NoopSubscriptionRefreshService(),
+            referenceDateProvider: { Self.referenceDate }
+        )
+        #expect(offViewModel.showsGoalsEntry == false)
+
+        let onViewModel = InsightsViewModel(
+            repositories: .mock(),
+            detectionService: MockDetectionService(),
+            refresher: NoopSubscriptionRefreshService(),
+            referenceDateProvider: { Self.referenceDate },
+            featureFlags: SiftFeatureFlags(goalsEnabled: true)
+        )
+        #expect(onViewModel.showsGoalsEntry)
+    }
+
     @Test func detailAnnualizesMonthlyAndYearlyCadences() {
         let repositories = RepositoryContainer.mock()
         let monthlyViewModel = SubscriptionDetailViewModel(
