@@ -78,6 +78,28 @@ struct CoreScreensViewModelTests {
         #expect(onViewModel.showsGoalsEntry)
     }
 
+    @Test func insightsOffersAPermanentWayIntoBudgets() {
+        // Budgets used to be reachable only through Home's over-pace nudge, so a user with
+        // no budgets could never create a first one.
+        let offViewModel = InsightsViewModel(
+            repositories: .mock(),
+            detectionService: MockDetectionService(),
+            refresher: NoopSubscriptionRefreshService(),
+            referenceDateProvider: { Self.referenceDate }
+        )
+        #expect(offViewModel.showsBudgetsEntry == false)
+
+        let onViewModel = InsightsViewModel(
+            repositories: .mock(),
+            detectionService: MockDetectionService(),
+            refresher: NoopSubscriptionRefreshService(),
+            referenceDateProvider: { Self.referenceDate },
+            featureFlags: SiftFeatureFlags(budgetsEnabled: true)
+        )
+        // Present whenever the feature is on — not only once something is already wrong.
+        #expect(onViewModel.showsBudgetsEntry)
+    }
+
     @Test func detailAnnualizesMonthlyAndYearlyCadences() {
         let repositories = RepositoryContainer.mock()
         let monthlyViewModel = SubscriptionDetailViewModel(

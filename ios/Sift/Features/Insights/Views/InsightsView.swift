@@ -85,7 +85,8 @@ struct InsightsView: View {
             InsightsContentView(
                 viewModel: viewModel,
                 openSavings: { appModel.push(.savingsBreakdown, in: .insights) },
-                openGoals: { appModel.push(.goals, in: .insights) }
+                openGoals: { appModel.push(.goals, in: .insights) },
+                openBudgets: { appModel.push(.budgets, in: .insights) }
             )
         }
     }
@@ -95,6 +96,7 @@ private struct InsightsContentView: View {
     let viewModel: InsightsViewModel
     let openSavings: () -> Void
     let openGoals: () -> Void
+    let openBudgets: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
@@ -125,6 +127,13 @@ private struct InsightsContentView: View {
 
             SecondaryButton(title: "View savings") {
                 openSavings()
+            }
+
+            if viewModel.showsBudgetsEntry {
+                SecondaryButton(title: "Budgets") {
+                    openBudgets()
+                }
+                .accessibilityIdentifier("insights-budgets-button")
             }
 
             if viewModel.showsGoalsEntry {

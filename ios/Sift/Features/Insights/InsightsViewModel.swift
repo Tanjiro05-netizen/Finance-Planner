@@ -70,6 +70,14 @@ final class InsightsViewModel {
         featureFlags.goalsEnabled
     }
 
+    /// Budgets had no permanent entry point at all: the only way in was Home's nudge card,
+    /// which only appears once a budget is *already* over pace. With no budgets there was no
+    /// nudge and therefore no way to create a first one — the feature, and the affordability
+    /// check that lives inside it, were unreachable for every new user.
+    var showsBudgetsEntry: Bool {
+        featureFlags.budgetsEnabled
+    }
+
     var annualSavings: Money {
         potentialSavings.multiplied(by: 12)
     }
