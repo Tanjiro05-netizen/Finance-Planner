@@ -135,6 +135,55 @@ struct InsightPromptBuilderTests {
         #expect(InsightPromptBuilder.promptText(for: facts).isEmpty)
     }
 
+    @Test func aZeroedComparisonIsDroppedRatherThanNarrated() {
+        // SpendReportBuilder.comparison always returns a value, zeroed when the ledger is
+        // empty. "$0.00 versus $0.00" is not an observation worth making.
+        let zeroed = SpendComparison(
+            currentTotal: .zeroUSD,
+            previousTotal: .zeroUSD,
+            currentInterval: DateInterval(start: date(2026, 6, 1), end: date(2026, 6, 29)),
+            previousInterval: DateInterval(start: date(2026, 5, 1), end: date(2026, 5, 29)),
+            isPartialMonth: true,
+            dayCount: 29,
+            currentByCategory: [],
+            previousByCategory: []
+        )
+
+        let facts = InsightPromptBuilder.facts(
+            safeToSpend: nil,
+            comparison: zeroed,
+            movers: [],
+            budgets: [],
+            goals: []
+        )
+
+        #expect(facts.isEmpty)
+    }
+
+    @Test func aComparisonWithSpendOnEitherSideIsKept() {
+        let onlyLastMonth = SpendComparison(
+            currentTotal: .zeroUSD,
+            previousTotal: .usd(4200),
+            currentInterval: DateInterval(start: date(2026, 6, 1), end: date(2026, 6, 29)),
+            previousInterval: DateInterval(start: date(2026, 5, 1), end: date(2026, 5, 29)),
+            isPartialMonth: false,
+            dayCount: 30,
+            currentByCategory: [],
+            previousByCategory: []
+        )
+
+        let facts = InsightPromptBuilder.facts(
+            safeToSpend: nil,
+            comparison: onlyLastMonth,
+            movers: [],
+            budgets: [],
+            goals: []
+        )
+
+        // Spending nothing this month after $42 last month is a real thing to notice.
+        #expect(facts.lines.count == 2)
+    }
+
     // MARK: - Redaction
 
     @Test func nothingButAggregatesReachesThePrompt() {

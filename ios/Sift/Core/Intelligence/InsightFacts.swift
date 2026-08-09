@@ -77,7 +77,10 @@ enum InsightPromptBuilder {
             ))
         }
 
-        if let comparison {
+        // `SpendReportBuilder.comparison` always returns a value, zeroed when there is no
+        // ledger. Passing "you spent $0.00, versus $0.00" invites the model to narrate
+        // nothing at some length, so a comparison with no spend on either side is dropped.
+        if let comparison, comparison.currentTotal.amountMinor > 0 || comparison.previousTotal.amountMinor > 0 {
             let window = comparison.isPartialMonth
                 ? "first \(comparison.dayCount) days of each month"
                 : "full month"
