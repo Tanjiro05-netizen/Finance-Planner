@@ -62,6 +62,7 @@ struct SiftFeatureFlags: Equatable {
     var ledgerEnabled: Bool
     var budgetsEnabled: Bool
     var goalsEnabled: Bool
+    var insightNarrationEnabled: Bool
 
     /// Defaulted so adding a flag stays additive — call sites that only care about one
     /// flag don't have to be updated every time a new one lands.
@@ -69,12 +70,14 @@ struct SiftFeatureFlags: Equatable {
         conciergeEnabled: Bool = false,
         ledgerEnabled: Bool = false,
         budgetsEnabled: Bool = false,
-        goalsEnabled: Bool = false
+        goalsEnabled: Bool = false,
+        insightNarrationEnabled: Bool = false
     ) {
         self.conciergeEnabled = conciergeEnabled
         self.ledgerEnabled = ledgerEnabled
         self.budgetsEnabled = budgetsEnabled
         self.goalsEnabled = goalsEnabled
+        self.insightNarrationEnabled = insightNarrationEnabled
     }
 
     static let launchDefault = SiftFeatureFlags()
@@ -84,7 +87,12 @@ struct SiftFeatureFlags: Equatable {
             conciergeEnabled: isEnabled("-siftConciergeEnabled", "SIFT_CONCIERGE_ENABLED", processInfo),
             ledgerEnabled: isEnabled("-siftLedgerEnabled", "SIFT_LEDGER_ENABLED", processInfo),
             budgetsEnabled: isEnabled("-siftBudgetsEnabled", "SIFT_BUDGETS_ENABLED", processInfo),
-            goalsEnabled: isEnabled("-siftGoalsEnabled", "SIFT_GOALS_ENABLED", processInfo)
+            goalsEnabled: isEnabled("-siftGoalsEnabled", "SIFT_GOALS_ENABLED", processInfo),
+            insightNarrationEnabled: isEnabled(
+                "-siftInsightNarrationEnabled",
+                "SIFT_INSIGHT_NARRATION_ENABLED",
+                processInfo
+            )
         )
     }
 

@@ -155,3 +155,142 @@ struct InsightsViewModelTests {
         #expect(viewModel.isEmpty)
     }
 }
+
+/// Narration is a separate pass over the same loaded figures, so it gets its own suite.
+@MainActor
+struct InsightsNarrationTests {
+    private static var referenceDate: Date {
+        SeedData.referenceDate
+    }
+
+    private func makeViewModel(
+        narrator: any InsightNarrating,
+        flags: SiftFeatureFlags = SiftFeatureFlags(
+            budgetsEnabled: true,
+            goalsEnabled: true,
+            insightNarrationEnabled: true
+        ),
+        repositories: RepositoryContainer = .mock()
+    ) -> InsightsViewModel {
+        InsightsViewModel(
+            repositories: repositories,
+            detectionService: MockDetectionService(),
+            refresher: NoopSubscriptionRefreshService(),
+            referenceDateProvider: { Self.referenceDate },
+            featureFlags: flags,
+            narrator: narrator
+        )
+    }
+
+    @Test func narrationStaysOffUntilTheFlagIsOn() async {
+        let viewModel = makeViewModel(
+            narrator: MockInsightNarrator(),
+            flags: SiftFeatureFlags(budgetsEnabled: true, goalsEnabled: true)
+        )
+
+        await viewModel.load()
+        await viewModel.narrateInsights()
+
+        #expect(viewModel.showsNarration == false)
+        #expect(viewModel.narrationUnavailableMessage == nil)
+        #expect(viewModel.insightNotes.isEmpty)
+    }
+
+    @Test func anUnavailableModelExplainsItselfWithoutErroring() async {
+        let narrator = MockInsightNarrator(availabilityResult: .unavailable(.appleIntelligenceNotEnabled))
+        let viewModel = makeViewModel(narrator: narrator)
+
+        await viewModel.load()
+        await viewModel.narrateInsights()
+
+        #expect(viewModel.showsNarration == false)
+        #expect(viewModel.narrationUnavailableMessage == InsightUnavailableReason.appleIntelligenceNotEnabled.message)
+        #expect(viewModel.insightNotes.isEmpty)
+        // The deterministic half is untouched by the model being unavailable.
+        #expect(viewModel.errorMessage == nil)
+        #expect(viewModel.showsSpendReports)
+    }
+
+    @Test func availableModelProducesNotes() async {
+        let viewModel = makeViewModel(narrator: MockInsightNarrator())
+
+        await viewModel.load()
+        await viewModel.narrateInsights()
+
+        #expect(viewModel.showsNarration)
+        #expect(viewModel.insightNotes.isEmpty == false)
+        #expect(viewModel.narrationMessage == nil)
+        #expect(viewModel.isNarrating == false)
+    }
+
+    @Test func aNarrationFailureLeavesTheFiguresIntact() async {
+        let narrator = MockInsightNarrator(failure: .rateLimited)
+        let viewModel = makeViewModel(narrator: narrator)
+
+        await viewModel.load()
+        await viewModel.narrateInsights()
+
+        #expect(viewModel.insightNotes.isEmpty)
+        #expect(viewModel.narrationMessage == InsightNarrationFailure.rateLimited.message)
+        // The whole point of keeping narrationMessage separate from errorMessage.
+        #expect(viewModel.errorMessage == nil)
+        #expect(viewModel.monthlySpend.isEmpty == false)
+        #expect(viewModel.spendComparison != nil)
+    }
+
+    @Test func theNarratorOnlyEverSeesAggregates() async throws {
+        let repositories = RepositoryContainer.mock()
+        let narrator = MockInsightNarrator()
+        let viewModel = makeViewModel(narrator: narrator, repositories: repositories)
+
+        await viewModel.load()
+        await viewModel.narrateInsights()
+
+        let facts = try #require(narrator.recorder.lastFacts)
+        #expect(facts.isEmpty == false)
+
+        // No merchant string from the ledger may appear anywhere in the prompt. This is the
+        // privacy guarantee, asserted against the real seeded ledger rather than a fixture.
+        let prompt = InsightPromptBuilder.promptText(for: facts)
+        for transaction in try repositories.transactions.all() {
+            #expect(prompt.contains(transaction.merchantRaw) == false)
+        }
+    }
+
+    @Test func factsCarryBudgetsAndGoalsWhenThoseFlagsAreOn() async throws {
+        let narrator = MockInsightNarrator()
+        let viewModel = makeViewModel(narrator: narrator)
+
+        await viewModel.load()
+        await viewModel.narrateInsights()
+
+        let facts = try #require(narrator.recorder.lastFacts)
+        #expect(facts.lines.contains { $0.label.contains("budget") })
+        #expect(facts.lines.contains { $0.label.hasPrefix("Goal:") })
+    }
+
+    @Test func budgetsAndGoalsAreOmittedWhenTheirFlagsAreOff() async throws {
+        let narrator = MockInsightNarrator()
+        let viewModel = makeViewModel(
+            narrator: narrator,
+            flags: SiftFeatureFlags(insightNarrationEnabled: true)
+        )
+
+        await viewModel.load()
+        await viewModel.narrateInsights()
+
+        let facts = try #require(narrator.recorder.lastFacts)
+        #expect(facts.lines.contains { $0.label.contains("budget") } == false)
+        #expect(facts.lines.contains { $0.label.hasPrefix("Goal:") } == false)
+    }
+
+    @Test func anEmptyStoreNarratesNothingRatherThanFailing() async {
+        let viewModel = makeViewModel(narrator: MockInsightNarrator(), repositories: .emptyMock())
+
+        await viewModel.load()
+        await viewModel.narrateInsights()
+
+        #expect(viewModel.insightNotes.isEmpty)
+        #expect(viewModel.narrationMessage == nil)
+    }
+}

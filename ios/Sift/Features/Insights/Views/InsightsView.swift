@@ -12,7 +12,8 @@ struct InsightsView: View {
         incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(),
         notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
         referenceDateProvider: @escaping () -> Date = { Date() },
-        featureFlags: SiftFeatureFlags = .launchDefault
+        featureFlags: SiftFeatureFlags = .launchDefault,
+        insightNarrator: any InsightNarrating = MockInsightNarrator()
     ) {
         let refresher = DefaultSubscriptionRefreshService(
             apiClient: apiClient,
@@ -26,7 +27,8 @@ struct InsightsView: View {
             detectionService: detectionService,
             refresher: refresher,
             referenceDateProvider: referenceDateProvider,
-            featureFlags: featureFlags
+            featureFlags: featureFlags,
+            narrator: insightNarrator
         ))
     }
 
@@ -45,7 +47,12 @@ struct InsightsView: View {
         .background(Palette.bone)
         .navigationTitle("Insights")
         .refreshable { await viewModel.refresh() }
-        .task { await viewModel.load() }
+        .task {
+            await viewModel.load()
+            // Sequenced after load, not alongside it: narration reads the comparison and
+            // movers that load() produces, and the figures must not wait on generation.
+            await viewModel.narrateInsights()
+        }
         .onChange(of: appModel.sheet) { _, newValue in
             if newValue == nil {
                 Task {
@@ -92,6 +99,14 @@ private struct InsightsContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             SavingsHeroCard(viewModel: viewModel)
+
+            NarrationSection(
+                notes: viewModel.insightNotes,
+                isNarrating: viewModel.isNarrating,
+                failureMessage: viewModel.narrationMessage,
+                unavailableMessage: viewModel.narrationUnavailableMessage
+            )
+
             CategorySpendCard(
                 rows: viewModel.categorySpend,
                 maxSpend: viewModel.maxCategorySpend
@@ -119,6 +134,74 @@ private struct InsightsContentView: View {
                 .accessibilityIdentifier("insights-goals-button")
             }
         }
+    }
+}
+
+/// Written observations from the on-device model, and the several ways there can be none.
+///
+/// Renders nothing at all when narration is off — the flag being off, or the model being
+/// unavailable with no message, must leave Insights looking exactly as it did before.
+private struct NarrationSection: View {
+    let notes: [InsightNote]
+    let isNarrating: Bool
+    let failureMessage: String?
+    let unavailableMessage: String?
+
+    var body: some View {
+        if let unavailableMessage {
+            SiftCard {
+                sectionTitle
+                Text(unavailableMessage)
+                    .font(.siftBody)
+                    .foregroundStyle(Palette.inkSoft)
+            }
+            .accessibilityIdentifier("insights-narration-unavailable")
+        } else if isNarrating {
+            SiftCard {
+                sectionTitle
+                Text("Reading your numbers…")
+                    .font(.siftBody)
+                    .foregroundStyle(Palette.inkSoft)
+            }
+            .accessibilityIdentifier("insights-narration-loading")
+        } else if let failureMessage {
+            SiftCard {
+                sectionTitle
+                Text(failureMessage)
+                    .font(.siftBody)
+                    .foregroundStyle(Palette.inkSoft)
+            }
+            .accessibilityIdentifier("insights-narration-failed")
+        } else if !notes.isEmpty {
+            SiftCard {
+                sectionTitle
+
+                ForEach(notes) { note in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(note.headline)
+                            .font(.bodyEmphasis)
+                            .foregroundStyle(Palette.ink)
+                        Text(note.detail)
+                            .font(.siftBody)
+                            .foregroundStyle(Palette.inkSoft)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                // Said plainly rather than buried in a settings screen: people should know
+                // where the words came from, and that the figures did not.
+                Text("Written on your iPhone. Your financial data never leaves the device.")
+                    .font(.siftLabel)
+                    .foregroundStyle(Palette.inkFaint)
+            }
+            .accessibilityIdentifier("insights-narration")
+        }
+    }
+
+    private var sectionTitle: some View {
+        Text("WHAT SIFT NOTICED")
+            .font(.siftLabel)
+            .foregroundStyle(Palette.inkFaint)
     }
 }
 

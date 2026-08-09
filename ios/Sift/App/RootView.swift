@@ -15,6 +15,7 @@ struct RootView: View {
     @Environment(\.plaidLinkPresenter) private var plaidLinkPresenter
     @Environment(\.repositories) private var repositories
     @Environment(\.featureFlags) private var featureFlags
+    @Environment(\.insightNarrator) private var insightNarrator
     @Environment(\.analyticsRecorder) private var analyticsRecorder
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.biometricAuthenticator) private var biometricAuthenticator
@@ -201,7 +202,9 @@ struct RootView: View {
                     apiClient: apiClient,
                     detectionService: detectionService,
                     incomeDetectionService: incomeDetectionService,
-                    notificationScheduler: notificationScheduler
+                    notificationScheduler: notificationScheduler,
+                    featureFlags: featureFlags,
+                    insightNarrator: insightNarrator
                 )
                 .withInsightsDestinations()
             }

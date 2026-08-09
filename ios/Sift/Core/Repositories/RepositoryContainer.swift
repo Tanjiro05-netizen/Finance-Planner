@@ -126,6 +126,10 @@ extension EnvironmentValues {
 
     @Entry var notificationRouter: NotificationRouter = .init()
 
+    /// Defaults to the mock so previews and tests never reach the on-device model. `SiftApp`
+    /// substitutes `FoundationModelsNarrator` for the real app.
+    @Entry var insightNarrator: any InsightNarrating = MockInsightNarrator()
+
     @Entry var onboardingStateStore: any OnboardingStateStoring = InMemoryOnboardingStateStore()
 
     @Entry var tokenStore: any TokenStoring = KeychainTokenStore()

@@ -19,6 +19,7 @@ struct SiftApp: App {
     private let featureFlags: SiftFeatureFlags
     private let analyticsRecorder: any AnalyticsRecording
     private let biometricAuthenticator: any BiometricAuthenticating
+    private let insightNarrator: any InsightNarrating
     private let appLockEnabled: Bool
     private let backgroundRefreshController: BackgroundRefreshController?
 
@@ -91,6 +92,9 @@ struct SiftApp: App {
             notificationAuthorizer = MockNotificationAuthorizer()
             biometricAuthenticator = MockBiometricAuthenticator(available: false)
             appLockEnabled = false
+            // Mock launches (UI tests, previews) must never reach the on-device model:
+            // it's unavailable on CI anyway, and its output isn't deterministic.
+            insightNarrator = MockInsightNarrator(availabilityResult: .unavailable(.notSupported))
         } else {
             configuredRepositories = RepositoryContainer.live(modelContext: container.mainContext)
             let financeStore: any FinancialDataStore = FinanceKitStore()
@@ -101,6 +105,7 @@ struct SiftApp: App {
             notificationAuthorizer = UserNotificationAuthorizer()
             biometricAuthenticator = LocalAuthenticationGate()
             appLockEnabled = AppLockPreference().isEnabled
+            insightNarrator = FoundationModelsNarrator()
         }
 
         repositories = configuredRepositories
@@ -145,6 +150,7 @@ struct SiftApp: App {
                 .environment(\.analyticsRecorder, analyticsRecorder)
                 .environment(\.biometricAuthenticator, biometricAuthenticator)
                 .environment(\.appLockEnabled, appLockEnabled)
+                .environment(\.insightNarrator, insightNarrator)
                 .modelContainer(modelContainer)
                 .task { backgroundRefreshController?.schedule() }
         }

@@ -29,6 +29,7 @@ final class InsightsViewModel {
     private let refresher: any SubscriptionRefreshing
     private let referenceDateProvider: () -> Date
     private let featureFlags: SiftFeatureFlags
+    private let narrator: any InsightNarrating
 
     var isLoading = false
     var isRefreshing = false
@@ -41,19 +42,26 @@ final class InsightsViewModel {
     var monthlySpend: [MonthlySpendPoint] = []
     var spendComparison: SpendComparison?
     var topMovers: [CategoryMover] = []
+    var insightNotes: [InsightNote] = []
+    var isNarrating = false
+    /// Separate from `errorMessage`: narration failing must never take the deterministic
+    /// figures down with it.
+    var narrationMessage: String?
 
     init(
         repositories: RepositoryContainer,
         detectionService: any DetectionServing,
         refresher: any SubscriptionRefreshing,
         referenceDateProvider: @escaping () -> Date = { Date() },
-        featureFlags: SiftFeatureFlags = .launchDefault
+        featureFlags: SiftFeatureFlags = .launchDefault,
+        narrator: any InsightNarrating = MockInsightNarrator()
     ) {
         self.repositories = repositories
         self.detectionService = detectionService
         self.refresher = refresher
         self.referenceDateProvider = referenceDateProvider
         self.featureFlags = featureFlags
+        self.narrator = narrator
     }
 
     /// Goals are reached from Insights, mirroring Budgets. Gated so the route stays dark
@@ -90,6 +98,23 @@ final class InsightsViewModel {
 
     var maxMonthlySpend: Money {
         monthlySpend.map(\.total).max() ?? .zeroUSD
+    }
+
+    /// Gated on the flag *and* on the model actually being usable. On CI, in the Simulator
+    /// without Apple Intelligence, and on ineligible hardware this is false, and Insights
+    /// renders exactly as it did before Phase 5.
+    var showsNarration: Bool {
+        featureFlags.insightNarrationEnabled && narrator.availability().isAvailable
+    }
+
+    /// Shown in place of the notes when the flag is on but the model can't run — this is an
+    /// ordinary state, not an error.
+    var narrationUnavailableMessage: String? {
+        guard featureFlags.insightNarrationEnabled else {
+            return nil
+        }
+
+        return narrator.availability().unavailableMessage
     }
 
     func load() async {
@@ -179,6 +204,119 @@ final class InsightsViewModel {
         )
         spendComparison = comparison
         topMovers = SpendReportBuilder.topMovers(comparison: comparison)
+    }
+
+    /// Builds the fact sheet and asks the narrator to phrase it.
+    ///
+    /// Kept out of `loadContent` and awaited separately so the deterministic figures render
+    /// immediately: generation takes seconds, and the numbers should never wait on prose.
+    func narrateInsights() async {
+        guard showsNarration, !isNarrating else {
+            return
+        }
+
+        isNarrating = true
+        defer { isNarrating = false }
+
+        let facts: InsightFacts
+        do {
+            facts = try buildFacts()
+        } catch {
+            narrationMessage = InsightNarrationFailure.unknown.message
+            return
+        }
+
+        guard !facts.isEmpty else {
+            insightNotes = []
+            narrationMessage = nil
+            return
+        }
+
+        do {
+            insightNotes = try await narrator.narrate(facts: facts)
+            narrationMessage = nil
+        } catch let failure as InsightNarrationFailure {
+            insightNotes = []
+            narrationMessage = failure.message
+        } catch {
+            insightNotes = []
+            narrationMessage = InsightNarrationFailure.unknown.message
+        }
+    }
+
+    /// Assembles aggregates the deterministic layer already computed. Nothing here reads a
+    /// merchant name or an individual charge — see `InsightFacts`.
+    private func buildFacts() throws -> InsightFacts {
+        let today = referenceDateProvider()
+
+        var safeToSpend: SafeToSpendResult?
+        if case let .available(result) = try SafeToSpendProvider.outcome(repositories: repositories, today: today) {
+            safeToSpend = result
+        }
+
+        // Bound before the call rather than inlined: swiftformat's `hoistTry` requires `try`
+        // at the start of an expression, not buried in an argument.
+        let budgets = try budgetFacts(today: today)
+        let goals = try goalFacts(today: today)
+
+        return InsightPromptBuilder.facts(
+            safeToSpend: safeToSpend,
+            comparison: spendComparison,
+            movers: topMovers,
+            budgets: budgets,
+            goals: goals
+        )
+    }
+
+    private func budgetFacts(today: Date) throws -> [BudgetFactInput] {
+        guard featureFlags.budgetsEnabled else {
+            return []
+        }
+
+        let budgets = try repositories.budgets.all().filter { $0.status == .active }
+        guard !budgets.isEmpty else {
+            return []
+        }
+
+        let categoryNames = try Dictionary(
+            repositories.categories.all().map { ($0.id, $0.name) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        let cycles = budgets.map { BudgetPeriodCalculator.cycle(for: $0.period, containing: today) }
+        let earliest = cycles.map(\.interval.start).min() ?? today
+        let transactions = try repositories.transactions.transactions(from: earliest, to: today)
+
+        return budgets.map { budget in
+            BudgetFactInput(
+                categoryName: categoryNames[budget.categoryID] ?? "Uncategorized",
+                progress: BudgetProgressCalculator.progress(
+                    budget: budget,
+                    transactions: transactions,
+                    referenceDate: today
+                )
+            )
+        }
+    }
+
+    private func goalFacts(today: Date) throws -> [GoalFactInput] {
+        guard featureFlags.goalsEnabled else {
+            return []
+        }
+
+        return try repositories.goals.all()
+            .filter { $0.status != .archived }
+            .map { goal in
+                let contributions = try repositories.goals.contributions(forGoal: goal.id)
+                return GoalFactInput(
+                    name: goal.name,
+                    targetAmount: goal.targetAmount,
+                    outcome: GoalProjector.outcome(
+                        goal: goal,
+                        contributions: contributions,
+                        referenceDate: today
+                    )
+                )
+            }
     }
 
     private func makePriceChangeRows() throws -> [PriceChangeAlertRow] {
