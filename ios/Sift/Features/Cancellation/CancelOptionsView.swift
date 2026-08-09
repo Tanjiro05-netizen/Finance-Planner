@@ -81,15 +81,28 @@ struct CancelOptionsView: View {
             return "Our concierge team creates and tracks a real cancellation request. Your bank connection stays read-only."
         }
 
-        return "We are not offering concierge cancellation at launch yet. Guided steps and reminders are available now."
+        // Says what the feature will be and what it needs, rather than an open-ended
+        // "coming soon" — people are entitled to know why it isn't here.
+        return """
+        A person on our team would contact the provider and track the request to completion. \
+        That needs a Sift account and a server, which this build runs without — everything \
+        here happens on your iPhone. Guided steps and renewal reminders work today.
+        """
     }
 
     private var honestNoteText: String {
         if viewModel.isConciergeEnabled {
-            return "There is no universal cancel button. Sift either creates a concierge request our team can track, or shows you the real steps to cancel yourself."
+            return """
+            There is no universal cancel button. Sift either creates a concierge request our \
+            team can track, or shows you the real steps to cancel yourself.
+            """
         }
 
-        return "There is no universal cancel button. For launch, Sift shows the real cancellation steps and can remind you before renewal."
+        return """
+        There is no universal cancel button — no app can cancel on your behalf without \
+        contacting the provider. Sift shows you the real steps and can remind you before \
+        the next renewal.
+        """
     }
 
     private func optionButton(

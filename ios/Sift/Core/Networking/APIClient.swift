@@ -22,6 +22,13 @@ extension URLSession: HTTPDataLoading {
 }
 
 protocol SiftAPIClient: Sendable {
+    /// Whether this backend can actually create and track a concierge cancellation.
+    ///
+    /// Concierge needs a server that a human team works from. The on-device FinanceKit
+    /// client has no such server, so it reports `false` and the UI offers guided steps
+    /// instead of letting someone tap into a dead end.
+    var supportsConcierge: Bool { get }
+
     func bootstrap() async throws -> AuthBootstrapResponse
     func createLinkToken() async throws -> LinkTokenResponse
     func exchange(publicToken: String) async throws -> ExchangePublicTokenResponse
@@ -44,6 +51,12 @@ protocol SiftAPIClient: Sendable {
 }
 
 extension SiftAPIClient {
+    /// Defaults to true so a server-backed client doesn't have to opt in; the on-device
+    /// client overrides it.
+    var supportsConcierge: Bool {
+        true
+    }
+
     func listAccounts() async throws -> [RemoteAccount] {
         []
     }

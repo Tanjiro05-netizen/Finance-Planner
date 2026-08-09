@@ -82,8 +82,11 @@ final class CancellationViewModel {
         subscription?.monthlyEquivalent.multiplied(by: 12) ?? .zeroUSD
     }
 
+    /// Both the flag and the backend have to agree. Flipping the flag on against the
+    /// on-device client would otherwise present "Cancel for me" as a live option and then
+    /// fail the request — an offer the app can't keep.
     var isConciergeEnabled: Bool {
-        featureFlags.conciergeEnabled
+        featureFlags.conciergeEnabled && apiClient.supportsConcierge
     }
 
     var requestsSavings: Money {

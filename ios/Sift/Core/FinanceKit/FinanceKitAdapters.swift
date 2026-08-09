@@ -73,6 +73,11 @@ struct FinanceKitAPIClient: SiftAPIClient {
         }
     }
 
+    /// No server, so no concierge. Declared rather than discovered by failing a request.
+    var supportsConcierge: Bool {
+        false
+    }
+
     func createCancellation(
         subscriptionRef _: String,
         merchantName _: String,

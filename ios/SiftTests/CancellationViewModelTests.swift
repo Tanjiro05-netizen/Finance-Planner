@@ -107,14 +107,39 @@ struct CancellationViewModelTests {
         #expect(try repositories.cancellations.requests(for: SeedData.ID.streamline).isEmpty)
         #expect(analytics.events == [.featureUnavailable(name: "concierge")])
     }
+
+    @Test func conciergeStaysOfferedOnlyWhenTheBackendCanServiceIt() {
+        let apiClient = CancellationAPIClientSpy()
+        apiClient.conciergeSupported = false
+
+        let viewModel = CancellationViewModel(
+            subscriptionID: SeedData.ID.streamline,
+            repositories: .mock(),
+            apiClient: apiClient,
+            featureFlags: SiftFeatureFlags(conciergeEnabled: true),
+            now: { SeedData.referenceDate }
+        )
+        viewModel.load()
+
+        // Flag on, backend can't do it: the option must not present itself as live.
+        #expect(viewModel.isConciergeEnabled == false)
+
+        apiClient.conciergeSupported = true
+        #expect(viewModel.isConciergeEnabled)
+    }
 }
 
 private final class CancellationAPIClientSpy: SiftAPIClient, @unchecked Sendable {
+    var conciergeSupported = true
     var createdMethods: [CancellationMethod] = []
     var updatedStatuses: [CancellationStatus] = []
     var listResponse: [RemoteCancellationRequest] = []
 
     private var currentRequest: RemoteCancellationRequest?
+
+    var supportsConcierge: Bool {
+        conciergeSupported
+    }
 
     func bootstrap() async throws -> AuthBootstrapResponse {
         AuthBootstrapResponse(token: "jwt-test")
