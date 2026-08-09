@@ -180,6 +180,12 @@
 		F0000000000000000000B016 /* GoalComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F016 /* GoalComponents.swift */; };
 		F0000000000000000000B020 /* SpendReportSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F020 /* SpendReportSections.swift */; };
 		F0000000000000000000B021 /* ReportComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F021 /* ReportComponents.swift */; };
+		F0000000000000000000B030 /* InsightChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F030 /* InsightChat.swift */; };
+		F0000000000000000000B031 /* FoundationModelsConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F031 /* FoundationModelsConversation.swift */; };
+		F0000000000000000000B032 /* AssistantViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F032 /* AssistantViewModel.swift */; };
+		F0000000000000000000B033 /* AssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F033 /* AssistantView.swift */; };
+		F0000000000000000000C030 /* ChatRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G030 /* ChatRouterTests.swift */; };
+		F0000000000000000000C031 /* AssistantViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G031 /* AssistantViewModelTests.swift */; };
 		F0000000000000000000C020 /* InsightsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G020 /* InsightsViewModelTests.swift */; };
 		F0000000000000000000C010 /* GoalsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G010 /* GoalsViewModelTests.swift */; };
 		F0000000000000000000C011 /* GoalEditorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G011 /* GoalEditorViewModelTests.swift */; };
@@ -382,6 +388,12 @@
 		F0000000000000000000F016 /* GoalComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalComponents.swift; sourceTree = "<group>"; };
 		F0000000000000000000F020 /* SpendReportSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpendReportSections.swift; sourceTree = "<group>"; };
 		F0000000000000000000F021 /* ReportComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportComponents.swift; sourceTree = "<group>"; };
+		F0000000000000000000F030 /* InsightChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightChat.swift; sourceTree = "<group>"; };
+		F0000000000000000000F031 /* FoundationModelsConversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsConversation.swift; sourceTree = "<group>"; };
+		F0000000000000000000F032 /* AssistantViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantViewModel.swift; sourceTree = "<group>"; };
+		F0000000000000000000F033 /* AssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantView.swift; sourceTree = "<group>"; };
+		F0000000000000000000G030 /* ChatRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRouterTests.swift; sourceTree = "<group>"; };
+		F0000000000000000000G031 /* AssistantViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantViewModelTests.swift; sourceTree = "<group>"; };
 		F0000000000000000000G020 /* InsightsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsViewModelTests.swift; sourceTree = "<group>"; };
 		F0000000000000000000G010 /* GoalsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsViewModelTests.swift; sourceTree = "<group>"; };
 		F0000000000000000000G011 /* GoalEditorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalEditorViewModelTests.swift; sourceTree = "<group>"; };
@@ -455,6 +467,8 @@
 				F0000000000000000000G010 /* GoalsViewModelTests.swift */,
 				A1000000000000000000G001 /* InsightPromptBuilderTests.swift */,
 				F0000000000000000000G020 /* InsightsViewModelTests.swift */,
+				F0000000000000000000G030 /* ChatRouterTests.swift */,
+				F0000000000000000000G031 /* AssistantViewModelTests.swift */,
 				F0000000000000000000G011 /* GoalEditorViewModelTests.swift */,
 				F0000000000000000000G012 /* GoalContributionViewModelTests.swift */,
 				F0000000000000000000G001 /* GoalProjectorTests.swift */,
@@ -645,6 +659,7 @@
 		A1000000000000000000G010 /* Intelligence */ = {
 			isa = PBXGroup;
 			children = (
+				F0000000000000000000F030 /* InsightChat.swift */,
 				A1000000000000000000F001 /* InsightNarrating.swift */,
 				A1000000000000000000F002 /* InsightFacts.swift */,
 			);
@@ -663,10 +678,28 @@
 		B0000000000000000000G002 /* Integrations */ = {
 			isa = PBXGroup;
 			children = (
+				F0000000000000000000F031 /* FoundationModelsConversation.swift */,
 				B0000000000000000000F003 /* FinanceKitStore.swift */,
 				A1000000000000000000F003 /* FoundationModelsNarrator.swift */,
 			);
 			path = Integrations;
+			sourceTree = "<group>";
+		};
+		F0000000000000000000GA10 /* Assistant */ = {
+			isa = PBXGroup;
+			children = (
+				F0000000000000000000F032 /* AssistantViewModel.swift */,
+				F0000000000000000000GA11 /* Views */,
+			);
+			path = Assistant;
+			sourceTree = "<group>";
+		};
+		F0000000000000000000GA11 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				F0000000000000000000F033 /* AssistantView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 		F0000000000000000000GA01 /* Goals */ = {
@@ -850,6 +883,7 @@
 				D0000000000000000000G001 /* CashFlow */,
 				E0000000000000000000GA01 /* Budgets */,
 				F0000000000000000000GA01 /* Goals */,
+				F0000000000000000000GA10 /* Assistant */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -1161,6 +1195,10 @@
 				F0000000000000000000B015 /* GoalContributionSheetView.swift in Sources */,
 				F0000000000000000000B016 /* GoalComponents.swift in Sources */,
 				F0000000000000000000B021 /* ReportComponents.swift in Sources */,
+				F0000000000000000000B030 /* InsightChat.swift in Sources */,
+				F0000000000000000000B031 /* FoundationModelsConversation.swift in Sources */,
+				F0000000000000000000B032 /* AssistantViewModel.swift in Sources */,
+				F0000000000000000000B033 /* AssistantView.swift in Sources */,
 				F0000000000000000000B002 /* SpendReportBuilder.swift in Sources */,
 				E0000000000000000000B002 /* BudgetProgressCalculator.swift in Sources */,
 				E0000000000000000000B003 /* AffordabilityAdvisor.swift in Sources */,
@@ -1233,6 +1271,8 @@
 				F0000000000000000000C010 /* GoalsViewModelTests.swift in Sources */,
 				A1000000000000000000C001 /* InsightPromptBuilderTests.swift in Sources */,
 				F0000000000000000000C020 /* InsightsViewModelTests.swift in Sources */,
+				F0000000000000000000C030 /* ChatRouterTests.swift in Sources */,
+				F0000000000000000000C031 /* AssistantViewModelTests.swift in Sources */,
 				F0000000000000000000C011 /* GoalEditorViewModelTests.swift in Sources */,
 				F0000000000000000000C012 /* GoalContributionViewModelTests.swift in Sources */,
 				F0000000000000000000C001 /* GoalProjectorTests.swift in Sources */,

@@ -10,6 +10,7 @@ final class AppModel {
     var subscriptionsPath = NavigationPath()
     var insightsPath = NavigationPath()
     var transactionsPath = NavigationPath()
+    var assistantPath = NavigationPath()
     var sheet: AppSheet?
 
     init(isOnboardingComplete: Bool = false) {
@@ -27,6 +28,7 @@ final class AppModel {
         subscriptionsPath = NavigationPath()
         insightsPath = NavigationPath()
         transactionsPath = NavigationPath()
+        assistantPath = NavigationPath()
         sheet = nil
     }
 
@@ -104,6 +106,8 @@ final class AppModel {
             insightsPath.count
         case .transactions:
             transactionsPath.count
+        case .assistant:
+            assistantPath.count
         }
     }
 }

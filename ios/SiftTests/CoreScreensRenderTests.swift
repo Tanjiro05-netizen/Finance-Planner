@@ -41,6 +41,28 @@ struct CoreScreensRenderTests {
         }
     }
 
+    @Test func assistantRendersItsEmptyState() {
+        assertRenders {
+            AssistantView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate },
+                featureFlags: SiftFeatureFlags(assistantEnabled: true)
+            )
+        }
+    }
+
+    /// Flag on, model unusable — what most devices will actually show.
+    @Test func assistantRendersTheUnavailableNotice() {
+        assertRenders {
+            AssistantView(
+                repositories: .mock(),
+                conversation: MockInsightConversation(availabilityResult: .unavailable(.deviceNotEligible)),
+                referenceDateProvider: { Self.referenceDate },
+                featureFlags: SiftFeatureFlags(assistantEnabled: true)
+            )
+        }
+    }
+
     /// The default render test runs with narration off, so the notes branch of
     /// `NarrationSection` would otherwise never be drawn by any test.
     @Test func insightsRendersWrittenNarration() {

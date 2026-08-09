@@ -24,4 +24,5 @@ enum SiftIcon {
     static let budget = "chart.pie"
     static let affordability = "questionmark.circle"
     static let goal = "target"
+    static let assistant = "sparkles"
 }

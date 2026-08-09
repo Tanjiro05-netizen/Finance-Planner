@@ -3,6 +3,7 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
     case subscriptions
     case insights
     case transactions
+    case assistant
 
     var id: Self {
         self
@@ -18,6 +19,8 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
             "Insights"
         case .transactions:
             "Transactions"
+        case .assistant:
+            "Ask"
         }
     }
 
@@ -31,6 +34,8 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
             isSelected ? "chart.bar.fill" : SiftIcon.insights
         case .transactions:
             isSelected ? "list.bullet.rectangle.fill" : SiftIcon.transactions
+        case .assistant:
+            isSelected ? "sparkles" : SiftIcon.assistant
         }
     }
 }

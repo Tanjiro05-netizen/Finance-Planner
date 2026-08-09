@@ -130,6 +130,10 @@ extension EnvironmentValues {
     /// substitutes `FoundationModelsNarrator` for the real app.
     @Entry var insightNarrator: any InsightNarrating = MockInsightNarrator()
 
+    /// Same default rationale as `insightNarrator`: previews and tests never reach the
+    /// on-device model.
+    @Entry var insightConversation: any InsightConversing = MockInsightConversation()
+
     @Entry var onboardingStateStore: any OnboardingStateStoring = InMemoryOnboardingStateStore()
 
     @Entry var tokenStore: any TokenStoring = KeychainTokenStore()

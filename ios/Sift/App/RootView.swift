@@ -16,6 +16,7 @@ struct RootView: View {
     @Environment(\.repositories) private var repositories
     @Environment(\.featureFlags) private var featureFlags
     @Environment(\.insightNarrator) private var insightNarrator
+    @Environment(\.insightConversation) private var insightConversation
     @Environment(\.analyticsRecorder) private var analyticsRecorder
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.biometricAuthenticator) private var biometricAuthenticator
@@ -153,6 +154,9 @@ struct RootView: View {
             if featureFlags.ledgerEnabled {
                 transactionsTab(path: $model.transactionsPath, selectedTab: model.selectedTab)
             }
+            if featureFlags.assistantEnabled {
+                assistantTab(path: $model.assistantPath, selectedTab: model.selectedTab)
+            }
         }
         .tabViewStyle(.automatic)
         .tint(Palette.goldDeep)
@@ -220,6 +224,20 @@ struct RootView: View {
             }
         } label: {
             tabLabel(for: .transactions, selectedTab: selectedTab)
+        }
+    }
+
+    private func assistantTab(path: Binding<NavigationPath>, selectedTab: AppTab) -> some TabContent<AppTab> {
+        Tab(value: AppTab.assistant) {
+            NavigationStack(path: path) {
+                AssistantView(
+                    repositories: repositories,
+                    conversation: insightConversation,
+                    featureFlags: featureFlags
+                )
+            }
+        } label: {
+            tabLabel(for: .assistant, selectedTab: selectedTab)
         }
     }
 
