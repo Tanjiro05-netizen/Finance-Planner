@@ -34,7 +34,7 @@ final class SiftUITests: XCTestCase {
         XCTAssertTrue(app.buttons["detail-cancel-button"].waitForExistence(timeout: 2))
 
         app.buttons["Done"].tap()
-        XCTAssertFalse(app.staticTexts["detail-sheet-title"].waitForExistence(timeout: 1))
+        XCTAssertTrue(app.staticTexts["detail-sheet-title"].waitToDisappear(timeout: 5))
     }
 
     @MainActor
@@ -66,7 +66,9 @@ final class SiftUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["cancel-confirmed-title"].waitForExistence(timeout: 2))
         app.buttons["cancel-confirmed-done"].tap()
 
-        XCTAssertFalse(app.buttons["sample-subscription-row"].waitForExistence(timeout: 2))
+        // Dismissing the sheet, popping back, and reloading the list all have to land before
+        // the row goes away, so this needs a real wait rather than a single existence check.
+        XCTAssertTrue(app.buttons["sample-subscription-row"].waitToDisappear(timeout: 5))
     }
 
     @MainActor
@@ -179,5 +181,24 @@ final class SiftUITests: XCTestCase {
 
         XCTAssertTrue(feedbackButton.waitForExistence(timeout: 2))
         XCTAssertTrue(app.staticTexts["settings-support-version"].waitForExistence(timeout: 2))
+    }
+}
+
+extension XCUIElement {
+    /// Waits for the element to go away, returning `false` if it is still there when the
+    /// timeout expires.
+    ///
+    /// `waitForExistence` returns `true` the moment the element is present and only spends
+    /// the timeout when it is absent, so `XCTAssertFalse(element.waitForExistence(...))`
+    /// never actually waits for a disappearance — it races whatever is updating the UI and
+    /// fails intermittently. Built on `XCTNSPredicateExpectation` rather than
+    /// `waitForNonExistence(timeout:)` so there is no question about the API existing in
+    /// this toolchain.
+    func waitToDisappear(timeout: TimeInterval) -> Bool {
+        let gone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"),
+            object: self
+        )
+        return XCTWaiter().wait(for: [gone], timeout: timeout) == .completed
     }
 }
