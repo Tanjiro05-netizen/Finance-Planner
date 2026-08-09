@@ -41,6 +41,32 @@ struct CoreScreensRenderTests {
         }
     }
 
+    /// The default render test runs with narration off, so the notes branch of
+    /// `NarrationSection` would otherwise never be drawn by any test.
+    @Test func insightsRendersWrittenNarration() {
+        assertRenders {
+            InsightsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate },
+                featureFlags: SiftFeatureFlags(insightNarrationEnabled: true),
+                insightNarrator: MockInsightNarrator()
+            )
+        }
+    }
+
+    /// The other branch: flag on, model unusable. This is what CI, older iPhones, and
+    /// anyone without Apple Intelligence actually see.
+    @Test func insightsRendersTheNarrationUnavailableNotice() {
+        assertRenders {
+            InsightsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate },
+                featureFlags: SiftFeatureFlags(insightNarrationEnabled: true),
+                insightNarrator: MockInsightNarrator(availabilityResult: .unavailable(.deviceNotEligible))
+            )
+        }
+    }
+
     @Test func transactionsRendersAtDefaultAndLargeDynamicType() {
         assertRenders {
             TransactionsView(
