@@ -7,6 +7,18 @@ struct InsightPromptBuilderTests {
         Calendar.utc.date(from: DateComponents(year: year, month: month, day: day, hour: 12)) ?? Date()
     }
 
+    private func transaction(cents: Int, on day: Date) -> Transaction {
+        Transaction(
+            id: "txn-\(cents)-\(day.timeIntervalSince1970)",
+            userID: SeedData.defaultUserID,
+            accountID: SeedData.ID.checking,
+            merchantRaw: "Merchant",
+            merchantKey: MerchantKey("Merchant"),
+            amount: .usd(cents),
+            date: day
+        )
+    }
+
     private func safeToSpend() -> SafeToSpendResult {
         SafeToSpendResult(
             dailyAmount: .usd(4200),
@@ -66,8 +78,10 @@ struct InsightPromptBuilderTests {
     }
 
     @Test func aPartialMonthComparisonSaysSoInTheLabel() throws {
+        // Real spend, not an empty ledger: a zeroed comparison is deliberately dropped, and
+        // this test is about the label rather than that rule.
         let comparison = SpendReportBuilder.comparison(
-            transactions: [],
+            transactions: [transaction(cents: 4200, on: date(2026, 6, 3))],
             referenceDate: date(2026, 6, 6)
         )
 
