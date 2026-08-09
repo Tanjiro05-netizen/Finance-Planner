@@ -112,8 +112,16 @@ struct SeedDataTests {
             encoding: .utf8
         )
         #expect(privacyManifest.contains("NSPrivacyTracking"))
-        #expect(privacyManifest.contains("NSPrivacyCollectedDataTypeFinancialInfo"))
+        #expect(privacyManifest.contains("NSPrivacyCollectedDataTypes"))
         #expect(privacyManifest.contains("NSPrivacyAccessedAPICategoryUserDefaults"))
+
+        // Deliberately asserts the *absence* of collected-data declarations. Apple defines
+        // "collect" as transmitting off the device, and nothing here does — so declaring
+        // FinancialInfo (as this manifest used to) claims a data practice the app doesn't
+        // have. If a backend is ever wired up, this assertion should fail and force the
+        // manifest, the App Store answers, and this test to be revisited together. Every
+        // declaration must carry a purposes key, so its absence means none exist.
+        #expect(privacyManifest.contains("NSPrivacyCollectedDataTypePurposes") == false)
 
         let releaseChecklist = try String(
             contentsOf: root.appending(path: "docs/RELEASE.md"),
