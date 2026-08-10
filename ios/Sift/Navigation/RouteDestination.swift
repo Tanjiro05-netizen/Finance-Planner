@@ -81,6 +81,10 @@ enum RouteDestination {
             GoalEditorSheetView(goalID: goalID, repositories: repositories)
         case let .goalContribution(goalID):
             GoalContributionSheetView(goalID: goalID, repositories: repositories)
+        case let .billEditor(billID):
+            BillEditorSheetView(billID: billID, repositories: repositories)
+        case let .incomeEditor(incomeID):
+            IncomeEditorSheetView(incomeID: incomeID, repositories: repositories)
         }
     }
 }

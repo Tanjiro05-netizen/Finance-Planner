@@ -91,6 +91,10 @@ enum AppSheet: Hashable, Identifiable {
     /// nil creates a new goal; a value edits the existing one.
     case goalEditor(goalID: String?)
     case goalContribution(goalID: String)
+    /// nil creates a new bill; a value edits the existing one.
+    case billEditor(billID: String?)
+    /// nil creates new income; a value edits the existing one.
+    case incomeEditor(incomeID: String?)
 
     var id: String {
         switch self {
@@ -112,6 +116,10 @@ enum AppSheet: Hashable, Identifiable {
             "goal-editor-\(goalID ?? "new")"
         case let .goalContribution(goalID):
             "goal-contribution-\(goalID)"
+        case let .billEditor(billID):
+            "bill-editor-\(billID ?? "new")"
+        case let .incomeEditor(incomeID):
+            "income-editor-\(incomeID ?? "new")"
         }
     }
 
@@ -128,6 +136,8 @@ enum AppSheet: Hashable, Identifiable {
             .goalEditor(goalID: nil),
             .goalEditor(goalID: SampleRouteID.goal),
             .goalContribution(goalID: SampleRouteID.goal),
+            .billEditor(billID: nil),
+            .incomeEditor(incomeID: nil),
         ]
     }
 }

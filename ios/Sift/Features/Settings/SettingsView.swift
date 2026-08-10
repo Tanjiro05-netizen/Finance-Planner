@@ -178,6 +178,14 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-categories")
 
+                    NavigationLink {
+                        BillsAndIncomeView(repositories: repositories)
+                    } label: {
+                        SettingsRow(icon: SiftIcon.calendar, title: "Bills & income")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("settings-bills-income")
+
                     Button {
                         appModel.present(.cancellationRequests)
                     } label: {
