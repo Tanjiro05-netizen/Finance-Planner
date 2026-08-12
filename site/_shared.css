@@ -1,0 +1,115 @@
+/* Shared styling for Sift's published legal pages.
+   Deliberately plain: these exist to be read and to satisfy App Review, not to sell. */
+
+:root {
+  --ink: #1c1a17;
+  --ink-soft: #55504a;
+  --ink-faint: #8a837b;
+  --bone: #faf7f2;
+  --card: #ffffff;
+  --line: #e6e0d7;
+  --gold-deep: #8a6a1f;
+  --max-width: 44rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #f2eee7;
+    --ink-soft: #bdb5aa;
+    --ink-faint: #8a837b;
+    --bone: #16140f;
+    --card: #201d18;
+    --line: #332f28;
+    --gold-deep: #d6ae5c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 2.5rem 1.25rem 5rem;
+  background: var(--bone);
+  color: var(--ink);
+  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 2.5rem 0 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+p,
+li {
+  color: var(--ink-soft);
+}
+
+ul {
+  padding-left: 1.25rem;
+}
+
+li {
+  margin-bottom: 0.4rem;
+}
+
+strong {
+  color: var(--ink);
+}
+
+a {
+  color: var(--gold-deep);
+}
+
+.updated {
+  color: var(--ink-faint);
+  font-size: 0.9rem;
+  margin: 0 0 2rem;
+}
+
+.summary {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+  margin: 0 0 2rem;
+}
+
+.summary p {
+  margin: 0;
+  color: var(--ink);
+}
+
+nav {
+  max-width: var(--max-width);
+  margin: 0 auto 2rem;
+  font-size: 0.9rem;
+}
+
+nav a {
+  margin-right: 1.25rem;
+}
+
+footer {
+  max-width: var(--max-width);
+  margin: 4rem auto 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--ink-faint);
+  font-size: 0.875rem;
+}

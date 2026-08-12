@@ -213,7 +213,7 @@ struct SettingsHubView: View {
                     .accessibilityIdentifier("settings-privacy-data")
 
                     Button {
-                        openLegalURL("https://sift.app/privacy")
+                        openLegalURL(LegalLinks.privacyPolicy)
                     } label: {
                         SettingsRow(icon: SiftIcon.privacy, title: "Privacy Policy")
                     }
@@ -221,7 +221,7 @@ struct SettingsHubView: View {
                     .accessibilityIdentifier("settings-privacy-policy")
 
                     Button {
-                        openLegalURL("https://sift.app/terms")
+                        openLegalURL(LegalLinks.termsOfService)
                     } label: {
                         SettingsRow(icon: SiftIcon.list, title: "Terms of Service")
                     }
@@ -262,8 +262,8 @@ struct SettingsHubView: View {
         }
     }
 
-    private func openLegalURL(_ rawValue: String) {
-        guard let url = URL(string: rawValue) else {
+    private func openLegalURL(_ url: URL?) {
+        guard let url else {
             return
         }
 
@@ -300,7 +300,7 @@ struct AppSupportMetadata: Equatable {
 
     static func current(
         bundle: Bundle = .main,
-        supportEmail: String = "support@sift.app"
+        supportEmail: String = LegalLinks.supportEmail
     ) -> AppSupportMetadata {
         AppSupportMetadata(
             version: bundleString("CFBundleShortVersionString", in: bundle, fallback: "1.0"),

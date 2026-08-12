@@ -189,6 +189,7 @@
 		F0000000000000000000B042 /* IncomeEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F042 /* IncomeEditorViewModel.swift */; };
 		F0000000000000000000B043 /* IncomeEditorSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F043 /* IncomeEditorSheetView.swift */; };
 		F0000000000000000000B044 /* BillsAndIncomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F044 /* BillsAndIncomeView.swift */; };
+		F0000000000000000000B050 /* LegalLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000F050 /* LegalLinks.swift */; };
 		F0000000000000000000C040 /* BillEditorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G040 /* BillEditorViewModelTests.swift */; };
 		F0000000000000000000C041 /* IncomeEditorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G041 /* IncomeEditorViewModelTests.swift */; };
 		F0000000000000000000C030 /* ChatRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000G030 /* ChatRouterTests.swift */; };
@@ -404,6 +405,7 @@
 		F0000000000000000000F042 /* IncomeEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomeEditorViewModel.swift; sourceTree = "<group>"; };
 		F0000000000000000000F043 /* IncomeEditorSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomeEditorSheetView.swift; sourceTree = "<group>"; };
 		F0000000000000000000F044 /* BillsAndIncomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillsAndIncomeView.swift; sourceTree = "<group>"; };
+		F0000000000000000000F050 /* LegalLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalLinks.swift; sourceTree = "<group>"; };
 		F0000000000000000000G040 /* BillEditorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillEditorViewModelTests.swift; sourceTree = "<group>"; };
 		F0000000000000000000G041 /* IncomeEditorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomeEditorViewModelTests.swift; sourceTree = "<group>"; };
 		F0000000000000000000G030 /* ChatRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRouterTests.swift; sourceTree = "<group>"; };
@@ -852,6 +854,7 @@
 		300000000000000000000002 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				F0000000000000000000F050 /* LegalLinks.swift */,
 				30000000000000000000F001 /* Money.swift */,
 				D0000000000000000000F007 /* CashFlowForecaster.swift */,
 				D0000000000000000000F006 /* DiscretionarySpendEstimator.swift */,
@@ -1257,6 +1260,7 @@
 				F0000000000000000000B042 /* IncomeEditorViewModel.swift in Sources */,
 				F0000000000000000000B043 /* IncomeEditorSheetView.swift in Sources */,
 				F0000000000000000000B044 /* BillsAndIncomeView.swift in Sources */,
+				F0000000000000000000B050 /* LegalLinks.swift in Sources */,
 				F0000000000000000000B002 /* SpendReportBuilder.swift in Sources */,
 				E0000000000000000000B002 /* BudgetProgressCalculator.swift in Sources */,
 				E0000000000000000000B003 /* AffordabilityAdvisor.swift in Sources */,

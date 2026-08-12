@@ -1,46 +1,88 @@
 # Sift Privacy Policy Draft
 
-Draft for counsel review. This document is not legal advice and must not be published until reviewed and approved by qualified counsel.
+**Draft for counsel review. Not legal advice. Do not publish until reviewed and approved by qualified counsel.**
 
-## What Sift Does
+*Last updated: [DATE BEFORE PUBLISHING]*
 
-Sift helps users identify recurring subscription charges from read-only bank transaction data and manage cancellation steps. Sift connects to financial institutions through Plaid. Bank credential entry happens only inside Plaid Link; Sift does not receive or store bank usernames or passwords.
+## The short version
 
-## Data We Collect
+Sift keeps your financial data on your iPhone. There is no Sift account, no Sift server, and no copy of your transactions anywhere but your own device. We cannot see your data, because it is never sent to us.
 
-- Account connection metadata, such as institution name, account type, account mask, and connection status.
-- Read-only transaction data needed to detect recurring charges, including merchant name, amount, currency, date, pending state, and category.
-- Subscription records derived from transaction data, such as merchant, cadence, amount, renewal date, and cancellation status.
-- App session identifiers used to authenticate requests.
-- Cancellation request metadata if a user starts a guided or concierge cancellation.
-- Notification preferences and onboarding state stored locally on the device.
+## What Sift does
 
-## How We Use Data
+Sift reads your Apple Card, Apple Cash and Apple Pay activity — with your explicit permission, through Apple's FinanceKit framework — and uses it to find recurring subscriptions, track budgets and savings goals, and work out how much you can safely spend before your next payday.
 
-- To provide account linking, transaction sync, recurring-charge detection, subscription dashboards, guided cancellation steps, reminders, and data deletion.
-- To secure the service, troubleshoot failures, and maintain reliable backend operations.
-- To support privacy-safe product analytics only when implemented without transaction contents, account names, bank credentials, Plaid access tokens, or other sensitive financial details.
+## What Sift collects
 
-## Plaid
+**Nothing.**
 
-Sift uses Plaid as the data aggregator for read-only financial data access. Plaid may process information under its own privacy practices. Sift receives a Plaid public token from Plaid Link and exchanges it server-side. Plaid access tokens are encrypted at rest and are never returned to the iOS app.
+Apple defines "collect" as transmitting data off the device in a way that lets a developer access it. Sift does not transmit your financial data anywhere. It is read on your iPhone, processed on your iPhone, and stored on your iPhone.
 
-## Tracking And Advertising
+That means we hold no database of your spending, no account for you, and nothing to hand over, sell, or lose in a breach.
 
-Sift does not track users across other companies' apps or websites, does not sell personal data, and does not use App Tracking Transparency because no tracking is performed.
+## What is stored on your device
 
-## Data Sharing
+All of this stays local, in Apple's on-device storage, and is removed when you delete the app or use the deletion option in Settings:
 
-Sift shares data only with service providers necessary to operate the app, such as Plaid and hosting providers. Sift does not share bank credentials because Sift never receives them.
+- Transactions read from Apple Wallet: merchant name, amount, date, pending status, category
+- Account names, types and balances
+- Subscriptions, bills and recurring income that Sift detected, plus any you added or edited yourself
+- Budgets, savings goals, and goal contributions
+- Categories and categorisation rules
+- Notification preferences and onboarding state
 
-## Data Retention And Deletion
+## Bank credentials
 
-Users can request deletion in Settings > Privacy & data. Deletion revokes linked Plaid items where possible and deletes local Sift data for the authenticated user. Backup and legal retention details require counsel review before publication.
+Sift never asks for, receives, or stores your bank username, password, or card numbers. Access to your financial data is granted by you through Apple's own permission prompt and can be revoked at any time in iOS Settings.
 
-## Security
+## Artificial intelligence
 
-Sift uses server-side Plaid calls, encrypted token storage, authenticated user-scoped backend queries, and log redaction for secrets and token fields. No system can be guaranteed perfectly secure; incident response language requires counsel review.
+Where your device supports it, Sift can write short summaries of your finances and answer questions about them. This runs entirely on your iPhone using Apple's on-device Foundation Models.
+
+Your financial figures are not sent to any AI service, ours or anyone else's. Sift does not use cloud-based AI — including Apple's Private Cloud Compute — for anything involving your financial data.
+
+## Tracking, advertising and analytics
+
+Sift does not track you across other apps or websites, does not show advertising, does not use App Tracking Transparency (because there is no tracking to request), and does not collect usage analytics. Sift does not sell personal data, because it does not have any.
+
+## Sharing
+
+Sift shares your data with no one. There are no service providers, data aggregators, hosting providers, or advertising partners involved in handling your financial information, because that information never leaves your device.
+
+## Deleting your data
+
+Settings → Privacy & data → delete. This removes Sift's local data from your device. Deleting the app removes everything.
+
+Because we hold nothing, there is no separate request to make of us and no server-side copy to wait on.
+
+## Notifications
+
+Renewal reminders, price-change alerts and similar notifications are scheduled locally by your iPhone. Their contents are not sent through any server.
+
+## Children
+
+Sift is not directed at children under 13 and should not be used by them.
+
+## Changes to this policy
+
+If Sift's handling of data ever changes — in particular, if any feature begins sending data off the device — this policy will be updated before that feature ships, and the change will be described here.
 
 ## Contact
 
-Add final support and legal contact details before publication.
+[SUPPORT EMAIL BEFORE PUBLISHING]
+
+---
+
+## Notes for counsel and for engineering — remove before publishing
+
+**These claims are verifiable in the codebase and must be re-verified before each release:**
+
+- The live path uses `FinanceKitAPIClient` (`ios/Sift/Core/FinanceKit/FinanceKitAdapters.swift`), which has no `URLSession` and makes no network calls.
+- `DefaultSiftAPIClient` — a full HTTP client with a Plaid-oriented API — **exists in the codebase but is never instantiated**. It is dead code retained for a possible future backend. If it is ever wired up, this policy becomes false and must be rewritten first.
+- Analytics is `NoopAnalyticsRecorder` at every wiring point.
+- AI uses `SystemLanguageModel.default` only; `PrivateCloudComputeLanguageModel` is deliberately not used (`ios/Sift/Integrations/FoundationModelsConversation.swift`).
+- `PrivacyInfo.xcprivacy` declares no collected data types, and `SeedDataTests.releaseReadinessArtifactsExist` asserts that no such declaration exists — so wiring a backend fails the test suite and forces this document to be reconsidered.
+
+**Still needs counsel input:** governing law, jurisdiction, GDPR/UK GDPR lawful-basis framing if distributing in the UK, CCPA/CPRA disclosures for California, breach-notification language, and whether any retention statement is needed given that no data is retained by us.
+
+**Note on concierge cancellation:** if concierge is ever enabled, it requires a server and an account, and personal data would then genuinely be collected. This policy would need substantial revision at that point, not a small amendment.
