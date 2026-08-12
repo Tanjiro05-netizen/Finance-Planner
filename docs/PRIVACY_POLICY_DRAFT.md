@@ -69,7 +69,7 @@ If Sift's handling of data ever changes — in particular, if any feature begins
 
 ## Contact
 
-[SUPPORT EMAIL BEFORE PUBLISHING]
+JinbuJYG@proton.me
 
 ---
 

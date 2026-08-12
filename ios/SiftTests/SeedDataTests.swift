@@ -127,8 +127,15 @@ struct SeedDataTests {
             contentsOf: root.appending(path: "docs/RELEASE.md"),
             encoding: .utf8
         )
-        #expect(releaseChecklist.contains("CONCIERGE_ENABLED=false"))
+        // `CONCIERGE_ENABLED=false` was a backend environment variable. There is no backend,
+        // so the checklist now documents the iOS flag instead — the invariant being pinned
+        // is that the checklist still says concierge ships off, not the spelling of a
+        // server-side setting that no longer exists.
+        #expect(releaseChecklist.contains("conciergeEnabled"))
         #expect(releaseChecklist.contains("80%"))
+        // The FinanceKit entitlement is the longest-lead blocker; the checklist must not
+        // lose it.
+        #expect(releaseChecklist.contains("FinanceKit entitlement"))
     }
 }
 

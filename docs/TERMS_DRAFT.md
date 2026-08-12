@@ -58,7 +58,7 @@ Some features are limited by region and hardware. FinanceKit access is available
 
 ## Contact
 
-[SUPPORT EMAIL BEFORE PUBLISHING]
+JinbuJYG@proton.me
 
 ---
 

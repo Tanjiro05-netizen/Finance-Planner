@@ -18,7 +18,7 @@ enum LegalLinks {
     /// for a root-served site or a custom domain.
     static let basePath = "/Finance-Planner"
 
-    static let supportEmail = "support@sift.app"
+    static let supportEmail = "JinbuJYG@proton.me"
 
     static var privacyPolicy: URL? {
         url(page: "privacy")
