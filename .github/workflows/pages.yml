@@ -1,0 +1,50 @@
+name: Publish legal pages
+
+# Apple checks the privacy policy URL during App Review, so these pages have to be live
+# and stay live. Deploying only `site/` keeps the rest of `docs/` (internal phase notes)
+# off the public web, which "deploy from a branch" with the /docs folder would not.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never cancel a run mid-deploy: a half-published site means a dead policy URL.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if placeholders are still present
+        run: |
+          if grep -rn "REPLACE_WITH" site/; then
+            echo "::error::site/ still contains REPLACE_WITH placeholders. Fill these in before publishing."
+            exit 1
+          fi
+          echo "No placeholders remain."
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

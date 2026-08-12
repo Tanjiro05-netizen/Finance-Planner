@@ -6,19 +6,26 @@ import Foundation
 /// changing the domain was an exercise in grepping and hoping. App Review checks that these
 /// resolve, so a stale or dead link is a rejection, not a cosmetic problem.
 ///
-/// **Changing the domain is a one-line edit to `host` below.**
+/// **Changing where the pages live is a one-line edit to `host` and `basePath` below.**
 enum LegalLinks {
     /// Bare host, no scheme and no trailing slash.
-    static let host = "sift.app"
+    ///
+    /// GitHub lowercases the owner name in Pages URLs, so this is not a typo for the
+    /// repository owner's capitalisation.
+    static let host = "tanjiro05-netizen.github.io"
+
+    /// Project Pages sites are served under `/<repo>/` rather than at the root. Empty string
+    /// for a root-served site or a custom domain.
+    static let basePath = "/Finance-Planner"
 
     static let supportEmail = "support@sift.app"
 
     static var privacyPolicy: URL? {
-        url(path: "privacy")
+        url(page: "privacy")
     }
 
     static var termsOfService: URL? {
-        url(path: "terms")
+        url(page: "terms")
     }
 
     /// Both pages must be reachable before external TestFlight review — Apple checks them.
@@ -26,11 +33,14 @@ enum LegalLinks {
         [privacyPolicy, termsOfService].compactMap(\.self)
     }
 
-    private static func url(path: String) -> URL? {
+    /// Trailing slash is deliberate: the pages are `privacy/index.html` and
+    /// `terms/index.html`, which is what makes the extensionless URLs work on plain GitHub
+    /// Pages. Requesting the directory directly avoids a redirect hop.
+    private static func url(page: String) -> URL? {
         var components = URLComponents()
         components.scheme = "https"
         components.host = host
-        components.path = "/\(path)"
+        components.path = "\(basePath)/\(page)/"
         return components.url
     }
 }
