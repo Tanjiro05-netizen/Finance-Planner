@@ -34,11 +34,13 @@ jobs:
 
       - name: Fail if placeholders are still present
         run: |
-          if grep -rn "REPLACE_WITH" site/; then
-            echo "::error::site/ still contains REPLACE_WITH placeholders. Fill these in before publishing."
+          # Only the published pages. site/README.md documents the placeholder names, so
+          # scanning the whole directory would fail this step forever.
+          if grep -rn "REPLACE_WITH" --include="*.html" site/; then
+            echo "::error::Published pages still contain REPLACE_WITH placeholders. Fill these in before publishing."
             exit 1
           fi
-          echo "No placeholders remain."
+          echo "No placeholders remain in published pages."
 
       - uses: actions/configure-pages@v5
 

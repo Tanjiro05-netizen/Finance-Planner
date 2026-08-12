@@ -18,12 +18,14 @@ Replace every `REPLACE_WITH_` placeholder in `privacy/index.html` and `terms/ind
 | Placeholder | Value |
 |---|---|
 | `REPLACE_WITH_DATE` | Publication date, e.g. `12 August 2026` |
-| `REPLACE_WITH_SUPPORT_EMAIL` | A monitored address (twice per page: link text and `mailto:`) |
 | `REPLACE_WITH_COUNSEL_DRAFTED_SECTION` | Disclaimers and liability, in `terms/index.html` only |
 
 ```sh
-grep -rn "REPLACE_WITH" site/    # must return nothing
+grep -rn "REPLACE_WITH" --include="*.html" site/    # must return nothing
 ```
+
+(The `--include` matters: this README lists the placeholder names, so an unscoped grep
+always matches itself. The deploy workflow scans the same narrowed way.)
 
 The deploy workflow fails on purpose while any placeholder remains, so a half-finished
 policy cannot go live by accident.
