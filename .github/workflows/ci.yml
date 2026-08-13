@@ -21,12 +21,16 @@ jobs:
         run: xcodebuild -version
       - name: Build
         run: xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+      # SiftUITests/ScreenshotTests is a slow walk that photographs every screen and asserts
+      # almost nothing. It is what screenshots.yml runs; there is no reason for the PR gate
+      # to pay for it.
       - name: Test with coverage
         run: |
           mkdir -p ../build
           xcodebuild test \
             -scheme Sift \
             -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -skip-testing:SiftUITests/ScreenshotTests \
             -enableCodeCoverage YES \
             -resultBundlePath ../build/SiftTests.xcresult
       # On failure xcodebuild only prints the *names* of failing tests. The assertion text

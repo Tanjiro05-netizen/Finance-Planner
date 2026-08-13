@@ -1,0 +1,92 @@
+name: Screenshots
+
+# Sift cannot be run by hand yet -- no signing team, no FinanceKit entitlement, no device
+# build -- so a macOS runner with a simulator is the only machine that renders it. This
+# workflow photographs the app and uploads the images, which is how a design change gets
+# looked at before anyone can install it.
+#
+# Deliberately separate from ci.yml: that workflow is the PR gate, and pushes to a feature
+# branch fire nothing there (it triggers on `pull_request` and pushes to main only). A
+# `push` trigger runs from the pushed ref, so this works on a branch whose workflow file
+# has never been merged -- unlike `workflow_dispatch`, which GitHub only offers once the
+# file reaches the default branch. Dispatch is declared anyway, for manual re-runs later.
+on:
+  push:
+    branches:
+      - 'claude/**'
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    name: Capture screenshots
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+
+      # A real clock and a half-empty battery date the images and change every run for no
+      # reason. Non-fatal: an ugly status bar is much better than no screenshots.
+      - name: Tidy the simulator status bar
+        continue-on-error: true
+        run: |
+          xcrun simctl boot 'iPhone 17 Pro' || true
+          xcrun simctl status_bar 'iPhone 17 Pro' override \
+            --time '9:41' \
+            --batteryState charged \
+            --batteryLevel 100 \
+            --cellularBars 4 \
+            --wifiBars 3 || true
+
+      # -only-testing keeps this to the screenshot walk. The assertion suites run in ci.yml
+      # and there is no reason to pay for them twice.
+      - name: Run the screenshot walk
+        run: |
+          mkdir -p ../build
+          xcodebuild test \
+            -scheme Sift \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -only-testing:SiftUITests/ScreenshotTests \
+            -resultBundlePath ../build/Screenshots.xcresult
+
+      - name: Failure diagnostics
+        if: failure()
+        run: |
+          xcrun xcresulttool get test-results summary \
+            --path ../build/Screenshots.xcresult --format json || true
+          echo "--- crash reports ---"
+          python3 ../scripts/print-crash-report.py "$HOME/Library/Logs/DiagnosticReports" || true
+
+      # Runs even when the walk failed part-way: a partial set of screenshots is exactly
+      # what you want to look at when a screen didn't come up.
+      - name: Extract the images
+        if: always()
+        run: |
+          mkdir -p ../build/screenshots
+          xcrun xcresulttool export attachments \
+            --path ../build/Screenshots.xcresult \
+            --output-path ../build/screenshots || true
+          python3 ../scripts/rename-screenshots.py ../build/screenshots || true
+          ls -la ../build/screenshots || true
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: build/screenshots/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # The result bundle goes up too, so the artifact is still usable if the export step
+      # above misreads this runner image: the .xcresult opens in Xcode with every
+      # screenshot inside it.
+      - name: Upload result bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-xcresult
+          path: build/Screenshots.xcresult
+          if-no-files-found: warn
+          retention-days: 14
