@@ -43,7 +43,7 @@ struct CancellationRequestsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Cancellation requests", eyebrow: "TRACKER")
+                ScreenHeader(title: "Cancellation requests")
                     .accessibilityIdentifier("cancellation-requests-title")
 
                 savingsBanner

@@ -17,7 +17,7 @@ struct TransactionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Transactions", eyebrow: "LEDGER")
+                ScreenHeader(title: "Transactions")
                     .accessibilityIdentifier("transactions-title")
 
                 content

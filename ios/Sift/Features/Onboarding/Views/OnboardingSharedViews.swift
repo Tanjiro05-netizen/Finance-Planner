@@ -227,7 +227,7 @@ struct ScanRing: View {
                 .stroke(Palette.gold, style: StrokeStyle(lineWidth: 12, lineCap: .round))
                 .rotationEffect(.degrees(-90 + rotation))
             Text("\(count)")
-                .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 38, relativeTo: .largeTitle))
+                .font(.custom(SiftFontPostScriptName.frauncesTitle.rawValue, size: 38, relativeTo: .largeTitle))
                 .foregroundStyle(Palette.ink)
                 .contentTransition(.numericText(value: Double(count)))
         }

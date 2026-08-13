@@ -35,7 +35,7 @@ struct InsightsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Insights", eyebrow: "SAVINGS")
+                ScreenHeader(title: "Insights")
                     .accessibilityIdentifier("insights-title")
 
                 content

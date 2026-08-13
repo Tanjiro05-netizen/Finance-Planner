@@ -20,7 +20,7 @@ struct AssistantView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Ask", eyebrow: "ON THIS IPHONE")
+                ScreenHeader(title: "Ask")
                     .accessibilityIdentifier("assistant-title")
 
                 content

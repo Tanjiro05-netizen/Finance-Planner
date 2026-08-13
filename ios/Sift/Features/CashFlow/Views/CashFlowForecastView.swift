@@ -137,7 +137,17 @@ private struct CashFlowChartCard: View {
                 }
             }
             .chartYAxis {
-                AxisMarks(position: .leading)
+                // Same reasoning as the spend trend: own the label font rather than
+                // inheriting SF Pro at system grey, and read for shape not lookup.
+                AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
+                    AxisGridLine()
+                        .foregroundStyle(Palette.line)
+                    AxisValueLabel {
+                        Text(shortDollars(value.as(Double.self) ?? 0))
+                            .font(.siftLabel)
+                            .foregroundStyle(Palette.inkFaint)
+                    }
+                }
             }
             .frame(height: 220)
             .accessibilityIdentifier("cash-flow-chart")
@@ -150,6 +160,15 @@ private struct CashFlowChartCard: View {
 
     private func dollars(_ money: Money) -> Double {
         Double(money.amountMinor) / 100
+    }
+
+    /// Balances can go negative here, so the sign is kept and the cents dropped.
+    private func shortDollars(_ value: Double) -> String {
+        let sign = value < 0 ? "-" : ""
+        let magnitude = abs(value)
+        return magnitude >= 1000
+            ? "\(sign)$\(Int((magnitude / 1000).rounded()))k"
+            : "\(sign)$\(Int(magnitude.rounded()))"
     }
 }
 

@@ -43,15 +43,32 @@ private struct SpendTrendCard: View {
                 .accessibilityLabel(point.monthStart.formatted(.dateTime.month(.wide).year()))
                 .accessibilityValue(point.total.formatted())
             }
+            // Swift Charts' default axis renders labels in SF Pro at system grey — a
+            // fourth typeface, appearing only inside charts, in an app with three chosen
+            // ones. Owning the label font is the single most visible chart fix.
             .chartXAxis {
                 AxisMarks(values: .stride(by: .month)) {
-                    // Spelled out rather than leaning on `.dateTime`, so the generic
-                    // `FormatStyle` has nothing to infer.
-                    AxisValueLabel(format: Date.FormatStyle.dateTime.month(.narrow))
+                    AxisValueLabel {
+                        // Spelled out rather than leaning on `.dateTime`, so the generic
+                        // `FormatStyle` has nothing to infer.
+                        Text(Date.FormatStyle.dateTime.month(.narrow).format($0.as(Date.self) ?? Date()))
+                            .font(.siftLabel)
+                            .foregroundStyle(Palette.inkFaint)
+                    }
                 }
             }
             .chartYAxis {
-                AxisMarks(position: .leading)
+                // Three values, not the default five to seven: this chart is read for
+                // shape, not for lookup. No AxisTick — gridlines already mark position.
+                AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
+                    AxisGridLine()
+                        .foregroundStyle(Palette.line)
+                    AxisValueLabel {
+                        Text(shortDollars(value.as(Double.self) ?? 0))
+                            .font(.siftLabel)
+                            .foregroundStyle(Palette.inkFaint)
+                    }
+                }
             }
             .chartYScale(domain: 0 ... domainMax)
             .frame(height: 180)
@@ -65,6 +82,13 @@ private struct SpendTrendCard: View {
 
     private func dollars(_ money: Money) -> Double {
         Double(money.amountMinor) / 100
+    }
+
+    /// Axis labels are read at a glance, so they drop the cents and abbreviate thousands.
+    private func shortDollars(_ value: Double) -> String {
+        value >= 1000
+            ? "$\(Int((value / 1000).rounded()))k"
+            : "$\(Int(value.rounded()))"
     }
 
     private var domainMax: Double {

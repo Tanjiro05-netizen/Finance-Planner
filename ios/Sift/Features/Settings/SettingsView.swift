@@ -139,7 +139,7 @@ struct SettingsHubView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Settings", eyebrow: "ACCOUNT")
+                ScreenHeader(title: "Settings")
                     .accessibilityIdentifier("settings-title")
 
                 SettingsProfileCard()
@@ -572,7 +572,7 @@ struct LinkedAccountsView: View {
         ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.xl) {
-                    ScreenHeader(title: "Linked accounts", eyebrow: "BANKS")
+                    ScreenHeader(title: "Linked accounts")
                         .accessibilityIdentifier("linked-accounts-title")
 
                     linkedAccountsContent
@@ -847,7 +847,7 @@ struct AlertSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Notifications", eyebrow: "ALERTS")
+                ScreenHeader(title: "Notifications")
                     .accessibilityIdentifier("alert-settings-title")
 
                 VStack(spacing: Spacing.sm) {
@@ -1067,7 +1067,7 @@ struct CategoriesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Categories & rules", eyebrow: "GROUPS")
+                ScreenHeader(title: "Categories & rules")
                     .accessibilityIdentifier("categories-title")
 
                 AlertToggleRow(
@@ -1157,7 +1157,7 @@ private struct CategorySubscriptionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: category.name, eyebrow: "CATEGORY")
+                ScreenHeader(title: category.name)
 
                 if viewModel.subscriptions(for: category.id).isEmpty {
                     StateMessageCard(
@@ -1365,7 +1365,7 @@ struct PrivacyDataView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Privacy & data", eyebrow: "CONTROL")
+                ScreenHeader(title: "Privacy & data")
                     .accessibilityIdentifier("privacy-data-title")
 
                 SiftCard {

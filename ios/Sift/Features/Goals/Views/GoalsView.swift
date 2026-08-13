@@ -17,7 +17,7 @@ struct GoalsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Goals", eyebrow: "SAVING TOWARD")
+                ScreenHeader(title: "Goals")
                     .accessibilityIdentifier("goals-title")
 
                 content

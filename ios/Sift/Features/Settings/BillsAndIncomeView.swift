@@ -104,7 +104,7 @@ struct BillsAndIncomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Bills & income", eyebrow: "RECURRING")
+                ScreenHeader(title: "Bills & income")
                     .accessibilityIdentifier("bills-income-title")
 
                 content

@@ -108,6 +108,9 @@
 		10000000000000000000B021 /* Fraunces-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F021 /* Fraunces-Regular.ttf */; };
 		10000000000000000000B022 /* Fraunces-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F022 /* Fraunces-SemiBold.ttf */; };
 		10000000000000000000B023 /* Fraunces-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F023 /* Fraunces-Bold.ttf */; };
+		FA000000000000000000B001 /* Fraunces-Display.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA000000000000000000F001 /* Fraunces-Display.ttf */; };
+		FA000000000000000000B002 /* Fraunces-Title.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA000000000000000000F002 /* Fraunces-Title.ttf */; };
+		FA000000000000000000B003 /* Fraunces-Subhead.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA000000000000000000F003 /* Fraunces-Subhead.ttf */; };
 		10000000000000000000B024 /* PlusJakartaSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F024 /* PlusJakartaSans-Variable.ttf */; };
 		10000000000000000000B025 /* PlusJakartaSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F025 /* PlusJakartaSans-Regular.ttf */; };
 		10000000000000000000B026 /* PlusJakartaSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F026 /* PlusJakartaSans-Medium.ttf */; };
@@ -324,6 +327,9 @@
 		10000000000000000000F021 /* Fraunces-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Regular.ttf"; sourceTree = "<group>"; };
 		10000000000000000000F022 /* Fraunces-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-SemiBold.ttf"; sourceTree = "<group>"; };
 		10000000000000000000F023 /* Fraunces-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Bold.ttf"; sourceTree = "<group>"; };
+		FA000000000000000000F001 /* Fraunces-Display.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Display.ttf"; sourceTree = "<group>"; };
+		FA000000000000000000F002 /* Fraunces-Title.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Title.ttf"; sourceTree = "<group>"; };
+		FA000000000000000000F003 /* Fraunces-Subhead.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Subhead.ttf"; sourceTree = "<group>"; };
 		10000000000000000000F024 /* PlusJakartaSans-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-Variable.ttf"; sourceTree = "<group>"; };
 		10000000000000000000F025 /* PlusJakartaSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-Regular.ttf"; sourceTree = "<group>"; };
 		10000000000000000000F026 /* PlusJakartaSans-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-Medium.ttf"; sourceTree = "<group>"; };
@@ -598,6 +604,9 @@
 				10000000000000000000F021 /* Fraunces-Regular.ttf */,
 				10000000000000000000F022 /* Fraunces-SemiBold.ttf */,
 				10000000000000000000F023 /* Fraunces-Bold.ttf */,
+				FA000000000000000000F001 /* Fraunces-Display.ttf */,
+				FA000000000000000000F002 /* Fraunces-Title.ttf */,
+				FA000000000000000000F003 /* Fraunces-Subhead.ttf */,
 				10000000000000000000F024 /* PlusJakartaSans-Variable.ttf */,
 				10000000000000000000F025 /* PlusJakartaSans-Regular.ttf */,
 				10000000000000000000F026 /* PlusJakartaSans-Medium.ttf */,
@@ -1174,6 +1183,9 @@
 				10000000000000000000B021 /* Fraunces-Regular.ttf in Resources */,
 				10000000000000000000B022 /* Fraunces-SemiBold.ttf in Resources */,
 				10000000000000000000B023 /* Fraunces-Bold.ttf in Resources */,
+				FA000000000000000000B001 /* Fraunces-Display.ttf in Resources */,
+				FA000000000000000000B002 /* Fraunces-Title.ttf in Resources */,
+				FA000000000000000000B003 /* Fraunces-Subhead.ttf in Resources */,
 				10000000000000000000B024 /* PlusJakartaSans-Variable.ttf in Resources */,
 				10000000000000000000B025 /* PlusJakartaSans-Regular.ttf in Resources */,
 				10000000000000000000B026 /* PlusJakartaSans-Medium.ttf in Resources */,

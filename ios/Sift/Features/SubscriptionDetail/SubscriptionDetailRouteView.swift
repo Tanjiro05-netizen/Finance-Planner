@@ -8,7 +8,7 @@ struct SubscriptionDetailRouteView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            ScreenHeader(title: subscription?.name ?? "Subscription", eyebrow: "NAVIGATION")
+            ScreenHeader(title: subscription?.name ?? "Subscription")
             SiftCard {
                 Text(routeDetailText)
                     .font(.siftBody)

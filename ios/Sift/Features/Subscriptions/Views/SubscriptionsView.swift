@@ -29,7 +29,7 @@ struct SubscriptionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Subscriptions", eyebrow: "RECURRING")
+                ScreenHeader(title: "Subscriptions")
                     .accessibilityIdentifier("subscriptions-title")
 
                 content

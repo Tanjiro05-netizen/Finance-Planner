@@ -2,9 +2,20 @@ import SwiftUI
 import UIKit
 
 enum SiftFontPostScriptName: String, CaseIterable {
+    /// Fraunces' `opsz` axis runs 9–144 and the shipped statics pin it at 9 — so these
+    /// three faces are tuned for body copy. Setting them at 20pt+ renders low-contrast,
+    /// wide, open-spaced letterforms with the WONK axis auto-disabled: the typeface's
+    /// personality switched off precisely where it should be loudest.
     case frauncesRegular = "Fraunces-9pt"
     case frauncesSemiBold = "Fraunces-9ptSemiBold"
     case frauncesBold = "Fraunces-9ptBold"
+    /// Instanced from the variable font at the optical size each is actually set at.
+    /// `Fraunces-Display` additionally has equal digit advances baked in — Fraunces ships
+    /// no `tnum` feature, so `.monospacedDigit()` was a silent no-op and money columns
+    /// did not align.
+    case frauncesDisplay = "Fraunces-Display"
+    case frauncesTitle = "Fraunces-Title"
+    case frauncesSubhead = "Fraunces-Subhead"
     case plusJakartaRegular = "PlusJakartaSans-Regular"
     case plusJakartaMedium = "PlusJakartaSans-Medium"
     case plusJakartaSemiBold = "PlusJakartaSans-SemiBold"
@@ -36,7 +47,10 @@ enum SiftFontFamily: CaseIterable {
     var requiredFaces: [SiftFontPostScriptName] {
         switch self {
         case .fraunces:
-            [.frauncesRegular, .frauncesSemiBold, .frauncesBold]
+            [
+                .frauncesRegular, .frauncesSemiBold, .frauncesBold,
+                .frauncesDisplay, .frauncesTitle, .frauncesSubhead,
+            ]
         case .plusJakartaSans:
             [.plusJakartaRegular, .plusJakartaMedium, .plusJakartaSemiBold, .plusJakartaBold]
         case .ibmPlexMono:
@@ -47,15 +61,15 @@ enum SiftFontFamily: CaseIterable {
 
 extension Font {
     static var heroFigure: Font {
-        .custom(SiftFontPostScriptName.frauncesRegular.rawValue, size: 54, relativeTo: .largeTitle)
+        .custom(SiftFontPostScriptName.frauncesDisplay.rawValue, size: 54, relativeTo: .largeTitle)
     }
 
     static var screenTitle: Font {
-        .custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 30, relativeTo: .title)
+        .custom(SiftFontPostScriptName.frauncesTitle.rawValue, size: 30, relativeTo: .title)
     }
 
     static var cardTitle: Font {
-        .custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 20, relativeTo: .title3)
+        .custom(SiftFontPostScriptName.frauncesSubhead.rawValue, size: 20, relativeTo: .title3)
     }
 
     static var siftBody: Font {
@@ -120,6 +134,12 @@ enum MoneyTextFormatter {
     }
 }
 
+/// Money is always set in `Fraunces-Display`, whatever the point size.
+///
+/// Two reasons. Its digits have equal advances, so a column of amounts aligns and an
+/// animating figure doesn't re-flow sideways mid-count — the shipped Fraunces has no
+/// `tnum`, which made `.monospacedDigit()` below a no-op. And its optical size is tuned
+/// for display rather than for 9pt body copy, which is what money in this app mostly is.
 struct MoneyText: View {
     let value: String
     var size: CGFloat = 50
@@ -141,25 +161,25 @@ struct MoneyText: View {
         HStack(alignment: .firstTextBaseline, spacing: 1) {
             if !parts.symbol.isEmpty {
                 Text(parts.symbol)
-                    .font(.custom(SiftFontPostScriptName.frauncesRegular.rawValue, size: size * 0.48))
+                    .font(.custom(SiftFontPostScriptName.frauncesDisplay.rawValue, size: size * 0.48))
                     .baselineOffset(size * 0.30)
                     .foregroundStyle(secondaryColor)
             }
 
             Text(parts.major)
-                .font(.custom(SiftFontPostScriptName.frauncesRegular.rawValue, size: size))
+                .font(.custom(SiftFontPostScriptName.frauncesDisplay.rawValue, size: size))
                 .foregroundStyle(color)
 
             if let fractional = parts.fractional {
                 Text(fractional)
-                    .font(.custom(SiftFontPostScriptName.frauncesRegular.rawValue, size: size * 0.48))
+                    .font(.custom(SiftFontPostScriptName.frauncesDisplay.rawValue, size: size * 0.48))
                     .baselineOffset(size * 0.30)
                     .foregroundStyle(secondaryColor)
             }
 
             if let suffix = parts.suffix {
                 Text(suffix)
-                    .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: size * 0.42))
+                    .font(.custom(SiftFontPostScriptName.frauncesDisplay.rawValue, size: size * 0.42))
                     .baselineOffset(size * 0.24)
                     .foregroundStyle(secondaryColor)
             }

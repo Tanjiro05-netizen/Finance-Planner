@@ -36,7 +36,7 @@ struct DetailSheetView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.xl) {
-                    ScreenHeader(title: viewModel.title, eyebrow: "DETAIL")
+                    ScreenHeader(title: viewModel.title)
                         .accessibilityIdentifier("detail-sheet-title")
 
                     content

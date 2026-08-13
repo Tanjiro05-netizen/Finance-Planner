@@ -10,14 +10,14 @@ struct SplashView: View {
             Spacer()
             VStack(spacing: 18) {
                 Text("S")
-                    .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 40, relativeTo: .largeTitle))
+                    .font(.custom(SiftFontPostScriptName.frauncesTitle.rawValue, size: 40, relativeTo: .largeTitle))
                     .foregroundStyle(Palette.bone)
                     .frame(width: 74, height: 74)
                     .background(Palette.ink, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
 
                 VStack(spacing: Spacing.sm) {
                     Text("Sift")
-                        .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 40, relativeTo: .largeTitle))
+                        .font(.custom(SiftFontPostScriptName.frauncesTitle.rawValue, size: 40, relativeTo: .largeTitle))
                         .foregroundStyle(Palette.ink)
                     Text("EVERY RECURRING CHARGE, SURFACED")
                         .font(.siftLabel)
