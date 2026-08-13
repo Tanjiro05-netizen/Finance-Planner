@@ -16,8 +16,17 @@ it.
 
 import json
 import os
+import re
 import shutil
 import sys
+
+# Xcode's suggested name is the test's attachment name with an index and a UUID welded on
+# -- "01-home" comes back as "01-home_0_3B6CC10F-1E0D-4F8F-BE5E-7B041FEBF74B.png". The
+# suffix only disambiguates repeat attachments under one name, which this walk never makes,
+# so it is noise in a folder meant to be browsed.
+SUFFIX = re.compile(
+    r"_\d+_[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
+)
 
 FILENAME_KEYS = ("exportedFileName", "exported_file_name", "fileName", "filename")
 NAME_KEYS = (
@@ -71,10 +80,11 @@ def main():
         if not os.path.isfile(source):
             continue
 
-        # The test names attachments "01-home"; keep whatever suffix the export chose so
+        # The test names attachments "01-home"; keep whatever extension the export chose so
         # the file still opens as an image.
-        suffix = os.path.splitext(exported)[1] or ".png"
-        target_name = wanted if wanted.endswith(suffix) else wanted + suffix
+        extension = os.path.splitext(exported)[1] or ".png"
+        stem = wanted[: -len(extension)] if wanted.endswith(extension) else wanted
+        target_name = SUFFIX.sub("", stem) + extension
         target = os.path.join(directory, target_name.replace("/", "-"))
         if os.path.abspath(source) == os.path.abspath(target):
             continue
