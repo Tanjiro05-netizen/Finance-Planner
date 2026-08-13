@@ -147,6 +147,7 @@
 		90000000000000000000C011 /* NotificationSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90000000000000000000T011 /* NotificationSchedulerTests.swift */; };
 		90000000000000000000C012 /* NotificationRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90000000000000000000T012 /* NotificationRouterTests.swift */; };
 		10000000000000000000U001 /* SiftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000U101 /* SiftUITests.swift */; };
+		FA000000000000000000U002 /* ScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA000000000000000000U102 /* ScreenshotTests.swift */; };
 		E0000000000000000000B001 /* BudgetPeriodCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000F001 /* BudgetPeriodCalculator.swift */; };
 		E0000000000000000000B002 /* BudgetProgressCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000F002 /* BudgetProgressCalculator.swift */; };
 		E0000000000000000000B003 /* AffordabilityAdvisor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000F003 /* AffordabilityAdvisor.swift */; };
@@ -366,6 +367,7 @@
 		90000000000000000000T011 /* NotificationSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSchedulerTests.swift; sourceTree = "<group>"; };
 		90000000000000000000T012 /* NotificationRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRouterTests.swift; sourceTree = "<group>"; };
 		10000000000000000000U101 /* SiftUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiftUITests.swift; sourceTree = "<group>"; };
+		FA000000000000000000U102 /* ScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTests.swift; sourceTree = "<group>"; };
 		E0000000000000000000F001 /* BudgetPeriodCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetPeriodCalculator.swift; sourceTree = "<group>"; };
 		E0000000000000000000F002 /* BudgetProgressCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetProgressCalculator.swift; sourceTree = "<group>"; };
 		E0000000000000000000F003 /* AffordabilityAdvisor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AffordabilityAdvisor.swift; sourceTree = "<group>"; };
@@ -1065,6 +1067,7 @@
 			isa = PBXGroup;
 			children = (
 				10000000000000000000U101 /* SiftUITests.swift */,
+				FA000000000000000000U102 /* ScreenshotTests.swift */,
 			);
 			path = SiftUITests;
 			sourceTree = "<group>";
@@ -1410,6 +1413,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				10000000000000000000U001 /* SiftUITests.swift in Sources */,
+				FA000000000000000000U002 /* ScreenshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
