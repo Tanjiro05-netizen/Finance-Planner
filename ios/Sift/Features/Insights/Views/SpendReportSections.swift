@@ -47,11 +47,15 @@ private struct SpendTrendCard: View {
             // fourth typeface, appearing only inside charts, in an app with three chosen
             // ones. Owning the label font is the single most visible chart fix.
             .chartXAxis {
-                AxisMarks(values: .stride(by: .month)) {
+                // The value has to be named: `$0` inside the nested `AxisValueLabel`
+                // closure does not reach the enclosing one, which left the label's
+                // argument unresolved and sent the compiler to `AxisValueLabel`'s
+                // `StringProtocol` overload instead of its ViewBuilder one.
+                AxisMarks(values: .stride(by: .month)) { value in
                     AxisValueLabel {
                         // Spelled out rather than leaning on `.dateTime`, so the generic
                         // `FormatStyle` has nothing to infer.
-                        Text(Date.FormatStyle.dateTime.month(.narrow).format($0.as(Date.self) ?? Date()))
+                        Text(Date.FormatStyle.dateTime.month(.narrow).format(value.as(Date.self) ?? Date()))
                             .font(.siftLabel)
                             .foregroundStyle(Palette.inkFaint)
                     }
