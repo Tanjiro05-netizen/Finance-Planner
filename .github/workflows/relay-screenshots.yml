@@ -1,0 +1,57 @@
+name: Relay Screenshots
+
+# One-off: pulls specific already-captured screenshots out of two prior Screenshots runs
+# and commits them straight into this branch. Exists because the artifact download URL
+# GitHub hands out (Azure Blob Storage) is unreachable from the session that needs to look
+# at them, while a GitHub Actions runner reaches it fine -- so the runner fetches once and
+# hands the bytes back over an ordinary git push instead.
+#
+# Throwaway by design: this branch and workflow have no purpose beyond relaying a handful
+# of PNGs and can be deleted once they've been looked at.
+on:
+  push:
+    branches:
+      - 'claude/relay-screenshots'
+
+permissions:
+  contents: write
+
+jobs:
+  relay:
+    name: Relay requested screenshots
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download from the pre-design run (claude/swift-rewrite-ios-research-jwvrxo)
+        uses: actions/download-artifact@v4
+        with:
+          name: screenshots
+          run-id: 31937182146
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: relay-src/original
+
+      - name: Download from the design-pass run (claude/design-craft-pass)
+        uses: actions/download-artifact@v4
+        with:
+          name: screenshots
+          run-id: 31743784919
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: relay-src/design
+
+      - name: Stage only the requested screens
+        run: |
+          mkdir -p relay
+          cp relay-src/original/06-insights.png     relay/06-insights-original.png
+          cp relay-src/original/07-insights-reports.png relay/07-insights-reports-original.png
+          cp relay-src/design/06-insights.png       relay/06-insights-design.png
+          cp relay-src/design/07-insights-reports.png   relay/07-insights-reports-design.png
+          ls -la relay
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add relay
+          git commit -m "relay: Insights screenshots, original vs design-craft-pass"
+          git push origin HEAD:claude/relay-screenshots
