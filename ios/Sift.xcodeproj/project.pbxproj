@@ -104,22 +104,6 @@
 		40000000000000000000B008 /* OnboardingStepViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40000000000000000000F008 /* OnboardingStepViews.swift */; };
 		40000000000000000000B009 /* OnboardingSharedViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40000000000000000000F009 /* OnboardingSharedViews.swift */; };
 		40000000000000000000B010 /* LinkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 40000000000000000000PD01 /* LinkKit */; };
-		10000000000000000000B020 /* Fraunces-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F020 /* Fraunces-Variable.ttf */; };
-		10000000000000000000B021 /* Fraunces-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F021 /* Fraunces-Regular.ttf */; };
-		10000000000000000000B022 /* Fraunces-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F022 /* Fraunces-SemiBold.ttf */; };
-		10000000000000000000B023 /* Fraunces-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F023 /* Fraunces-Bold.ttf */; };
-		FA000000000000000000B001 /* Fraunces-Display.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA000000000000000000F001 /* Fraunces-Display.ttf */; };
-		FA000000000000000000B002 /* Fraunces-Title.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA000000000000000000F002 /* Fraunces-Title.ttf */; };
-		FA000000000000000000B003 /* Fraunces-Subhead.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FA000000000000000000F003 /* Fraunces-Subhead.ttf */; };
-		10000000000000000000B024 /* PlusJakartaSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F024 /* PlusJakartaSans-Variable.ttf */; };
-		10000000000000000000B025 /* PlusJakartaSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F025 /* PlusJakartaSans-Regular.ttf */; };
-		10000000000000000000B026 /* PlusJakartaSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F026 /* PlusJakartaSans-Medium.ttf */; };
-		10000000000000000000B027 /* PlusJakartaSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F027 /* PlusJakartaSans-SemiBold.ttf */; };
-		10000000000000000000B028 /* PlusJakartaSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F028 /* PlusJakartaSans-Bold.ttf */; };
-		10000000000000000000B029 /* IBMPlexMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F029 /* IBMPlexMono-Regular.ttf */; };
-		10000000000000000000B030 /* IBMPlexMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F030 /* IBMPlexMono-Medium.ttf */; };
-		10000000000000000000B031 /* IBMPlexMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F031 /* IBMPlexMono-SemiBold.ttf */; };
-		10000000000000000000B032 /* IBMPlexMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000F032 /* IBMPlexMono-Bold.ttf */; };
 		A1100000000000000000B001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1100000000000000000F001 /* PrivacyInfo.xcprivacy */; };
 		A1100000000000000000B002 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1100000000000000000F002 /* Assets.xcassets */; };
 		10000000000000000000C001 /* TokensTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000T001 /* TokensTests.swift */; };
@@ -324,22 +308,6 @@
 		40000000000000000000F007 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
 		40000000000000000000F008 /* OnboardingStepViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStepViews.swift; sourceTree = "<group>"; };
 		40000000000000000000F009 /* OnboardingSharedViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSharedViews.swift; sourceTree = "<group>"; };
-		10000000000000000000F020 /* Fraunces-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Variable.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F021 /* Fraunces-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Regular.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F022 /* Fraunces-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-SemiBold.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F023 /* Fraunces-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Bold.ttf"; sourceTree = "<group>"; };
-		FA000000000000000000F001 /* Fraunces-Display.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Display.ttf"; sourceTree = "<group>"; };
-		FA000000000000000000F002 /* Fraunces-Title.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Title.ttf"; sourceTree = "<group>"; };
-		FA000000000000000000F003 /* Fraunces-Subhead.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Subhead.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F024 /* PlusJakartaSans-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-Variable.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F025 /* PlusJakartaSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-Regular.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F026 /* PlusJakartaSans-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-Medium.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F027 /* PlusJakartaSans-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-SemiBold.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F028 /* PlusJakartaSans-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "PlusJakartaSans-Bold.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F029 /* IBMPlexMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Regular.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F030 /* IBMPlexMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Medium.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F031 /* IBMPlexMono-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-SemiBold.ttf"; sourceTree = "<group>"; };
-		10000000000000000000F032 /* IBMPlexMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Bold.ttf"; sourceTree = "<group>"; };
 		A1100000000000000000F001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A1100000000000000000F002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		10000000000000000000T001 /* TokensTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokensTests.swift; sourceTree = "<group>"; };
@@ -594,32 +562,8 @@
 				B0000000000000000000F004 /* Sift.entitlements */,
 				A1100000000000000000F001 /* PrivacyInfo.xcprivacy */,
 				A1100000000000000000F002 /* Assets.xcassets */,
-				10000000000000000000000A /* Fonts */,
 			);
 			path = Resources;
-			sourceTree = "<group>";
-		};
-		10000000000000000000000A /* Fonts */ = {
-			isa = PBXGroup;
-			children = (
-				10000000000000000000F020 /* Fraunces-Variable.ttf */,
-				10000000000000000000F021 /* Fraunces-Regular.ttf */,
-				10000000000000000000F022 /* Fraunces-SemiBold.ttf */,
-				10000000000000000000F023 /* Fraunces-Bold.ttf */,
-				FA000000000000000000F001 /* Fraunces-Display.ttf */,
-				FA000000000000000000F002 /* Fraunces-Title.ttf */,
-				FA000000000000000000F003 /* Fraunces-Subhead.ttf */,
-				10000000000000000000F024 /* PlusJakartaSans-Variable.ttf */,
-				10000000000000000000F025 /* PlusJakartaSans-Regular.ttf */,
-				10000000000000000000F026 /* PlusJakartaSans-Medium.ttf */,
-				10000000000000000000F027 /* PlusJakartaSans-SemiBold.ttf */,
-				10000000000000000000F028 /* PlusJakartaSans-Bold.ttf */,
-				10000000000000000000F029 /* IBMPlexMono-Regular.ttf */,
-				10000000000000000000F030 /* IBMPlexMono-Medium.ttf */,
-				10000000000000000000F031 /* IBMPlexMono-SemiBold.ttf */,
-				10000000000000000000F032 /* IBMPlexMono-Bold.ttf */,
-			);
-			path = Fonts;
 			sourceTree = "<group>";
 		};
 		10000000000000000000000B /* App */ = {
@@ -1182,22 +1126,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				10000000000000000000B020 /* Fraunces-Variable.ttf in Resources */,
-				10000000000000000000B021 /* Fraunces-Regular.ttf in Resources */,
-				10000000000000000000B022 /* Fraunces-SemiBold.ttf in Resources */,
-				10000000000000000000B023 /* Fraunces-Bold.ttf in Resources */,
-				FA000000000000000000B001 /* Fraunces-Display.ttf in Resources */,
-				FA000000000000000000B002 /* Fraunces-Title.ttf in Resources */,
-				FA000000000000000000B003 /* Fraunces-Subhead.ttf in Resources */,
-				10000000000000000000B024 /* PlusJakartaSans-Variable.ttf in Resources */,
-				10000000000000000000B025 /* PlusJakartaSans-Regular.ttf in Resources */,
-				10000000000000000000B026 /* PlusJakartaSans-Medium.ttf in Resources */,
-				10000000000000000000B027 /* PlusJakartaSans-SemiBold.ttf in Resources */,
-				10000000000000000000B028 /* PlusJakartaSans-Bold.ttf in Resources */,
-				10000000000000000000B029 /* IBMPlexMono-Regular.ttf in Resources */,
-				10000000000000000000B030 /* IBMPlexMono-Medium.ttf in Resources */,
-				10000000000000000000B031 /* IBMPlexMono-SemiBold.ttf in Resources */,
-				10000000000000000000B032 /* IBMPlexMono-Bold.ttf in Resources */,
 				A1100000000000000000B001 /* PrivacyInfo.xcprivacy in Resources */,
 				A1100000000000000000B002 /* Assets.xcassets in Resources */,
 			);

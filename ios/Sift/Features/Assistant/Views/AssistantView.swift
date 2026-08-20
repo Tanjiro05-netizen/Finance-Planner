@@ -29,7 +29,7 @@ struct AssistantView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Ask")
         .safeAreaInset(edge: .bottom) {
             if viewModel.isAvailable {
@@ -64,7 +64,7 @@ struct AssistantView: View {
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .font(.siftBody)
-                    .foregroundStyle(Palette.clay)
+                    .foregroundStyle(Palette.negative)
             }
 
             privacyNote
@@ -72,8 +72,8 @@ struct AssistantView: View {
     }
 
     private var emptyState: some View {
-        SiftCard {
-            Text("TRY ASKING")
+        SiftSection {
+            Text("Try asking")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -83,7 +83,7 @@ struct AssistantView: View {
                 } label: {
                     Text(suggestion)
                         .font(.siftBody)
-                        .foregroundStyle(Palette.goldDeep)
+                        .foregroundStyle(Palette.accent)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .buttonStyle(.plain)
@@ -121,8 +121,7 @@ struct AssistantView: View {
                 .lineLimit(1 ... 4)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(Palette.card, in: Capsule())
-                .overlay(Capsule().stroke(Palette.line, lineWidth: 1))
+                .background(Palette.surface, in: Capsule())
                 .accessibilityIdentifier("assistant-input")
 
             Button {
@@ -130,10 +129,10 @@ struct AssistantView: View {
             } label: {
                 Image(systemName: SiftIcon.arrowUp)
                     .font(.siftBody)
-                    .foregroundStyle(viewModel.canSend ? Palette.goldDeep : Palette.inkFaint)
+                    .foregroundStyle(viewModel.canSend ? Palette.accent : Palette.inkFaint)
                     .frame(width: 42, height: 42)
-                    .background(Palette.card, in: Circle())
-                    .overlay(Circle().stroke(Palette.line, lineWidth: 1))
+                    .background(Palette.surface, in: Circle())
+                    .overlay(Circle().stroke(Palette.separator, lineWidth: 1))
             }
             .buttonStyle(.plain)
             .disabled(!viewModel.canSend)
@@ -142,7 +141,7 @@ struct AssistantView: View {
         }
         .padding(.horizontal, Spacing.screenHorizontal)
         .padding(.vertical, Spacing.md)
-        .background(Palette.bone)
+        .background(Palette.ground)
     }
 }
 
@@ -165,12 +164,8 @@ private struct ChatBubble: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 11)
                 .background(
-                    isPerson ? Palette.sand : Palette.card,
+                    isPerson ? Palette.surfaceSunken : Palette.surface,
                     in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                        .stroke(Palette.line, lineWidth: 1)
                 )
                 .frame(maxWidth: .infinity, alignment: isPerson ? .trailing : .leading)
 

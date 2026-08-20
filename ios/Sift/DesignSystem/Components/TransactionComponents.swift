@@ -12,7 +12,7 @@ struct TransactionRow: View {
 
     var body: some View {
         HStack(spacing: Spacing.md) {
-            MonogramTile(letter: monogram, color: direction == .credit ? Palette.green : Palette.ink)
+            MonogramTile(letter: monogram, color: direction == .credit ? Palette.positive : Palette.ink)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(merchantName)
@@ -21,7 +21,7 @@ struct TransactionRow: View {
                     .lineLimit(1)
 
                 Text(isPending ? "Pending · \(categoryLabel)" : categoryLabel)
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
                     .lineLimit(1)
             }
@@ -32,26 +32,16 @@ struct TransactionRow: View {
                 MoneyText(
                     value: signedAmount,
                     size: 16,
-                    color: direction == .credit ? Palette.green : Palette.ink
+                    color: direction == .credit ? Palette.positive : Palette.ink
                 )
-                Text(date.uppercased())
+                Text(date)
                     .font(.cadence)
                     .foregroundStyle(Palette.inkFaint)
             }
         }
         .padding(.horizontal, 13)
         .padding(.vertical, 11)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
-        .shadow(
-            color: Elevation.row.color,
-            radius: Elevation.row.radius,
-            x: Elevation.row.offsetX,
-            y: Elevation.row.offsetY
-        )
+        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
     }
 
     private var monogram: String {

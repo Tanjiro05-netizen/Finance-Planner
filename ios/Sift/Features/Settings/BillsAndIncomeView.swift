@@ -113,7 +113,7 @@ struct BillsAndIncomeView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Bills & income")
         .task { viewModel.load() }
         .onChange(of: appModel.sheet) { _, sheet in
@@ -148,7 +148,7 @@ struct BillsAndIncomeView: View {
             }
 
             section(
-                title: "BILLS",
+                title: "Bills",
                 total: viewModel.monthlyBillTotal,
                 rows: viewModel.bills,
                 addTitle: "Add a bill"
@@ -157,7 +157,7 @@ struct BillsAndIncomeView: View {
             }
 
             section(
-                title: "INCOME",
+                title: "Income",
                 total: viewModel.monthlyIncomeTotal,
                 rows: viewModel.income,
                 addTitle: "Add income"
@@ -230,11 +230,7 @@ private struct RecurringRow: View {
                 .foregroundStyle(Palette.inkFaint)
         }
         .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(row.name), \(row.amount.formatted()), \(row.cadence.displayName), \(dateLabel)")
     }

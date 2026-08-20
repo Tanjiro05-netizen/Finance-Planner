@@ -10,14 +10,14 @@ struct SplashView: View {
             Spacer()
             VStack(spacing: 18) {
                 Text("S")
-                    .font(.custom(SiftFontPostScriptName.frauncesTitle.rawValue, size: 40, relativeTo: .largeTitle))
-                    .foregroundStyle(Palette.bone)
+                    .font(.system(.largeTitle, design: .default).weight(.bold))
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 74, height: 74)
                     .background(Palette.ink, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
 
                 VStack(spacing: Spacing.sm) {
                     Text("Sift")
-                        .font(.custom(SiftFontPostScriptName.frauncesTitle.rawValue, size: 40, relativeTo: .largeTitle))
+                        .font(.system(.largeTitle, design: .default).weight(.bold))
                         .foregroundStyle(Palette.ink)
                     Text("EVERY RECURRING CHARGE, SURFACED")
                         .font(.siftLabel)
@@ -30,7 +30,7 @@ struct SplashView: View {
                 ErrorCallout(message: errorMessage, actionTitle: "Try again", action: onRetry)
             } else if isWorking {
                 ProgressView()
-                    .tint(Palette.gold)
+                    .tint(Palette.accent)
                     .accessibilityLabel("Preparing secure session")
             }
             Spacer()
@@ -101,7 +101,7 @@ struct BankPickerView: View {
 
             SearchField(text: $searchText)
 
-            Text("POPULAR")
+            Text("Popular")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
                 .padding(.top, Spacing.lg)
@@ -143,9 +143,9 @@ struct SecureLeadInView: View {
             VStack(spacing: Spacing.lg) {
                 Image(systemName: "lock.shield")
                     .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(Palette.bone)
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 54, height: 54)
-                    .background(Palette.gold, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                    .background(Palette.accent, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 OnboardingHeadline(title: headline, subtitle: subtitle, alignment: .center)
             }
@@ -212,9 +212,9 @@ struct ScanningView: View {
                     alignment: .center
                 )
                 ProgressView(value: scanState.progress)
-                    .tint(Palette.gold)
+                    .tint(Palette.accent)
                     .accessibilityLabel("Scanning progress")
-                Text(scanState.status.uppercased())
+                Text(scanState.status)
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
             }
@@ -240,7 +240,7 @@ struct ReviewFoundView: View {
                         title: "We found \(items.count) recurring charges",
                         subtitle: "Toggle off anything that isn't a subscription."
                     )
-                    Text("DETECTED")
+                    Text("Detected")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
 
@@ -272,7 +272,7 @@ struct ReviewFoundView: View {
             .padding(.horizontal, Spacing.screenHorizontal)
             .padding(.bottom, Spacing.lg)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
     }
 
     private var selectedCount: Int {
@@ -290,9 +290,9 @@ struct NotificationsOptInView: View {
             VStack(spacing: Spacing.lg) {
                 Image(systemName: "bell.badge")
                     .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(Palette.bone)
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 56, height: 56)
-                    .background(Palette.gold, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                    .background(Palette.accent, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 OnboardingHeadline(
                     title: "Stay ahead of renewals",
@@ -320,9 +320,9 @@ struct AllSetView: View {
             VStack(spacing: Spacing.lg) {
                 Image(systemName: SiftIcon.check)
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(Palette.bone)
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 64, height: 64)
-                    .background(Palette.green, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                    .background(Palette.positive, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 OnboardingHeadline(
                     title: "You're all set.",
@@ -330,8 +330,8 @@ struct AllSetView: View {
                     alignment: .center
                 )
 
-                SiftCard {
-                    Text("NOW TRACKING")
+                SiftSection {
+                    Text("Now tracking")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -363,9 +363,9 @@ struct ConnectUnavailableView: View {
             VStack(spacing: Spacing.lg) {
                 Image(systemName: iconName)
                     .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(Palette.bone)
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 56, height: 56)
-                    .background(Palette.clay, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                    .background(Palette.negative, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 OnboardingHeadline(title: title, subtitle: message, alignment: .center)
             }

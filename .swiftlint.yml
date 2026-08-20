@@ -29,12 +29,23 @@ custom_rules:
     message: "Use Palette tokens instead of raw hex literals outside Tokens.swift."
     severity: error
 
-  no_font_literals_outside_typography:
-    name: "Font Literals Outside Typography"
-    regex: "\"(Fraunces|Fraunces-9pt|Fraunces-9ptSemiBold|Fraunces-9ptBold|Plus Jakarta Sans|PlusJakartaSans-Regular|PlusJakartaSans-Medium|PlusJakartaSans-SemiBold|PlusJakartaSans-Bold|IBM Plex Mono|IBMPlexMono-Regular|IBMPlexMono-Medium|IBMPlexMono-SemiBold|IBMPlexMono-Bold)\""
+  # The app is set in San Francisco. These three families are gone, and all three are
+  # named in the published catalogues of typefaces that read as machine-generated -- so
+  # this rule now exists to stop them coming back rather than to route them.
+  no_bundled_font_families:
+    name: "Bundled Font Families"
+    regex: "\"(Fraunces|Fraunces-9pt|Fraunces-9ptSemiBold|Fraunces-9ptBold|Fraunces-Display|Fraunces-Title|Fraunces-Subhead|Plus Jakarta Sans|PlusJakartaSans-Regular|PlusJakartaSans-Medium|PlusJakartaSans-SemiBold|PlusJakartaSans-Bold|IBM Plex Mono|IBMPlexMono-Regular|IBMPlexMono-Medium|IBMPlexMono-SemiBold|IBMPlexMono-Bold)\""
     included: ".*\\.swift"
-    excluded: "ios/Sift/DesignSystem/Typography.swift"
-    message: "Route bundled font names through Typography.swift."
+    message: "Sift is set in San Francisco. Use Font.siftBody and friends from Typography.swift."
+    severity: error
+
+  # Font.custom bypasses dynamic optical sizing, automatic tracking, and Dynamic Type --
+  # the machinery that made dropping the bundled faces worth doing.
+  no_custom_font:
+    name: "Custom Font"
+    regex: "Font\\.custom\\(|\\.font\\(\\.custom\\("
+    included: ".*\\.swift"
+    message: "Use a system text style from Typography.swift rather than Font.custom."
     severity: error
 
   no_inline_animation_duration:

@@ -17,7 +17,7 @@ struct BudgetsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Budgets", eyebrow: "THIS PERIOD")
+                ScreenHeader(title: "Budgets")
                     .accessibilityIdentifier("budgets-title")
 
                 content
@@ -26,7 +26,7 @@ struct BudgetsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Budgets")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -76,7 +76,7 @@ struct BudgetsView: View {
     }
 
     private var summaryCard: some View {
-        SiftCard {
+        SiftSection {
             HStack {
                 StatCell(label: "SPENT", value: viewModel.totalSpent.formatted())
                 Spacer()

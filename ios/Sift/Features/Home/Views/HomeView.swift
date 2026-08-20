@@ -41,7 +41,7 @@ struct HomeView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Home")
         .refreshable { await viewModel.refresh() }
         .task { viewModel.load() }
@@ -141,9 +141,9 @@ private struct DashboardHeroCard: View {
     let viewModel: HomeViewModel
 
     var body: some View {
-        SiftCard {
+        SiftSection {
             HStack(alignment: .firstTextBaseline) {
-                Text("RECURRING THIS MONTH")
+                Text("Recurring this month")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
 
@@ -165,7 +165,7 @@ private struct DashboardHeroCard: View {
                 marks: viewModel.timelineMarks.map { mark in
                     RenewalMark(
                         position: CGFloat(mark.position),
-                        color: mark.isNext ? Palette.gold : Palette.inkFaint,
+                        color: mark.isNext ? Palette.accent : Palette.inkFaint,
                         label: mark.isNext ? "Next" : nil
                     )
                 },
@@ -192,10 +192,10 @@ private struct UnusedNudgeCard: View {
     let keep: () -> Void
 
     var body: some View {
-        SiftCard {
-            Text("FLAGGED UNUSED")
+        SiftSection {
+            Text("Flagged unused")
                 .font(.siftLabel)
-                .foregroundStyle(Palette.clay)
+                .foregroundStyle(Palette.negative)
 
             HStack(spacing: Spacing.md) {
                 MonogramTile(
@@ -210,12 +210,12 @@ private struct UnusedNudgeCard: View {
                         .foregroundStyle(Palette.ink)
                     Text("Last opened \(lastUsedText)")
                         .font(.siftBody)
-                        .foregroundStyle(Palette.clay)
+                        .foregroundStyle(Palette.negative)
                 }
 
                 Spacer()
 
-                MoneyText(value: subscription.monthlyEquivalent.formatted(), size: 20, color: Palette.clay)
+                MoneyText(value: subscription.monthlyEquivalent.formatted(), size: 20, color: Palette.negative)
             }
 
             HStack(spacing: Spacing.sm) {
@@ -240,7 +240,7 @@ private struct RenewSoonSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("RENEWS SOON")
+            Text("Renews soon")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -284,8 +284,8 @@ private struct RenewSoonSection: View {
 private struct DashboardLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.xl) {
-            SiftCard {
-                Text("RECURRING THIS MONTH")
+            SiftSection {
+                Text("Recurring this month")
                     .font(.siftLabel)
                 MoneyText(value: "$000.00", size: 54)
                 Text("Across 0 subscriptions · 0 renew this week")

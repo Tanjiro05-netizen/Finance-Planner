@@ -26,7 +26,7 @@ struct TransactionsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Transactions")
         .refreshable { await viewModel.refresh() }
         .task { viewModel.load() }
@@ -118,14 +118,14 @@ private struct TransactionsTotalsCard: View {
     let viewModel: TransactionsViewModel
 
     var body: some View {
-        SiftCard {
+        SiftSection {
             Text("LAST 30 DAYS")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("SPENT")
+                    Text("Spent")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
                     MoneyText(value: viewModel.totalSpend.formatted(), size: 24)
@@ -134,10 +134,10 @@ private struct TransactionsTotalsCard: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("INCOME")
+                    Text("Income")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
-                    MoneyText(value: viewModel.totalIncome.formatted(), size: 24, color: Palette.green)
+                    MoneyText(value: viewModel.totalIncome.formatted(), size: 24, color: Palette.positive)
                 }
             }
         }
@@ -147,7 +147,7 @@ private struct TransactionsTotalsCard: View {
 private struct TransactionsLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.xl) {
-            SiftCard {
+            SiftSection {
                 Text("LAST 30 DAYS")
                     .font(.siftLabel)
                 MoneyText(value: "$000.00", size: 24)

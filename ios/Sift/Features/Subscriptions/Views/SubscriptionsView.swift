@@ -38,7 +38,7 @@ struct SubscriptionsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Subscriptions")
         .refreshable { await viewModel.refresh() }
         .task { viewModel.load() }
@@ -131,8 +131,8 @@ private struct SubscriptionsTotalCard: View {
     let viewModel: SubscriptionsViewModel
 
     var body: some View {
-        SiftCard {
-            Text("MONTHLY TOTAL")
+        SiftSection {
+            Text("Monthly total")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -162,7 +162,7 @@ private struct SubscriptionCategorySectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(section.title.uppercased())
+            Text(section.title)
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -211,8 +211,8 @@ private struct SubscriptionCategorySectionView: View {
 private struct SubscriptionsLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.xl) {
-            SiftCard {
-                Text("MONTHLY TOTAL")
+            SiftSection {
+                Text("Monthly total")
                     .font(.siftLabel)
                 MoneyText(value: "$000.00", size: 48)
                 Text("0 tracked · 0 unused")

@@ -6,7 +6,7 @@ struct CancelOptionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Choose how to cancel", eyebrow: viewModel.subscriptionName.uppercased())
+                ScreenHeader(title: "Choose how to cancel", eyebrow: viewModel.subscriptionName)
                     .accessibilityIdentifier("cancel-options-title")
 
                 savingsCard
@@ -54,8 +54,8 @@ struct CancelOptionsView: View {
     }
 
     private var savingsCard: some View {
-        SiftCard {
-            Text("ANNUAL COST")
+        SiftSection {
+            Text("Annual cost")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 

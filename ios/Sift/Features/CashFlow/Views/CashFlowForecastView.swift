@@ -17,7 +17,7 @@ struct CashFlowForecastView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Cash Flow", eyebrow: "NEXT 30 DAYS")
+                ScreenHeader(title: "Cash Flow", eyebrow: "Next 30 days")
                     .accessibilityIdentifier("cash-flow-title")
 
                 content
@@ -26,7 +26,7 @@ struct CashFlowForecastView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Cash Flow")
         .task { viewModel.load() }
     }
@@ -60,20 +60,20 @@ private struct CashFlowSummaryCard: View {
     let forecast: CashFlowForecast
 
     var body: some View {
-        SiftCard {
+        SiftSection {
             HStack {
                 stat(label: "TODAY", value: forecast.startingBalance, color: Palette.ink)
                 Spacer()
                 stat(label: "IN 30 DAYS", value: forecast.endingBalance, color: endingColor)
             }
             Text("Lowest point \(forecast.lowestPoint.projectedBalance.formatted()) on \(dateText(forecast.lowestPoint.date))")
-                .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
-                .foregroundStyle(forecast.lowestPoint.projectedBalance.amountMinor < 0 ? Palette.clay : Palette.inkFaint)
+                .font(.system(.caption, design: .default).weight(.medium))
+                .foregroundStyle(forecast.lowestPoint.projectedBalance.amountMinor < 0 ? Palette.negative : Palette.inkFaint)
         }
     }
 
     private var endingColor: Color {
-        forecast.endingBalance.amountMinor < forecast.startingBalance.amountMinor ? Palette.clay : Palette.green
+        forecast.endingBalance.amountMinor < forecast.startingBalance.amountMinor ? Palette.negative : Palette.positive
     }
 
     private func stat(label: String, value: Money, color: Color) -> some View {
@@ -101,8 +101,8 @@ private struct CashFlowChartCard: View {
     }
 
     var body: some View {
-        SiftCard {
-            Text("PROJECTED BALANCE")
+        SiftSection {
+            Text("Projected balance")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -113,18 +113,18 @@ private struct CashFlowChartCard: View {
                         y: .value("Balance", dollars(point.projectedBalance))
                     )
                     .interpolationMethod(.stepEnd)
-                    .foregroundStyle(Palette.gold.opacity(0.18))
+                    .foregroundStyle(Palette.accent.opacity(0.18))
 
                     LineMark(
                         x: .value("Date", point.date),
                         y: .value("Balance", dollars(point.projectedBalance))
                     )
                     .interpolationMethod(.stepEnd)
-                    .foregroundStyle(Palette.goldDeep)
+                    .foregroundStyle(Palette.accent)
                 }
 
                 RuleMark(y: .value("Zero", 0))
-                    .foregroundStyle(Palette.clay.opacity(0.5))
+                    .foregroundStyle(Palette.negative.opacity(0.5))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
 
                 ForEach(forecast.events) { event in
@@ -133,7 +133,7 @@ private struct CashFlowChartCard: View {
                         y: .value("Balance", balance(at: event.date))
                     )
                     .symbolSize(event.kind == .income ? 70 : 34)
-                    .foregroundStyle(event.direction == .credit ? Palette.green : Palette.clay)
+                    .foregroundStyle(event.direction == .credit ? Palette.positive : Palette.negative)
                 }
             }
             .chartYAxis {
@@ -141,7 +141,7 @@ private struct CashFlowChartCard: View {
                 // inheriting SF Pro at system grey, and read for shape not lookup.
                 AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
                     AxisGridLine()
-                        .foregroundStyle(Palette.line)
+                        .foregroundStyle(Palette.separator)
                     AxisValueLabel {
                         Text(shortDollars(value.as(Double.self) ?? 0))
                             .font(.siftLabel)
@@ -177,7 +177,7 @@ private struct CashFlowEventList: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("UPCOMING")
+            Text("Upcoming")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -205,7 +205,7 @@ private struct CashFlowEventRow: View {
                     .foregroundStyle(Palette.ink)
                     .lineLimit(1)
                 Text(event.date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day()))
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
             }
 
@@ -214,16 +214,12 @@ private struct CashFlowEventRow: View {
             MoneyText(
                 value: "\(event.direction == .credit ? "+" : "-")\(event.amount.formatted())",
                 size: 16,
-                color: event.direction == .credit ? Palette.green : Palette.ink
+                color: event.direction == .credit ? Palette.positive : Palette.ink
             )
         }
         .padding(.horizontal, 13)
         .padding(.vertical, 11)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
     }
 }
 

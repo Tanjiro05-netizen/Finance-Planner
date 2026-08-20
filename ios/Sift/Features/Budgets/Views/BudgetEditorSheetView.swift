@@ -28,7 +28,7 @@ struct BudgetEditorSheetView: View {
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .font(.siftBody)
-                            .foregroundStyle(Palette.clay)
+                            .foregroundStyle(Palette.negative)
                     }
 
                     PrimaryButton(title: "Save") {
@@ -51,7 +51,7 @@ struct BudgetEditorSheetView: View {
                 .padding(.horizontal, Spacing.screenHorizontal)
                 .padding(.vertical, Spacing.xl)
             }
-            .background(Palette.bone)
+            .background(Palette.ground)
             .navigationTitle(viewModel.title)
             .task { viewModel.load() }
             .toolbar {
@@ -82,8 +82,8 @@ struct BudgetEditorSheetView: View {
     @ViewBuilder
     private var categoryField: some View {
         if !viewModel.categories.isEmpty {
-            SiftCard {
-                Text("CATEGORY")
+            SiftSection {
+                Text("Category")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
                 Picker(
@@ -101,8 +101,8 @@ struct BudgetEditorSheetView: View {
     }
 
     private var amountField: some View {
-        SiftCard {
-            Text("AMOUNT")
+        SiftSection {
+            Text("Amount")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("0.00", text: $viewModel.amountText)
@@ -113,7 +113,7 @@ struct BudgetEditorSheetView: View {
     }
 
     private var rolloverField: some View {
-        SiftCard {
+        SiftSection {
             Toggle("Roll over what's left", isOn: $viewModel.rolloverEnabled)
                 .toggleStyle(SiftToggleStyle())
                 .font(.siftBody)

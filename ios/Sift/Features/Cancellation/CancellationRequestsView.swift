@@ -56,8 +56,8 @@ struct CancellationRequestsView: View {
     }
 
     private var savingsBanner: some View {
-        SiftCard {
-            Text("CONFIRMED SAVINGS")
+        SiftSection {
+            Text("Confirmed savings")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -110,7 +110,7 @@ private struct CancellationRequestRow: View {
                         .foregroundStyle(Palette.ink)
 
                     Text("\(row.methodText) · \(row.annualCostText)")
-                        .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                        .font(.system(.caption, design: .default).weight(.medium))
                         .foregroundStyle(Palette.inkSoft)
                 }
 
@@ -124,11 +124,7 @@ private struct CancellationRequestRow: View {
             }
         }
         .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
@@ -138,7 +134,7 @@ private struct RequestStatusPill: View {
     let tone: CancellationStatusTone
 
     var body: some View {
-        Text(text.uppercased())
+        Text(text)
             .font(.siftLabel)
             .foregroundStyle(foreground)
             .padding(.horizontal, 9)
@@ -149,11 +145,11 @@ private struct RequestStatusPill: View {
     private var foreground: Color {
         switch tone {
         case .progress:
-            Palette.goldDeep
+            Palette.accent
         case .confirmed:
-            Palette.green
+            Palette.positive
         case .needsUser:
-            Palette.clay
+            Palette.negative
         }
     }
 }

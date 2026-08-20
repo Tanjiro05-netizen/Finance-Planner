@@ -28,8 +28,8 @@ private struct SpendTrendCard: View {
     let maxSpend: Money
 
     var body: some View {
-        SiftCard {
-            Text("SPEND OVER TIME")
+        SiftSection {
+            Text("Spend over time")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -38,7 +38,7 @@ private struct SpendTrendCard: View {
                     x: .value("Month", point.monthStart, unit: .month),
                     y: .value("Spend", dollars(point.total))
                 )
-                .foregroundStyle(Palette.gold)
+                .foregroundStyle(Palette.accent)
                 .cornerRadius(6)
                 .accessibilityLabel(point.monthStart.formatted(.dateTime.month(.wide).year()))
                 .accessibilityValue(point.total.formatted())
@@ -66,7 +66,7 @@ private struct SpendTrendCard: View {
                 // shape, not for lookup. No AxisTick — gridlines already mark position.
                 AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
                     AxisGridLine()
-                        .foregroundStyle(Palette.line)
+                        .foregroundStyle(Palette.separator)
                     AxisValueLabel {
                         Text(shortDollars(value.as(Double.self) ?? 0))
                             .font(.siftLabel)
@@ -105,7 +105,7 @@ private struct TopMoversSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("TOP MOVERS")
+            Text("Top movers")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -151,7 +151,7 @@ private struct SpendReportSectionsPreview: View {
             )
             .padding(Spacing.screenHorizontal)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
     }
 }
 

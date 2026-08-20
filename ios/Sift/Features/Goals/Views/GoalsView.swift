@@ -26,7 +26,7 @@ struct GoalsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Goals")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -81,12 +81,12 @@ struct GoalsView: View {
     }
 
     private var summaryCard: some View {
-        SiftCard {
+        SiftSection {
             // Saved leads; the target is context. Progress made is what keeps people coming back.
-            Text("SAVED SO FAR")
+            Text("Saved so far")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
-            MoneyText(value: viewModel.totalSaved.formatted(), size: 42, color: Palette.goldDeep)
+            MoneyText(value: viewModel.totalSaved.formatted(), size: 42, color: Palette.accent)
             Text("of \(viewModel.totalTarget.formatted()) across \(viewModel.rows.count) goals")
                 .font(.siftBody)
                 .foregroundStyle(Palette.inkSoft)

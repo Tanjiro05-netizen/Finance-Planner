@@ -211,7 +211,10 @@ struct DetectionEngine {
     }
 
     private func colorToken(for merchantKey: MerchantKey) -> ColorToken {
-        let options: [ColorToken] = [.ink, .inkSoft, .inkFaint, .gold, .goldDeep, .clay]
+        // Neutrals only. A merchant monogram is decoration, and `negative`/`positive`/`accent`
+        // carry meaning elsewhere -- a tile tinted "overspent red" because of a checksum is
+        // exactly the overload this palette was rebuilt to remove.
+        let options: [ColorToken] = [.ink, .inkSoft, .inkFaint]
         let checksum = merchantKey.rawValue.unicodeScalars.reduce(0) { partial, scalar in
             partial + Int(scalar.value)
         }

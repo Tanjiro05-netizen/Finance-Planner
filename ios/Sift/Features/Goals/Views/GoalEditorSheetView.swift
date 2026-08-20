@@ -36,7 +36,7 @@ struct GoalEditorSheetView: View {
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .font(.siftBody)
-                            .foregroundStyle(Palette.clay)
+                            .foregroundStyle(Palette.negative)
                     }
 
                     PrimaryButton(title: "Save") {
@@ -59,7 +59,7 @@ struct GoalEditorSheetView: View {
                 .padding(.horizontal, Spacing.screenHorizontal)
                 .padding(.vertical, Spacing.xl)
             }
-            .background(Palette.bone)
+            .background(Palette.ground)
             .navigationTitle(viewModel.title)
             .task { viewModel.load() }
             .toolbar {
@@ -75,8 +75,8 @@ struct GoalEditorSheetView: View {
     }
 
     private var nameField: some View {
-        SiftCard {
-            Text("NAME")
+        SiftSection {
+            Text("Name")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("e.g. Emergency fund", text: $viewModel.name)
@@ -87,8 +87,8 @@ struct GoalEditorSheetView: View {
     }
 
     private var targetField: some View {
-        SiftCard {
-            Text("TARGET AMOUNT")
+        SiftSection {
+            Text("Target amount")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("0.00", text: $viewModel.targetAmountText)
@@ -99,7 +99,7 @@ struct GoalEditorSheetView: View {
     }
 
     private var targetDateField: some View {
-        SiftCard {
+        SiftSection {
             Toggle("Target date", isOn: $viewModel.hasTargetDate)
                 .toggleStyle(SiftToggleStyle())
                 .font(.siftBody)
@@ -114,7 +114,7 @@ struct GoalEditorSheetView: View {
     }
 
     private var monthlyContributionField: some View {
-        SiftCard {
+        SiftSection {
             Toggle("Monthly amount", isOn: $viewModel.hasMonthlyContribution)
                 .toggleStyle(SiftToggleStyle())
                 .font(.siftBody)

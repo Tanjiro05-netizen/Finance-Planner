@@ -44,7 +44,7 @@ struct InsightsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Insights")
         .refreshable { await viewModel.refresh() }
         .task {
@@ -158,7 +158,7 @@ private struct NarrationSection: View {
 
     var body: some View {
         if let unavailableMessage {
-            SiftCard {
+            SiftSection {
                 sectionTitle
                 Text(unavailableMessage)
                     .font(.siftBody)
@@ -166,7 +166,7 @@ private struct NarrationSection: View {
             }
             .accessibilityIdentifier("insights-narration-unavailable")
         } else if isNarrating {
-            SiftCard {
+            SiftSection {
                 sectionTitle
                 Text("Reading your numbers…")
                     .font(.siftBody)
@@ -174,7 +174,7 @@ private struct NarrationSection: View {
             }
             .accessibilityIdentifier("insights-narration-loading")
         } else if let failureMessage {
-            SiftCard {
+            SiftSection {
                 sectionTitle
                 Text(failureMessage)
                     .font(.siftBody)
@@ -182,7 +182,7 @@ private struct NarrationSection: View {
             }
             .accessibilityIdentifier("insights-narration-failed")
         } else if !notes.isEmpty {
-            SiftCard {
+            SiftSection {
                 sectionTitle
 
                 ForEach(notes) { note in
@@ -208,7 +208,7 @@ private struct NarrationSection: View {
     }
 
     private var sectionTitle: some View {
-        Text("WHAT SIFT NOTICED")
+        Text("What sift noticed")
             .font(.siftLabel)
             .foregroundStyle(Palette.inkFaint)
     }
@@ -218,16 +218,16 @@ private struct SavingsHeroCard: View {
     let viewModel: InsightsViewModel
 
     var body: some View {
-        SiftCard {
-            Text("POTENTIAL SAVINGS")
+        SiftSection {
+            Text("Potential savings")
                 .font(.siftLabel)
-                .foregroundStyle(Palette.goldDeep)
+                .foregroundStyle(Palette.accent)
 
             MoneyText(
                 value: "\(viewModel.potentialSavings.formatted(showZeroFraction: false))/mo",
                 size: 50,
-                color: Palette.goldDeep,
-                secondaryColor: Palette.gold
+                color: Palette.accent,
+                secondaryColor: Palette.accent
             )
             .minimumScaleFactor(0.72)
             .accessibilityLabel("Potential savings, \(viewModel.potentialSavings.formatted()) per month")
@@ -244,8 +244,8 @@ private struct CategorySpendCard: View {
     let maxSpend: Money
 
     var body: some View {
-        SiftCard {
-            Text("CATEGORY SPEND")
+        SiftSection {
+            Text("Category spend")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -259,11 +259,11 @@ private struct CategorySpendCard: View {
                         x: .value("Spend", dollars(row.total)),
                         y: .value("Category", row.name)
                     )
-                    .foregroundStyle(Palette.gold)
+                    .foregroundStyle(Palette.accent)
                     .cornerRadius(6)
                     .annotation(position: .trailing, alignment: .leading, spacing: 6) {
                         Text(row.total.formatted())
-                            .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 13, relativeTo: .caption))
+                            .font(.system(.caption, design: .default).weight(.semibold))
                             .foregroundStyle(Palette.ink)
                             .monospacedDigit()
                     }
@@ -300,7 +300,7 @@ private struct CategorySpendBar: View {
                 Spacer()
 
                 Text(row.total.formatted())
-                    .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 16, relativeTo: .body))
+                    .font(.system(.body, design: .default).weight(.semibold))
                     .foregroundStyle(Palette.ink)
                     .monospacedDigit()
             }
@@ -308,10 +308,10 @@ private struct CategorySpendBar: View {
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Palette.sand)
+                        .fill(Palette.surfaceSunken)
 
                     Capsule()
-                        .fill(Palette.gold)
+                        .fill(Palette.accent)
                         .frame(width: proxy.size.width * widthRatio)
                 }
             }
@@ -335,7 +335,7 @@ private struct PriceChangesSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("PRICE CHANGES")
+            Text("Price changes")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -362,7 +362,7 @@ private struct TrialEndingSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("TRIAL ENDING")
+            Text("Trial ending")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -394,13 +394,9 @@ private struct AlertRow: View {
         HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(warns ? Palette.clay : Palette.goldDeep)
+                .foregroundStyle(warns ? Palette.negative : Palette.accent)
                 .frame(width: 36, height: 36)
-                .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
-                        .stroke(Palette.line, lineWidth: 1)
-                )
+                .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -409,33 +405,29 @@ private struct AlertRow: View {
                     .foregroundStyle(Palette.ink)
                 Text(detail)
                     .font(.siftBody)
-                    .foregroundStyle(warns ? Palette.clay : Palette.inkSoft)
+                    .foregroundStyle(warns ? Palette.negative : Palette.inkSoft)
             }
 
             Spacer()
         }
         .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
     }
 }
 
 private struct InsightsLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.xl) {
-            SiftCard {
-                Text("POTENTIAL SAVINGS")
+            SiftSection {
+                Text("Potential savings")
                     .font(.siftLabel)
                 MoneyText(value: "$000/mo", size: 50)
                 Text("$0/yr if unused subscriptions are cancelled.")
                     .font(.siftBody)
             }
 
-            SiftCard {
-                Text("CATEGORY SPEND")
+            SiftSection {
+                Text("Category spend")
                     .font(.siftLabel)
                 ForEach(0 ..< 4, id: \.self) { _ in
                     CategorySpendBar(

@@ -12,18 +12,18 @@ struct CancelConfirmedView: View {
             VStack(alignment: .leading, spacing: Spacing.xl) {
                 checkIcon
 
-                ScreenHeader(title: "Cancelled", eyebrow: viewModel.subscriptionName.uppercased())
+                ScreenHeader(title: "Cancelled", eyebrow: viewModel.subscriptionName)
                     .accessibilityIdentifier("cancel-confirmed-title")
 
-                SiftCard {
-                    Text("SAVED")
+                SiftSection {
+                    Text("Saved")
                         .font(.siftLabel)
-                        .foregroundStyle(Palette.green)
+                        .foregroundStyle(Palette.positive)
 
                     MoneyText(
                         value: "\(viewModel.annualSavings.formatted())/yr",
                         size: 50,
-                        color: Palette.green,
+                        color: Palette.positive,
                         secondaryColor: Palette.inkSoft
                     )
                     .accessibilityIdentifier("cancel-confirmed-savings")
@@ -52,16 +52,16 @@ struct CancelConfirmedView: View {
         if reduceMotion {
             Image(systemName: SiftIcon.check)
                 .font(.system(size: 26, weight: .bold))
-                .foregroundStyle(Palette.card)
+                .foregroundStyle(Palette.surface)
                 .frame(width: 62, height: 62)
-                .background(Palette.green, in: Circle())
+                .background(Palette.positive, in: Circle())
                 .accessibilityHidden(true)
         } else {
             Image(systemName: SiftIcon.check)
                 .font(.system(size: 26, weight: .bold))
-                .foregroundStyle(Palette.card)
+                .foregroundStyle(Palette.surface)
                 .frame(width: 62, height: 62)
-                .background(Palette.green, in: Circle())
+                .background(Palette.positive, in: Circle())
                 .symbolEffect(.bounce, value: checkTrigger)
                 .accessibilityHidden(true)
         }
