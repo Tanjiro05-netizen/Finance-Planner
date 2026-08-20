@@ -128,7 +128,7 @@ private struct TransactionsTotalsCard: View {
                     Text("Spent")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
-                    MoneyText(value: viewModel.totalSpend.formatted(), size: 24)
+                    MoneyText(value: viewModel.totalSpend.formatted(), role: .primary)
                 }
 
                 Spacer()
@@ -137,7 +137,7 @@ private struct TransactionsTotalsCard: View {
                     Text("Income")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
-                    MoneyText(value: viewModel.totalIncome.formatted(), size: 24, color: Palette.positive)
+                    MoneyText(value: viewModel.totalIncome.formatted(), role: .primary, color: Palette.positive)
                 }
             }
         }
@@ -150,7 +150,7 @@ private struct TransactionsLoadingView: View {
             SiftSection {
                 Text("LAST 30 DAYS")
                     .font(.siftLabel)
-                MoneyText(value: "$000.00", size: 24)
+                MoneyText(value: "$000.00", role: .primary)
             }
 
             ForEach(0 ..< 5, id: \.self) { _ in

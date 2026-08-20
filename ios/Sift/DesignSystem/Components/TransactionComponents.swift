@@ -31,7 +31,7 @@ struct TransactionRow: View {
             VStack(alignment: .trailing, spacing: 2) {
                 MoneyText(
                     value: signedAmount,
-                    size: 16,
+                    role: .row,
                     color: direction == .credit ? Palette.positive : Palette.ink
                 )
                 Text(date)

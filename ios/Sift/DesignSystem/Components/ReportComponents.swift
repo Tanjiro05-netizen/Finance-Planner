@@ -71,7 +71,7 @@ struct SpendComparisonCard: View {
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
-            MoneyText(value: comparison.currentTotal.formatted(), size: 38)
+            MoneyText(value: comparison.currentTotal.formatted(), role: .primary)
 
             HStack(spacing: Spacing.sm) {
                 Pill(text: comparison.deltaLabel, variant: comparison.deltaVariant)

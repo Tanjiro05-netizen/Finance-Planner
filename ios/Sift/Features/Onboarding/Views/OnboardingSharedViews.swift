@@ -268,7 +268,7 @@ struct ReviewSubscriptionRow: View {
                 }
 
                 Spacer()
-                MoneyText(value: item.detection.amount.formatted(), size: 16)
+                MoneyText(value: item.detection.amount.formatted(), role: .row)
             }
             .padding(Spacing.md)
             .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))

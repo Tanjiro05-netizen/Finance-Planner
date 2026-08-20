@@ -1142,7 +1142,7 @@ private struct CategoryRow: View {
 
             Spacer()
 
-            MoneyText(value: row.monthlyTotal.formatted(), size: 16)
+            MoneyText(value: row.monthlyTotal.formatted(), role: .row)
 
             Image(systemName: SiftIcon.chevronRight)
                 .font(.system(size: 12, weight: .medium))

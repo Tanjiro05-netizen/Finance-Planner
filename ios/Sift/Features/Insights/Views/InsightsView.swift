@@ -225,7 +225,7 @@ private struct SavingsHeroCard: View {
 
             MoneyText(
                 value: "\(viewModel.potentialSavings.formatted(showZeroFraction: false))/mo",
-                size: 50,
+                role: .primary,
                 color: Palette.accent,
                 secondaryColor: Palette.accent
             )
@@ -421,7 +421,7 @@ private struct InsightsLoadingView: View {
             SiftSection {
                 Text("Potential savings")
                     .font(.siftLabel)
-                MoneyText(value: "$000/mo", size: 50)
+                MoneyText(value: "$000/mo", role: .primary)
                 Text("$0/yr if unused subscriptions are cancelled.")
                     .font(.siftBody)
             }

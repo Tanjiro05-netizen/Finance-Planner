@@ -191,6 +191,7 @@ struct BillsAndIncomeView: View {
                     header: title,
                     footer: "\(total.formatted()) a month",
                     data: rows,
+                    id: \.id,
                     separatorInset: Spacing.lg + 38 + Spacing.md
                 ) { row in
                     Button {

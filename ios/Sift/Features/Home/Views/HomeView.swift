@@ -152,7 +152,7 @@ private struct DashboardHeroCard: View {
                 Pill(text: viewModel.trend.text, variant: pillVariant)
             }
 
-            MoneyText(value: viewModel.monthlyTotal.formatted(), size: 54)
+            MoneyText(value: viewModel.monthlyTotal.formatted(), role: .primary)
                 .minimumScaleFactor(0.72)
                 .accessibilityLabel("Recurring this month, \(viewModel.monthlyTotal.formatted())")
                 .accessibilityIdentifier("dashboard-monthly-total")
@@ -215,7 +215,7 @@ private struct UnusedNudgeCard: View {
 
                 Spacer()
 
-                MoneyText(value: subscription.monthlyEquivalent.formatted(), size: 20, color: Palette.negative)
+                MoneyText(value: subscription.monthlyEquivalent.formatted(), role: .row, color: Palette.negative)
             }
 
             HStack(spacing: Spacing.sm) {
@@ -287,7 +287,7 @@ private struct DashboardLoadingView: View {
             SiftSection {
                 Text("Recurring this month")
                     .font(.siftLabel)
-                MoneyText(value: "$000.00", size: 54)
+                MoneyText(value: "$000.00", role: .primary)
                 Text("Across 0 subscriptions · 0 renew this week")
                     .font(.siftBody)
                 RenewalTimelineStrip(marks: [], monthLabel: "JULY")

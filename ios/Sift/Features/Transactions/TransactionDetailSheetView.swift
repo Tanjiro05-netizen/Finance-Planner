@@ -24,7 +24,7 @@ struct TransactionDetailSheetView: View {
 
                             MoneyText(
                                 value: transaction.amount.formatted(),
-                                size: 32,
+                                role: .primary,
                                 color: transaction.direction == .credit ? Palette.positive : Palette.ink
                             )
 

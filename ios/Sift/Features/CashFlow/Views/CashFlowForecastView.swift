@@ -81,7 +81,7 @@ private struct CashFlowSummaryCard: View {
             Text(label)
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
-            MoneyText(value: value.formatted(), size: 24, color: color)
+            MoneyText(value: value.formatted(), role: .primary, color: color)
         }
     }
 
@@ -213,7 +213,7 @@ private struct CashFlowEventRow: View {
 
             MoneyText(
                 value: "\(event.direction == .credit ? "+" : "-")\(event.amount.formatted())",
-                size: 16,
+                role: .row,
                 color: event.direction == .credit ? Palette.positive : Palette.ink
             )
         }

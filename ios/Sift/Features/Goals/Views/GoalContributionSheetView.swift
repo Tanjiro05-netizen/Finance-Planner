@@ -68,7 +68,7 @@ struct GoalContributionSheetView: View {
             Text("Saved so far")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
-            MoneyText(value: viewModel.savedSoFar.formatted(), size: 34, color: Palette.accent)
+            MoneyText(value: viewModel.savedSoFar.formatted(), role: .primary, color: Palette.accent)
         }
     }
 

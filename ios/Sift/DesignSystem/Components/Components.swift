@@ -64,19 +64,24 @@ struct SiftSeparator: View {
 /// Interleaving separators by hand is where row lists usually go wrong — a trailing
 /// hairline sitting on the section's rounded corner is the giveaway. Taking the collection
 /// means the component knows which row is last.
-struct SiftRowSection<Data: RandomAccessCollection, Row: View>: View where Data.Element: Identifiable {
+/// Takes an explicit id key path rather than requiring `Identifiable`, the way `ForEach`
+/// does. The SwiftData models here carry both a `String` id of their own and the
+/// `PersistentIdentifier` that `PersistentModel` supplies, so leaving the choice implicit
+/// picks the wrong one.
+struct SiftRowSection<Data: RandomAccessCollection, ID: Hashable, Row: View>: View {
     var header: String?
     var footer: String?
     let data: Data
+    let id: KeyPath<Data.Element, ID>
     var separatorInset: CGFloat = Spacing.lg
     @ViewBuilder var row: (Data.Element) -> Row
 
     var body: some View {
         SiftSection(header: header, footer: footer, padded: false) {
-            ForEach(data) { element in
+            ForEach(data, id: id) { element in
                 row(element)
 
-                if element.id != data.last?.id {
+                if element[keyPath: id] != data.last?[keyPath: id] {
                     SiftSeparator(leadingInset: separatorInset)
                 }
             }
@@ -261,15 +266,18 @@ struct SubscriptionRow: View {
             Spacer(minLength: Spacing.sm)
 
             VStack(alignment: .trailing, spacing: 2) {
-                MoneyText(value: amount, size: 16)
+                MoneyText(value: amount, role: .row)
                 Text(cadence)
                     .font(.cadence)
                     .foregroundStyle(Palette.inkFaint)
             }
         }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 11)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        // No fill or radius of its own: the section it sits in already carries both, and a
+        // filled row inside a filled section is the card-inside-a-card this layout was
+        // full of.
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
+        .contentShape(Rectangle())
     }
 }
 

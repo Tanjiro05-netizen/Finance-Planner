@@ -340,7 +340,7 @@ struct AllSetView: View {
                             .foregroundStyle(Palette.ink)
                         Text("·")
                             .foregroundStyle(Palette.inkFaint)
-                        MoneyText(value: "\(monthlyTotal.formatted())/mo", size: 28)
+                        MoneyText(value: "\(monthlyTotal.formatted())/mo", role: .primary)
                     }
                 }
             }

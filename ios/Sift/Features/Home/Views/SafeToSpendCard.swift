@@ -51,7 +51,7 @@ struct SafeToSpendCard: View {
 
             MoneyText(
                 value: "\(magnitude(of: result.dailyAmount).formatted())/day",
-                size: 44,
+                role: .hero,
                 color: result.isOverspent ? Palette.negative : Palette.ink
             )
             .minimumScaleFactor(0.7)

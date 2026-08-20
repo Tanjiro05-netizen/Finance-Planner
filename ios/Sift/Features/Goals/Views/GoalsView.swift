@@ -86,7 +86,7 @@ struct GoalsView: View {
             Text("Saved so far")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
-            MoneyText(value: viewModel.totalSaved.formatted(), size: 42, color: Palette.accent)
+            MoneyText(value: viewModel.totalSaved.formatted(), role: .primary, color: Palette.accent)
             Text("of \(viewModel.totalTarget.formatted()) across \(viewModel.rows.count) goals")
                 .font(.siftBody)
                 .foregroundStyle(Palette.inkSoft)

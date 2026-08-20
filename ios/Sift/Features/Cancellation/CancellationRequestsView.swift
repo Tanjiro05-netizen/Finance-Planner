@@ -61,7 +61,7 @@ struct CancellationRequestsView: View {
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
-            MoneyText(value: "\(viewModel.requestsSavings.formatted())/yr", size: 46)
+            MoneyText(value: "\(viewModel.requestsSavings.formatted())/yr", role: .primary)
                 .accessibilityIdentifier("requests-savings-total")
 
             Text("Confirmed concierge and guided cancellations are counted once.")

@@ -7,7 +7,7 @@ struct SavingsBreakdownView: View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             ScreenHeader(title: "Savings")
             SiftSection {
-                MoneyText(value: "\(annualSavings.formatted(showZeroFraction: false))/yr", size: 42)
+                MoneyText(value: "\(annualSavings.formatted(showZeroFraction: false))/yr", role: .hero)
                 Text("\(unusedSubscriptions.count) subscriptions look unused based on recent activity.")
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)

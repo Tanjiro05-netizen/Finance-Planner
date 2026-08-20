@@ -179,7 +179,7 @@ struct GoalContributionRow: View {
 
             MoneyText(
                 value: "\(isWithdrawal ? "-" : "+")\(magnitude.formatted())",
-                size: 16,
+                role: .row,
                 color: isWithdrawal ? Palette.negative : Palette.ink
             )
         }

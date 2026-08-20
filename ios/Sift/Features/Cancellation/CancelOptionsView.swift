@@ -59,7 +59,7 @@ struct CancelOptionsView: View {
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
-            MoneyText(value: "\(viewModel.annualSavings.formatted())/yr", size: 46)
+            MoneyText(value: "\(viewModel.annualSavings.formatted())/yr", role: .primary)
                 .accessibilityLabel("\(viewModel.annualSavings.formatted()) per year")
 
             Text("Cancelling \(viewModel.subscriptionName) removes this from active totals after confirmation.")

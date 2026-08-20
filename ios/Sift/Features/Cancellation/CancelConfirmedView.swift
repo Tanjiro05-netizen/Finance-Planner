@@ -22,7 +22,7 @@ struct CancelConfirmedView: View {
 
                     MoneyText(
                         value: "\(viewModel.annualSavings.formatted())/yr",
-                        size: 50,
+                        role: .primary,
                         color: Palette.positive,
                         secondaryColor: Palette.inkSoft
                     )
