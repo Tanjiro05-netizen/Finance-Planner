@@ -8,6 +8,11 @@ import Foundation
 import Observation
 import SwiftUI
 
+/// Where a settings row's separator starts: past the section inset and the icon, so the
+/// hairline begins under the title rather than under the glyph. This is the detail that
+/// makes a row list read as an iOS row list.
+private let settingsSeparatorInset: CGFloat = Spacing.lg + 32 + Spacing.md
+
 struct SettingsView: View {
     @Environment(AppModel.self) private var appModel
     @Environment(\.apiClient) private var apiClient
@@ -144,7 +149,11 @@ struct SettingsHubView: View {
 
                 SettingsProfileCard()
 
-                VStack(spacing: Spacing.sm) {
+                // Three groups rather than one run of eight, because the grouping is true:
+                // what Sift reads, what it is doing on your behalf, and what it holds about
+                // you. A section header that encodes something real is worth having; the
+                // ones this screen used to carry — "ACCOUNT", "CONTROL" — did not.
+                SiftSection(header: "Accounts and data", padded: false) {
                     NavigationLink {
                         LinkedAccountsView(
                             repositories: repositories,
@@ -159,6 +168,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-linked-accounts")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     NavigationLink {
                         AlertSettingsView(
                             repositories: repositories,
@@ -170,6 +181,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-notifications")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     NavigationLink {
                         CategoriesView(repositories: repositories)
                     } label: {
@@ -178,6 +191,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-categories")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     NavigationLink {
                         BillsAndIncomeView(repositories: repositories)
                     } label: {
@@ -185,7 +200,9 @@ struct SettingsHubView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-bills-income")
+                }
 
+                SiftSection(header: "Cancellations", padded: false) {
                     Button {
                         appModel.present(.cancellationRequests)
                     } label: {
@@ -197,7 +214,9 @@ struct SettingsHubView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-cancellation-requests")
+                }
 
+                SiftSection(header: "Privacy and legal", padded: false) {
                     NavigationLink {
                         PrivacyDataView(
                             repositories: repositories,
@@ -212,6 +231,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-privacy-data")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     Button {
                         openLegalURL(LegalLinks.privacyPolicy)
                     } label: {
@@ -219,6 +240,8 @@ struct SettingsHubView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-privacy-policy")
+
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
 
                     Button {
                         openLegalURL(LegalLinks.termsOfService)

@@ -545,11 +545,15 @@ struct SettingsRow: View {
             }
 
             Image(systemName: SiftIcon.chevronRight)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Palette.inkFaint)
         }
-        .padding(Spacing.md)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+        // A row inside a section does not carry its own fill or its own corner radius.
+        // Every settings row used to be a separate rounded slab, which is what made a
+        // list of eight options read as a deck of eight cards.
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
+        .contentShape(Rectangle())
     }
 }
 

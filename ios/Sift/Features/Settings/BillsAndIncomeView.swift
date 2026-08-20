@@ -175,26 +175,32 @@ struct BillsAndIncomeView: View {
         edit: @escaping (String?) -> Void
     ) -> some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            HStack {
-                Text(title)
-                    .font(.siftLabel)
-                    .foregroundStyle(Palette.inkFaint)
-
-                Spacer()
-
-                Text("\(total.formatted()) / month")
-                    .font(.siftBody)
-                    .foregroundStyle(Palette.inkSoft)
-            }
-
-            ForEach(rows) { row in
-                Button {
-                    edit(row.id)
-                } label: {
-                    RecurringRow(row: row)
+            if rows.isEmpty {
+                SiftSection(header: title) {
+                    StateMessageCard(
+                        title: title,
+                        message: "Nothing here yet.",
+                        systemImage: SiftIcon.calendar,
+                        prominence: .inline
+                    )
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("recurring-row-\(row.id)")
+            } else {
+                // The separator starts under the text rather than under the monogram, which
+                // is where iOS puts it: tile width plus the gap after it.
+                SiftRowSection(
+                    header: title,
+                    footer: "\(total.formatted()) a month",
+                    data: rows,
+                    separatorInset: Spacing.lg + 38 + Spacing.md
+                ) { row in
+                    Button {
+                        edit(row.id)
+                    } label: {
+                        RecurringRow(row: row)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("recurring-row-\(row.id)")
+                }
             }
 
             SecondaryButton(title: addTitle) {
@@ -223,14 +229,18 @@ private struct RecurringRow: View {
 
             Spacer(minLength: Spacing.sm)
 
-            MoneyText(value: row.amount.formatted(), size: 16)
+            MoneyText(value: row.amount.formatted(), role: .row)
 
             Image(systemName: SiftIcon.chevronRight)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Palette.inkFaint)
         }
-        .padding(Spacing.md)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        // No fill of its own: the row sits inside a section that already carries the
+        // surface, and a filled row inside a filled section is the card-inside-a-card the
+        // old layout was full of.
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(row.name), \(row.amount.formatted()), \(row.cadence.displayName), \(dateLabel)")
     }
