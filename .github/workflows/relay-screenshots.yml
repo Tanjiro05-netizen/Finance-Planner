@@ -44,7 +44,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: screenshots
-          run-id: 32503484329
+          run-id: 32610356790
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: src/c-native
 
@@ -54,7 +54,7 @@ jobs:
       - name: Stage the comparison
         run: |
           rm -rf compare && mkdir -p compare
-          for screen in 01-home 04-subscriptions 13-settings 06-insights; do
+          for screen in 01-home 04-subscriptions 13-settings 06-insights 08-budgets 09-goals; do
             for branch in a-original b-craft c-native; do
               if [ -f "src/$branch/$screen.png" ]; then
                 cp "src/$branch/$screen.png" "compare/$screen--$branch.png"
