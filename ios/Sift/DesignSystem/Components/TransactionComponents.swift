@@ -39,9 +39,9 @@ struct TransactionRow: View {
                     .foregroundStyle(Palette.inkFaint)
             }
         }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 11)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
+        .contentShape(Rectangle())
     }
 
     private var monogram: String {

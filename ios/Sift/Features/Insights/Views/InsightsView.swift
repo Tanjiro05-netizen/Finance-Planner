@@ -334,24 +334,20 @@ private struct PriceChangesSection: View {
     let rows: [PriceChangeAlertRow]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Price changes")
-                .font(.siftLabel)
-                .foregroundStyle(Palette.inkFaint)
-
-            if rows.isEmpty {
+        if rows.isEmpty {
+            SiftSection(header: "Price changes") {
                 Text("No price changes detected.")
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
-            } else {
-                ForEach(rows) { row in
-                    AlertRow(
-                        icon: row.isIncrease ? SiftIcon.arrowUp : SiftIcon.arrowDown,
-                        title: row.subscriptionName,
-                        detail: row.detail,
-                        warns: row.isIncrease
-                    )
-                }
+            }
+        } else {
+            SiftRowSection(header: "Price changes", data: rows, id: \.id) { row in
+                AlertRow(
+                    icon: row.isIncrease ? SiftIcon.arrowUp : SiftIcon.arrowDown,
+                    title: row.subscriptionName,
+                    detail: row.detail,
+                    warns: row.isIncrease
+                )
             }
         }
     }
@@ -361,24 +357,20 @@ private struct TrialEndingSection: View {
     let rows: [TrialEndingAlertRow]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Trial ending")
-                .font(.siftLabel)
-                .foregroundStyle(Palette.inkFaint)
-
-            if rows.isEmpty {
+        if rows.isEmpty {
+            SiftSection(header: "Trial ending") {
                 Text("No trials are ending soon.")
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
-            } else {
-                ForEach(rows) { row in
-                    AlertRow(
-                        icon: SiftIcon.calendar,
-                        title: row.subscriptionName,
-                        detail: row.detail,
-                        warns: false
-                    )
-                }
+            }
+        } else {
+            SiftRowSection(header: "Trial ending", data: rows, id: \.id) { row in
+                AlertRow(
+                    icon: SiftIcon.calendar,
+                    title: row.subscriptionName,
+                    detail: row.detail,
+                    warns: false
+                )
             }
         }
     }
@@ -410,8 +402,8 @@ private struct AlertRow: View {
 
             Spacer()
         }
-        .padding(Spacing.md)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 

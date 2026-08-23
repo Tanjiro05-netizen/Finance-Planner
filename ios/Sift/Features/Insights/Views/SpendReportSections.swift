@@ -104,21 +104,17 @@ private struct TopMoversSection: View {
     let movers: [CategoryMover]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Top movers")
-                .font(.siftLabel)
-                .foregroundStyle(Palette.inkFaint)
-
-            if movers.isEmpty {
-                // Small wobbles are filtered out upstream, so "nothing moved" is a real and
-                // useful answer rather than a gap in the data.
+        if movers.isEmpty {
+            // Small wobbles are filtered out upstream, so "nothing moved" is a real and
+            // useful answer rather than a gap in the data.
+            SiftSection(header: "Top movers") {
                 Text("No category moved much between these two stretches.")
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
-            } else {
-                ForEach(movers) { mover in
-                    CategoryMoverRow(mover: mover)
-                }
+            }
+        } else {
+            SiftRowSection(header: "Top movers", data: movers, id: \.id) { mover in
+                CategoryMoverRow(mover: mover)
             }
         }
     }

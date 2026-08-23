@@ -127,14 +127,8 @@ struct GoalContributionSheetView: View {
     @ViewBuilder
     private var history: some View {
         if !viewModel.contributions.isEmpty {
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("History")
-                    .font(.siftLabel)
-                    .foregroundStyle(Palette.inkFaint)
-
-                ForEach(viewModel.contributions, id: \.id) { contribution in
-                    GoalContributionRow(contribution: contribution)
-                }
+            SiftRowSection(header: "History", data: viewModel.contributions, id: \.id) { contribution in
+                GoalContributionRow(contribution: contribution)
             }
         }
     }

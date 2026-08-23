@@ -114,9 +114,9 @@ struct BudgetRow: View {
                         .foregroundStyle(progress.isOverspent ? Palette.negative : Palette.inkSoft)
                 }
             }
-            .padding(.horizontal, 13)
-            .padding(.vertical, 12)
-            .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.md)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("budget-row-\(categoryName)")

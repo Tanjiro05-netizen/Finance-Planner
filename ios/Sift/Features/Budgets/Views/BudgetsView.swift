@@ -65,11 +65,9 @@ struct BudgetsView: View {
             summaryCard
             affordabilityButton
 
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                ForEach(viewModel.rows) { row in
-                    BudgetRow(categoryName: row.categoryName, progress: row.progress) {
-                        appModel.present(.budgetEditor(budgetID: row.id))
-                    }
+            SiftRowSection(data: viewModel.rows, id: \.id) { row in
+                BudgetRow(categoryName: row.categoryName, progress: row.progress) {
+                    appModel.present(.budgetEditor(budgetID: row.id))
                 }
             }
         }

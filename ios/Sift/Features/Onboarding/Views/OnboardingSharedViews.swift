@@ -169,8 +169,8 @@ struct BankRow: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Palette.inkFaint)
         }
-        .padding(Spacing.md)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -270,8 +270,8 @@ struct ReviewSubscriptionRow: View {
                 Spacer()
                 MoneyText(value: item.detection.amount.formatted(), role: .row)
             }
-            .padding(Spacing.md)
-            .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.md)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(item.detection.name), \(item.detection.amount.formatted())")

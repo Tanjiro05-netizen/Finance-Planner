@@ -661,11 +661,9 @@ struct LinkedAccountsView: View {
                 systemImage: SiftIcon.bank
             )
         } else {
-            VStack(spacing: Spacing.sm) {
-                ForEach(viewModel.rows) { row in
-                    LinkedAccountRow(row: row) {
-                        accountPendingRemoval = row
-                    }
+            SiftRowSection(data: viewModel.rows, id: \.id) { row in
+                LinkedAccountRow(row: row) {
+                    accountPendingRemoval = row
                 }
             }
 
@@ -708,8 +706,8 @@ private struct LinkedAccountRow: View {
                 .foregroundStyle(Palette.negative)
                 .frame(minHeight: 44)
         }
-        .padding(Spacing.md)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(row.institutionName), \(row.accountMeta), \(statusLabel)")
     }
@@ -739,19 +737,17 @@ private struct LinkedAccountRow: View {
 
 private struct LinkedAccountsLoadingView: View {
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            ForEach(0 ..< 2, id: \.self) { _ in
-                LinkedAccountRow(
-                    row: LinkedAccountRowModel(
-                        id: UUID().uuidString,
-                        institutionName: "Linked institution",
-                        accountCount: 2,
-                        status: .connected,
-                        lastSyncedAt: SeedData.referenceDate
-                    ),
-                    remove: {}
-                )
-            }
+        SiftRowSection(data: 0 ..< 2, id: \.self) { _ in
+            LinkedAccountRow(
+                row: LinkedAccountRowModel(
+                    id: UUID().uuidString,
+                    institutionName: "Linked institution",
+                    accountCount: 2,
+                    status: .connected,
+                    lastSyncedAt: SeedData.referenceDate
+                ),
+                remove: {}
+            )
         }
         .redacted(reason: .placeholder)
         .accessibilityLabel("Loading linked accounts")
@@ -865,7 +861,7 @@ struct AlertSettingsView: View {
                 ScreenHeader(title: "Notifications")
                     .accessibilityIdentifier("alert-settings-title")
 
-                VStack(spacing: Spacing.sm) {
+                SiftSection(padded: false) {
                     AlertToggleRow(
                         title: "Renewal reminders",
                         detail: "Upcoming renewals",
@@ -875,6 +871,7 @@ struct AlertSettingsView: View {
                         )
                     )
                     .accessibilityIdentifier("alert-renewal-reminders-toggle")
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Price-change alerts",
@@ -884,6 +881,7 @@ struct AlertSettingsView: View {
                             set: { viewModel.setPriceChanges($0) }
                         )
                     )
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Free-trial endings",
@@ -893,6 +891,7 @@ struct AlertSettingsView: View {
                             set: { viewModel.setTrialEndings($0) }
                         )
                     )
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Unused nudges",
@@ -902,6 +901,7 @@ struct AlertSettingsView: View {
                             set: { viewModel.setUnusedNudges($0) }
                         )
                     )
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Weekly summary",
@@ -912,6 +912,7 @@ struct AlertSettingsView: View {
                         )
                     )
                     .accessibilityIdentifier("alert-weekly-summary-toggle")
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Budget alerts",
@@ -959,8 +960,8 @@ private struct AlertToggleRow: View {
             }
         }
         .toggleStyle(SiftToggleStyle())
-        .padding(Spacing.md)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -1081,25 +1082,25 @@ struct CategoriesView: View {
                 ScreenHeader(title: "Categories & rules")
                     .accessibilityIdentifier("categories-title")
 
-                AlertToggleRow(
-                    title: "Auto-categorise",
-                    detail: "Keyword rules apply unless you change a category",
-                    isOn: Binding(
-                        get: { viewModel.autoCategorize },
-                        set: { viewModel.setAutoCategorize($0) }
+                SiftSection(padded: false) {
+                    AlertToggleRow(
+                        title: "Auto-categorise",
+                        detail: "Keyword rules apply unless you change a category",
+                        isOn: Binding(
+                            get: { viewModel.autoCategorize },
+                            set: { viewModel.setAutoCategorize($0) }
+                        )
                     )
-                )
-                .accessibilityIdentifier("categories-auto-toggle")
+                    .accessibilityIdentifier("categories-auto-toggle")
+                }
 
-                VStack(spacing: Spacing.sm) {
-                    ForEach(viewModel.rows) { row in
-                        NavigationLink {
-                            CategorySubscriptionsView(category: row, viewModel: viewModel)
-                        } label: {
-                            CategoryRow(row: row)
-                        }
-                        .buttonStyle(.plain)
+                SiftRowSection(data: viewModel.rows, id: \.id) { row in
+                    NavigationLink {
+                        CategorySubscriptionsView(category: row, viewModel: viewModel)
+                    } label: {
+                        CategoryRow(row: row)
                     }
+                    .buttonStyle(.plain)
                 }
 
                 if let errorMessage = viewModel.errorMessage {
@@ -1148,8 +1149,8 @@ private struct CategoryRow: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Palette.inkFaint)
         }
-        .padding(Spacing.md)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -1169,17 +1170,15 @@ private struct CategorySubscriptionsView: View {
                         systemImage: SiftIcon.list
                     )
                 } else {
-                    VStack(spacing: Spacing.sm) {
-                        ForEach(viewModel.subscriptions(for: category.id), id: \.id) { subscription in
-                            CategorySubscriptionRow(
-                                subscription: subscription,
-                                categories: viewModel.categories,
-                                currentCategoryID: category.id,
-                                recategorize: { targetID in
-                                    viewModel.recategorize(subscriptionID: subscription.id, categoryID: targetID)
-                                }
-                            )
-                        }
+                    SiftRowSection(data: viewModel.subscriptions(for: category.id), id: \.id) { subscription in
+                        CategorySubscriptionRow(
+                            subscription: subscription,
+                            categories: viewModel.categories,
+                            currentCategoryID: category.id,
+                            recategorize: { targetID in
+                                viewModel.recategorize(subscriptionID: subscription.id, categoryID: targetID)
+                            }
+                        )
                     }
                 }
 
@@ -1233,8 +1232,8 @@ private struct CategorySubscriptionRow: View {
                     .frame(minHeight: 44)
             }
         }
-        .padding(Spacing.md)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 

@@ -70,11 +70,9 @@ struct GoalsView: View {
         } else {
             summaryCard
 
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                ForEach(viewModel.rows) { row in
-                    GoalRow(model: row) {
-                        appModel.present(.goalContribution(goalID: row.id))
-                    }
+            SiftRowSection(data: viewModel.rows, id: \.id) { row in
+                GoalRow(model: row) {
+                    appModel.present(.goalContribution(goalID: row.id))
                 }
             }
         }

@@ -92,7 +92,7 @@ private struct TransactionsContentView: View {
                     systemImage: SiftIcon.transactions
                 )
             } else {
-                ForEach(viewModel.filteredRows) { row in
+                SiftRowSection(data: viewModel.filteredRows, id: \.id) { row in
                     Button {
                         openDetail(row.id)
                     } label: {
@@ -153,7 +153,7 @@ private struct TransactionsLoadingView: View {
                 MoneyText(value: "$000.00", role: .primary)
             }
 
-            ForEach(0 ..< 5, id: \.self) { _ in
+            SiftRowSection(data: 0 ..< 5, id: \.self) { _ in
                 TransactionRow(
                     merchantName: "Merchant",
                     categoryLabel: "Category",

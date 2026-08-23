@@ -101,22 +101,16 @@ struct BankPickerView: View {
 
             SearchField(text: $searchText)
 
-            Text("Popular")
-                .font(.siftLabel)
-                .foregroundStyle(Palette.inkFaint)
-                .padding(.top, Spacing.lg)
-
-            VStack(spacing: Spacing.md) {
-                ForEach(filteredInstitutions) { institution in
-                    Button {
-                        onSelect(institution)
-                    } label: {
-                        BankRow(institution: institution)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("bank-\(institution.id)")
+            SiftRowSection(header: "Popular", data: filteredInstitutions, id: \.id) { institution in
+                Button {
+                    onSelect(institution)
+                } label: {
+                    BankRow(institution: institution)
                 }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("bank-\(institution.id)")
             }
+            .padding(.top, Spacing.lg)
             Spacer()
         }
     }
@@ -240,11 +234,7 @@ struct ReviewFoundView: View {
                         title: "We found \(items.count) recurring charges",
                         subtitle: "Toggle off anything that isn't a subscription."
                     )
-                    Text("Detected")
-                        .font(.siftLabel)
-                        .foregroundStyle(Palette.inkFaint)
-
-                    VStack(spacing: Spacing.md) {
+                    SiftSection(header: "Detected", padded: false) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             ReviewSubscriptionRow(item: item) {
                                 onToggle(item.id)
@@ -253,6 +243,10 @@ struct ReviewFoundView: View {
                             .transition(Motion.rowTransition(reduceMotion: reduceMotion))
                             .animation(Motion.staggered(index: index, reduceMotion: reduceMotion), value: items.count)
                             .animation(Motion.reduced(Motion.snappy, reduceMotion: reduceMotion), value: item.isSelected)
+
+                            if item.id != items.last?.id {
+                                SiftSeparator()
+                            }
                         }
                     }
 

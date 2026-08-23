@@ -135,9 +135,9 @@ struct GoalRow: View {
 
                 Spacer(minLength: Spacing.sm)
             }
-            .padding(.horizontal, 13)
-            .padding(.vertical, 12)
-            .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.md)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("goal-row-\(model.id)")
@@ -183,8 +183,7 @@ struct GoalContributionRow: View {
                 color: isWithdrawal ? Palette.negative : Palette.ink
             )
         }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 11)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }

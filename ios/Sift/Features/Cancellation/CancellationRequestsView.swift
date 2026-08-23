@@ -82,12 +82,10 @@ struct CancellationRequestsView: View {
                 systemImage: SiftIcon.list
             )
         } else {
-            VStack(spacing: Spacing.sm) {
-                ForEach(viewModel.requestRows) { row in
-                    CancellationRequestRow(row: row) {
-                        Task {
-                            await viewModel.switchToGuidedFromNeedsUser()
-                        }
+            SiftRowSection(data: viewModel.requestRows, id: \.id) { row in
+                CancellationRequestRow(row: row) {
+                    Task {
+                        await viewModel.switchToGuidedFromNeedsUser()
                     }
                 }
             }
@@ -123,8 +121,8 @@ private struct CancellationRequestRow: View {
                 SecondaryButton(title: "Show me how", action: needsUserAction)
             }
         }
-        .padding(Spacing.md)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
         .accessibilityElement(children: .combine)
     }
 }
@@ -156,23 +154,21 @@ private struct RequestStatusPill: View {
 
 private struct RequestsLoadingView: View {
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            ForEach(0 ..< 3, id: \.self) { _ in
-                CancellationRequestRow(
-                    row: CancellationRequestRowModel(
-                        id: UUID().uuidString,
-                        title: "Subscription",
-                        methodText: "Concierge",
-                        statusText: "In progress",
-                        statusTone: .progress,
-                        annualCostText: "$000.00/yr",
-                        monogramLetter: "S",
-                        tileColorToken: .inkFaint,
-                        needsUserAction: false
-                    ),
-                    needsUserAction: {}
-                )
-            }
+        SiftRowSection(data: 0 ..< 3, id: \.self) { _ in
+            CancellationRequestRow(
+                row: CancellationRequestRowModel(
+                    id: UUID().uuidString,
+                    title: "Subscription",
+                    methodText: "Concierge",
+                    statusText: "In progress",
+                    statusTone: .progress,
+                    annualCostText: "$000.00/yr",
+                    monogramLetter: "S",
+                    tileColorToken: .inkFaint,
+                    needsUserAction: false
+                ),
+                needsUserAction: {}
+            )
         }
         .redacted(reason: .placeholder)
         .accessibilityLabel("Loading cancellation requests")

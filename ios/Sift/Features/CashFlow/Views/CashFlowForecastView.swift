@@ -176,19 +176,15 @@ private struct CashFlowEventList: View {
     let events: [CashFlowEvent]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Upcoming")
-                .font(.siftLabel)
-                .foregroundStyle(Palette.inkFaint)
-
-            if events.isEmpty {
+        if events.isEmpty {
+            SiftSection(header: "Upcoming") {
                 Text("No scheduled charges or deposits in the next 30 days.")
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
-            } else {
-                ForEach(events) { event in
-                    CashFlowEventRow(event: event)
-                }
+            }
+        } else {
+            SiftRowSection(header: "Upcoming", data: events, id: \.id) { event in
+                CashFlowEventRow(event: event)
             }
         }
     }
@@ -217,9 +213,8 @@ private struct CashFlowEventRow: View {
                 color: event.direction == .credit ? Palette.positive : Palette.ink
             )
         }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 11)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
