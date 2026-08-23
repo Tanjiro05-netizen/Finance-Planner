@@ -18,6 +18,8 @@ final class CategoryService {
         KeywordRule(name: "Productivity", iconToken: "square.and.pencil", keywords: ["productivity", "note", "readwise", "cloud", "daybook", "parcel"]),
         KeywordRule(name: "Security", iconToken: "lock.shield", keywords: ["security", "vpn", "password", "atlas"]),
         KeywordRule(name: "Health", iconToken: "heart.text.square", keywords: ["health", "fitness", "workout", "wellness"]),
+        KeywordRule(name: "Groceries", iconToken: "basket", keywords: ["grocery", "groceries", "supermarket"]),
+        KeywordRule(name: "Dining", iconToken: "fork.knife", keywords: ["dining", "restaurant", "cafe", "coffee", "diner", "kitchen", "bistro"]),
     ]
 
     private let repositories: RepositoryContainer

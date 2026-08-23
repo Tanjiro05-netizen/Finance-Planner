@@ -120,7 +120,8 @@ import LocalAuthentication
                 currencyCode: transaction.transactionAmount.currencyCode,
                 date: transaction.transactionDate,
                 isPending: transaction.status == .pending,
-                isDebit: transaction.creditDebitIndicator == .debit
+                isDebit: transaction.creditDebitIndicator == .debit,
+                merchantCategoryCode: transaction.merchantCategoryCode?.rawValue
             )
         }
     }

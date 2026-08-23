@@ -54,6 +54,33 @@ struct FinancialTransactionSnapshot: Equatable {
     let date: Date
     let isPending: Bool
     let isDebit: Bool
+    /// The card network's own classification (ISO 18245), when FinanceKit supplies one.
+    /// Kept as the raw code rather than `FinanceKit.MerchantCategoryCode` so this type
+    /// stays framework-free, per the doc comment above. `MerchantCategoryCodeMapper`
+    /// turns it into the category hint text `CategoryService` already knows how to use.
+    let merchantCategoryCode: Int16?
+
+    init(
+        id: String,
+        accountID: String,
+        merchantName: String,
+        amount: Decimal,
+        currencyCode: String,
+        date: Date,
+        isPending: Bool,
+        isDebit: Bool,
+        merchantCategoryCode: Int16? = nil
+    ) {
+        self.id = id
+        self.accountID = accountID
+        self.merchantName = merchantName
+        self.amount = amount
+        self.currencyCode = currencyCode
+        self.date = date
+        self.isPending = isPending
+        self.isDebit = isDebit
+        self.merchantCategoryCode = merchantCategoryCode
+    }
 }
 
 /// Read-only access to the device's financial data.
@@ -121,7 +148,7 @@ enum FinancialDataMapper {
             isoCurrency: snapshot.currencyCode,
             date: snapshot.date,
             pending: snapshot.isPending,
-            category: nil,
+            category: MerchantCategoryCodeMapper.categoryHint(for: snapshot.merchantCategoryCode),
             direction: (snapshot.isDebit ? TransactionDirection.debit : .credit).remoteValue
         )
     }

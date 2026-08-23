@@ -61,6 +61,27 @@ struct CategoryServiceTests {
         }
     }
 
+    @Test func merchantCategoryCodeHintResolvesToGroceries() throws {
+        let fixture = try makeFixture()
+        let transaction = Transaction(
+            id: "txn-mcc-grocery",
+            userID: SeedData.defaultUserID,
+            accountID: "acct-1",
+            merchantRaw: "UNRECOGNIZABLE MERCHANT 4471",
+            merchantKey: MerchantKey("UNRECOGNIZABLE MERCHANT 4471"),
+            amount: Money.usd(2150),
+            date: Date(),
+            categoryHint: MerchantCategoryCodeMapper.categoryHint(for: 5411)
+        )
+        try fixture.repositories.transactions.insert(transaction)
+
+        try fixture.service.applyAutoCategorizationForTransactions()
+
+        let updated = try #require(try fixture.repositories.transactions.transaction(id: "txn-mcc-grocery"))
+        let category = try #require(updated.categoryID.flatMap { try? fixture.repositories.categories.category(id: $0) })
+        #expect(category.name == "Groceries")
+    }
+
     @Test func mergeCategoryReassignsTransactionsToo() throws {
         let fixture = try makeFixture()
         try fixture.service.applyAutoCategorizationForTransactions()

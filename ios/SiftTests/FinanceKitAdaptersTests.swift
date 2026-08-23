@@ -12,7 +12,8 @@ struct FinanceKitAdaptersTests {
         daysAgo: Int,
         isDebit: Bool = true,
         isPending: Bool = false,
-        currency: String = "USD"
+        currency: String = "USD",
+        merchantCategoryCode: Int16? = nil
     ) -> FinancialTransactionSnapshot {
         FinancialTransactionSnapshot(
             id: id,
@@ -22,7 +23,8 @@ struct FinanceKitAdaptersTests {
             currencyCode: currency,
             date: referenceDate.addingTimeInterval(TimeInterval(-daysAgo * 86400)),
             isPending: isPending,
-            isDebit: isDebit
+            isDebit: isDebit,
+            merchantCategoryCode: merchantCategoryCode
         )
     }
 
@@ -58,6 +60,24 @@ struct FinanceKitAdaptersTests {
         )
 
         #expect(mapped.direction == "credit")
+    }
+
+    @Test func remoteTransactionCarriesMappedCategoryHintForKnownCode() {
+        let mapped = FinancialDataMapper.remoteTransaction(
+            from: snapshot(id: "t3", merchant: "CORNER GROCERY", amount: 40, daysAgo: 0, merchantCategoryCode: 5411),
+            userID: "user-42"
+        )
+
+        #expect(mapped.category == "Groceries")
+    }
+
+    @Test func remoteTransactionOmitsHintForUnmappedCode() {
+        let mapped = FinancialDataMapper.remoteTransaction(
+            from: snapshot(id: "t4", merchant: "Some Consultant", amount: 40, daysAgo: 0, merchantCategoryCode: 7392),
+            userID: "user-42"
+        )
+
+        #expect(mapped.category == nil)
     }
 
     @Test func remoteAccountMapsLiabilityToCredit() {
