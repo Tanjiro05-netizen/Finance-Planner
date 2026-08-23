@@ -5,8 +5,8 @@ import SwiftUI
 /// This replaces the card. The card had a fill *and* a 1px border *and* a 30pt shadow, all
 /// unconditional, on 77 instances — the combination the design literature calls a "ghost
 /// card", and the rule it breaks is "declare elevation once, border or shadow." It carried
-/// all three because it had to: `card` #FFFDF8 against `bone` #F6F2EA measured 1.10:1, so
-/// fill alone could not make a surface read as a surface.
+/// all three because it had to: the old `card` and `bone` sat 1.10:1 apart, so fill alone
+/// could not make a surface read as a surface.
 ///
 /// The palette now puts a real value step between `surface` and `ground`, which means the
 /// scaffolding can go. What is left is what iOS itself does: a filled, rounded group

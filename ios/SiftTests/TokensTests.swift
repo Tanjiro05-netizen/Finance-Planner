@@ -13,9 +13,9 @@ struct TokensTests {
         return 0.2126 * channel(rgba.red) + 0.7152 * channel(rgba.green) + 0.0722 * channel(rgba.blue)
     }
 
-    private static func contrast(_ a: RGBAComponents, _ b: RGBAComponents) -> Double {
-        let first = luminance(a)
-        let second = luminance(b)
+    private static func contrast(_ lhs: RGBAComponents, _ rhs: RGBAComponents) -> Double {
+        let first = luminance(lhs)
+        let second = luminance(rhs)
         return (max(first, second) + 0.05) / (min(first, second) + 0.05)
     }
 
