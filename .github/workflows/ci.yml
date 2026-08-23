@@ -5,6 +5,12 @@ on:
   push:
     branches:
       - main
+      # Feature branches too. Without this, a branch that is never opened as a PR gets
+      # only screenshots.yml -- which runs `-only-testing:SiftUITests/ScreenshotTests`,
+      # so it proves the app *compiles* and nothing else. The design branches ran five
+      # green screenshot jobs each while the unit suite, SwiftFormat, SwiftLint and the
+      # coverage floor had never executed against them once.
+      - 'claude/**'
 
 jobs:
   # Build, test, and coverage run on their own so a formatting nit never hides
