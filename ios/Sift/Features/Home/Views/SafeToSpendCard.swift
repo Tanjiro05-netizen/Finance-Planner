@@ -11,7 +11,7 @@ struct SafeToSpendCard: View {
         Button {
             onTap?()
         } label: {
-            SiftCard {
+            SiftSection {
                 switch outcome {
                 case .unavailable:
                     unavailableContent
@@ -27,7 +27,7 @@ struct SafeToSpendCard: View {
 
     private var unavailableContent: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("SAFE TO SPEND")
+            Text("Safe to spend")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             Text("Connect an account to see how much you can safely spend each day.")
@@ -51,8 +51,8 @@ struct SafeToSpendCard: View {
 
             MoneyText(
                 value: "\(magnitude(of: result.dailyAmount).formatted())/day",
-                size: 44,
-                color: result.isOverspent ? Palette.clay : Palette.ink
+                role: .hero,
+                color: result.isOverspent ? Palette.negative : Palette.ink
             )
             .minimumScaleFactor(0.7)
             .accessibilityLabel(accessibilityLabel(result))
@@ -62,7 +62,7 @@ struct SafeToSpendCard: View {
                 .foregroundStyle(Palette.inkSoft)
 
             Text("You've been averaging \(result.recentDailySpend.formatted())/day recently.")
-                .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                .font(.system(.caption, design: .default).weight(.medium))
                 .foregroundStyle(Palette.inkFaint)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -112,5 +112,5 @@ struct SafeToSpendCard: View {
         SafeToSpendCard(outcome: .unavailable(.noBalanceData))
     }
     .padding()
-    .background(Palette.bone)
+    .background(Palette.ground)
 }

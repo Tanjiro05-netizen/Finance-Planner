@@ -15,11 +15,11 @@ extension BudgetPace {
     var tint: Color {
         switch self {
         case .under:
-            Palette.green
+            Palette.positive
         case .onTrack:
-            Palette.goldDeep
+            Palette.accent
         case .over:
-            Palette.clay
+            Palette.negative
         }
     }
 
@@ -57,7 +57,7 @@ struct BudgetProgressBar: View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(Palette.sand)
+                    .fill(Palette.surfaceSunken)
 
                 Capsule()
                     .fill(tint)
@@ -111,16 +111,12 @@ struct BudgetRow: View {
 
                     Text(remainderText)
                         .font(.siftBody)
-                        .foregroundStyle(progress.isOverspent ? Palette.clay : Palette.inkSoft)
+                        .foregroundStyle(progress.isOverspent ? Palette.negative : Palette.inkSoft)
                 }
             }
-            .padding(.horizontal, 13)
-            .padding(.vertical, 12)
-            .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                    .stroke(Palette.line, lineWidth: 1)
-            )
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.md)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("budget-row-\(categoryName)")
@@ -144,7 +140,7 @@ struct BudgetNudgeCard: View {
 
     var body: some View {
         Button(action: onTap) {
-            SiftCard {
+            SiftSection {
                 HStack {
                     Text(title)
                         .font(.cardTitle)

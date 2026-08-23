@@ -8,6 +8,11 @@ import Foundation
 import Observation
 import SwiftUI
 
+/// Where a settings row's separator starts: past the section inset and the icon, so the
+/// hairline begins under the title rather than under the glyph. This is the detail that
+/// makes a row list read as an iOS row list.
+private let settingsSeparatorInset: CGFloat = Spacing.lg + 32 + Spacing.md
+
 struct SettingsView: View {
     @Environment(AppModel.self) private var appModel
     @Environment(\.apiClient) private var apiClient
@@ -139,12 +144,16 @@ struct SettingsHubView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Settings", eyebrow: "ACCOUNT")
+                ScreenHeader(title: "Settings")
                     .accessibilityIdentifier("settings-title")
 
                 SettingsProfileCard()
 
-                VStack(spacing: Spacing.sm) {
+                // Three groups rather than one run of eight, because the grouping is true:
+                // what Sift reads, what it is doing on your behalf, and what it holds about
+                // you. A section header that encodes something real is worth having; the
+                // ones this screen used to carry — "ACCOUNT", "CONTROL" — did not.
+                SiftSection(header: "Accounts and data", padded: false) {
                     NavigationLink {
                         LinkedAccountsView(
                             repositories: repositories,
@@ -159,6 +168,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-linked-accounts")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     NavigationLink {
                         AlertSettingsView(
                             repositories: repositories,
@@ -170,6 +181,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-notifications")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     NavigationLink {
                         CategoriesView(repositories: repositories)
                     } label: {
@@ -178,6 +191,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-categories")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     NavigationLink {
                         BillsAndIncomeView(repositories: repositories)
                     } label: {
@@ -185,7 +200,9 @@ struct SettingsHubView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-bills-income")
+                }
 
+                SiftSection(header: "Cancellations", padded: false) {
                     Button {
                         appModel.present(.cancellationRequests)
                     } label: {
@@ -197,7 +214,9 @@ struct SettingsHubView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-cancellation-requests")
+                }
 
+                SiftSection(header: "Privacy and legal", padded: false) {
                     NavigationLink {
                         PrivacyDataView(
                             repositories: repositories,
@@ -212,6 +231,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-privacy-data")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     Button {
                         openLegalURL(LegalLinks.privacyPolicy)
                     } label: {
@@ -219,6 +240,8 @@ struct SettingsHubView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-privacy-policy")
+
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
 
                     Button {
                         openLegalURL(LegalLinks.termsOfService)
@@ -252,7 +275,7 @@ struct SettingsHubView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Settings")
         .task { viewModel.load() }
         .onChange(of: appModel.sheet) { _, newValue in
@@ -326,7 +349,7 @@ struct AppSupportMetadata: Equatable {
 
 private struct SettingsProfileCard: View {
     var body: some View {
-        SiftCard {
+        SiftSection {
             HStack(spacing: Spacing.md) {
                 MonogramTile(letter: "A", color: Palette.ink, size: 54)
 
@@ -337,7 +360,7 @@ private struct SettingsProfileCard: View {
 
                     Text("Sift Premium")
                         .font(.cadence)
-                        .foregroundStyle(Palette.goldDeep)
+                        .foregroundStyle(Palette.accent)
                 }
 
                 Spacer()
@@ -353,9 +376,9 @@ private struct SupportAboutSection: View {
     let openFeedback: (URL) -> Void
 
     var body: some View {
-        SiftCard {
+        SiftSection {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("SUPPORT")
+                Text("Support")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
 
@@ -376,12 +399,8 @@ private struct SupportAboutSection: View {
                         .foregroundStyle(Palette.ink)
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .background(
-                            Palette.bone,
+                            Palette.ground,
                             in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                                .stroke(Palette.line, lineWidth: 1)
                         )
                 }
                 .buttonStyle(.plain)
@@ -572,7 +591,7 @@ struct LinkedAccountsView: View {
         ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.xl) {
-                    ScreenHeader(title: "Linked accounts", eyebrow: "BANKS")
+                    ScreenHeader(title: "Linked accounts")
                         .accessibilityIdentifier("linked-accounts-title")
 
                     linkedAccountsContent
@@ -598,7 +617,7 @@ struct LinkedAccountsView: View {
             .padding(.horizontal, Spacing.screenHorizontal)
             .padding(.bottom, Spacing.md)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Linked accounts")
         .task { await viewModel.load() }
         .alert("Remove linked account?", isPresented: removeConfirmationBinding) {
@@ -642,11 +661,9 @@ struct LinkedAccountsView: View {
                 systemImage: SiftIcon.bank
             )
         } else {
-            VStack(spacing: Spacing.sm) {
-                ForEach(viewModel.rows) { row in
-                    LinkedAccountRow(row: row) {
-                        accountPendingRemoval = row
-                    }
+            SiftRowSection(data: viewModel.rows, id: \.id) { row in
+                LinkedAccountRow(row: row) {
+                    accountPendingRemoval = row
                 }
             }
 
@@ -677,7 +694,7 @@ private struct LinkedAccountRow: View {
                     .font(.bodyEmphasis)
                     .foregroundStyle(Palette.ink)
                 Text("\(row.accountMeta) - \(row.syncMeta)")
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -685,16 +702,12 @@ private struct LinkedAccountRow: View {
             Spacer(minLength: Spacing.sm)
 
             Button("Remove", role: .destructive, action: remove)
-                .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 12, relativeTo: .caption))
-                .foregroundStyle(Palette.clay)
+                .font(.system(.caption, design: .default).weight(.semibold))
+                .foregroundStyle(Palette.negative)
                 .frame(minHeight: 44)
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(row.institutionName), \(row.accountMeta), \(statusLabel)")
     }
@@ -702,11 +715,11 @@ private struct LinkedAccountRow: View {
     private var statusColor: Color {
         switch row.status {
         case .connected:
-            Palette.green
+            Palette.positive
         case .needsAttention:
-            Palette.gold
+            Palette.accent
         case .disconnected:
-            Palette.clay
+            Palette.negative
         }
     }
 
@@ -724,19 +737,17 @@ private struct LinkedAccountRow: View {
 
 private struct LinkedAccountsLoadingView: View {
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            ForEach(0 ..< 2, id: \.self) { _ in
-                LinkedAccountRow(
-                    row: LinkedAccountRowModel(
-                        id: UUID().uuidString,
-                        institutionName: "Linked institution",
-                        accountCount: 2,
-                        status: .connected,
-                        lastSyncedAt: SeedData.referenceDate
-                    ),
-                    remove: {}
-                )
-            }
+        SiftRowSection(data: 0 ..< 2, id: \.self) { _ in
+            LinkedAccountRow(
+                row: LinkedAccountRowModel(
+                    id: UUID().uuidString,
+                    institutionName: "Linked institution",
+                    accountCount: 2,
+                    status: .connected,
+                    lastSyncedAt: SeedData.referenceDate
+                ),
+                remove: {}
+            )
         }
         .redacted(reason: .placeholder)
         .accessibilityLabel("Loading linked accounts")
@@ -847,10 +858,10 @@ struct AlertSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Notifications", eyebrow: "ALERTS")
+                ScreenHeader(title: "Notifications")
                     .accessibilityIdentifier("alert-settings-title")
 
-                VStack(spacing: Spacing.sm) {
+                SiftSection(padded: false) {
                     AlertToggleRow(
                         title: "Renewal reminders",
                         detail: "Upcoming renewals",
@@ -860,6 +871,7 @@ struct AlertSettingsView: View {
                         )
                     )
                     .accessibilityIdentifier("alert-renewal-reminders-toggle")
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Price-change alerts",
@@ -869,6 +881,7 @@ struct AlertSettingsView: View {
                             set: { viewModel.setPriceChanges($0) }
                         )
                     )
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Free-trial endings",
@@ -878,6 +891,7 @@ struct AlertSettingsView: View {
                             set: { viewModel.setTrialEndings($0) }
                         )
                     )
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Unused nudges",
@@ -887,6 +901,7 @@ struct AlertSettingsView: View {
                             set: { viewModel.setUnusedNudges($0) }
                         )
                     )
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Weekly summary",
@@ -897,6 +912,7 @@ struct AlertSettingsView: View {
                         )
                     )
                     .accessibilityIdentifier("alert-weekly-summary-toggle")
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Budget alerts",
@@ -921,7 +937,7 @@ struct AlertSettingsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Notifications")
         .task { viewModel.load() }
     }
@@ -939,17 +955,13 @@ private struct AlertToggleRow: View {
                     .font(.bodyEmphasis)
                     .foregroundStyle(Palette.ink)
                 Text(detail)
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
             }
         }
         .toggleStyle(SiftToggleStyle())
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -1067,28 +1079,28 @@ struct CategoriesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Categories & rules", eyebrow: "GROUPS")
+                ScreenHeader(title: "Categories & rules")
                     .accessibilityIdentifier("categories-title")
 
-                AlertToggleRow(
-                    title: "Auto-categorise",
-                    detail: "Keyword rules apply unless you change a category",
-                    isOn: Binding(
-                        get: { viewModel.autoCategorize },
-                        set: { viewModel.setAutoCategorize($0) }
+                SiftSection(padded: false) {
+                    AlertToggleRow(
+                        title: "Auto-categorise",
+                        detail: "Keyword rules apply unless you change a category",
+                        isOn: Binding(
+                            get: { viewModel.autoCategorize },
+                            set: { viewModel.setAutoCategorize($0) }
+                        )
                     )
-                )
-                .accessibilityIdentifier("categories-auto-toggle")
+                    .accessibilityIdentifier("categories-auto-toggle")
+                }
 
-                VStack(spacing: Spacing.sm) {
-                    ForEach(viewModel.rows) { row in
-                        NavigationLink {
-                            CategorySubscriptionsView(category: row, viewModel: viewModel)
-                        } label: {
-                            CategoryRow(row: row)
-                        }
-                        .buttonStyle(.plain)
+                SiftRowSection(data: viewModel.rows, id: \.id) { row in
+                    NavigationLink {
+                        CategorySubscriptionsView(category: row, viewModel: viewModel)
+                    } label: {
+                        CategoryRow(row: row)
                     }
+                    .buttonStyle(.plain)
                 }
 
                 if let errorMessage = viewModel.errorMessage {
@@ -1103,7 +1115,7 @@ struct CategoriesView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Categories")
         .task { viewModel.load() }
     }
@@ -1116,37 +1128,29 @@ private struct CategoryRow: View {
         HStack(spacing: Spacing.md) {
             Image(systemName: SiftIcon.list)
                 .font(.system(size: 15, weight: .regular))
-                .foregroundStyle(Palette.goldDeep)
+                .foregroundStyle(Palette.accent)
                 .frame(width: 32, height: 32)
-                .background(Palette.bone, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .stroke(Palette.line, lineWidth: 1)
-                )
+                .background(Palette.ground, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(row.name)
                     .font(.bodyEmphasis)
                     .foregroundStyle(Palette.ink)
                 Text(row.count == 1 ? "1 subscription" : "\(row.count) subscriptions")
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
             }
 
             Spacer()
 
-            MoneyText(value: row.monthlyTotal.formatted(), size: 16)
+            MoneyText(value: row.monthlyTotal.formatted(), role: .row)
 
             Image(systemName: SiftIcon.chevronRight)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Palette.inkFaint)
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -1157,7 +1161,7 @@ private struct CategorySubscriptionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: category.name, eyebrow: "CATEGORY")
+                ScreenHeader(title: category.name)
 
                 if viewModel.subscriptions(for: category.id).isEmpty {
                     StateMessageCard(
@@ -1166,17 +1170,15 @@ private struct CategorySubscriptionsView: View {
                         systemImage: SiftIcon.list
                     )
                 } else {
-                    VStack(spacing: Spacing.sm) {
-                        ForEach(viewModel.subscriptions(for: category.id), id: \.id) { subscription in
-                            CategorySubscriptionRow(
-                                subscription: subscription,
-                                categories: viewModel.categories,
-                                currentCategoryID: category.id,
-                                recategorize: { targetID in
-                                    viewModel.recategorize(subscriptionID: subscription.id, categoryID: targetID)
-                                }
-                            )
-                        }
+                    SiftRowSection(data: viewModel.subscriptions(for: category.id), id: \.id) { subscription in
+                        CategorySubscriptionRow(
+                            subscription: subscription,
+                            categories: viewModel.categories,
+                            currentCategoryID: category.id,
+                            recategorize: { targetID in
+                                viewModel.recategorize(subscriptionID: subscription.id, categoryID: targetID)
+                            }
+                        )
                     }
                 }
 
@@ -1186,7 +1188,7 @@ private struct CategorySubscriptionsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle(category.name)
     }
 }
@@ -1206,7 +1208,7 @@ private struct CategorySubscriptionRow: View {
                     .font(.bodyEmphasis)
                     .foregroundStyle(Palette.ink)
                 Text(subscription.amount.formatted())
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
             }
 
@@ -1225,17 +1227,13 @@ private struct CategorySubscriptionRow: View {
                 }
             } label: {
                 Label("Move", systemImage: SiftIcon.chevronRight)
-                    .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 12, relativeTo: .caption))
-                    .foregroundStyle(Palette.goldDeep)
+                    .font(.system(.caption, design: .default).weight(.semibold))
+                    .foregroundStyle(Palette.accent)
                     .frame(minHeight: 44)
             }
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -1244,8 +1242,8 @@ private struct MergeCategorySection: View {
     let viewModel: CategoriesViewModel
 
     var body: some View {
-        SiftCard {
-            Text("MERGE DUPLICATES")
+        SiftSection {
+            Text("Merge duplicates")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -1264,11 +1262,7 @@ private struct MergeCategorySection: View {
                     .font(.buttonLabel)
                     .foregroundStyle(Palette.ink)
                     .frame(maxWidth: .infinity, minHeight: 48)
-                    .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                            .stroke(Palette.line, lineWidth: 1)
-                    )
+                    .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
             }
         }
     }
@@ -1365,11 +1359,11 @@ struct PrivacyDataView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Privacy & data", eyebrow: "CONTROL")
+                ScreenHeader(title: "Privacy & data")
                     .accessibilityIdentifier("privacy-data-title")
 
-                SiftCard {
-                    Text("WHAT SIFT STORES")
+                SiftSection {
+                    Text("What sift stores")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
 
@@ -1397,7 +1391,7 @@ struct PrivacyDataView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Privacy")
         .alert("Disconnect all accounts?", isPresented: confirmationBinding) {
             switch confirmation {

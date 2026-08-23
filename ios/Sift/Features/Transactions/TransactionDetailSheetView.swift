@@ -17,15 +17,15 @@ struct TransactionDetailSheetView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.xl) {
                     if let transaction {
-                        SiftCard {
+                        SiftSection {
                             Text(transaction.merchantRaw)
                                 .font(.bodyEmphasis)
                                 .foregroundStyle(Palette.ink)
 
                             MoneyText(
                                 value: transaction.amount.formatted(),
-                                size: 32,
-                                color: transaction.direction == .credit ? Palette.green : Palette.ink
+                                role: .primary,
+                                color: transaction.direction == .credit ? Palette.positive : Palette.ink
                             )
 
                             Text(transaction.date.formatted(.dateTime.month(.abbreviated).day().year()))
@@ -44,7 +44,7 @@ struct TransactionDetailSheetView: View {
                         if let errorMessage {
                             Text(errorMessage)
                                 .font(.siftBody)
-                                .foregroundStyle(Palette.clay)
+                                .foregroundStyle(Palette.negative)
                         }
                     } else {
                         StateMessageCard(
@@ -57,7 +57,7 @@ struct TransactionDetailSheetView: View {
                 .padding(.horizontal, Spacing.screenHorizontal)
                 .padding(.vertical, Spacing.xl)
             }
-            .background(Palette.bone)
+            .background(Palette.ground)
             .navigationTitle("Transaction")
             .task { load() }
             .toolbar {
@@ -79,8 +79,8 @@ struct TransactionDetailSheetView: View {
     @ViewBuilder
     private func categoryPicker(for transaction: Transaction) -> some View {
         if !categories.isEmpty {
-            SiftCard {
-                Text("CATEGORY")
+            SiftSection {
+                Text("Category")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
                 Picker(

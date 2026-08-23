@@ -29,7 +29,7 @@ struct SubscriptionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Subscriptions", eyebrow: "RECURRING")
+                ScreenHeader(title: "Subscriptions")
                     .accessibilityIdentifier("subscriptions-title")
 
                 content
@@ -38,7 +38,7 @@ struct SubscriptionsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Subscriptions")
         .refreshable { await viewModel.refresh() }
         .task { viewModel.load() }
@@ -131,12 +131,12 @@ private struct SubscriptionsTotalCard: View {
     let viewModel: SubscriptionsViewModel
 
     var body: some View {
-        SiftCard {
-            Text("MONTHLY TOTAL")
+        SiftSection {
+            Text("Monthly total")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
-            MoneyText(value: viewModel.monthlyTotal.formatted(), size: 48)
+            MoneyText(value: viewModel.monthlyTotal.formatted(), role: .hero)
                 .minimumScaleFactor(0.74)
                 .accessibilityLabel("Monthly recurring total, \(viewModel.monthlyTotal.formatted())")
 
@@ -161,29 +161,30 @@ private struct SubscriptionCategorySectionView: View {
     let openDetail: (String) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(section.title.uppercased())
-                .font(.siftLabel)
-                .foregroundStyle(Palette.inkFaint)
-
-            ForEach(section.subscriptions, id: \.id) { subscription in
-                Button {
-                    openDetail(subscription.id)
-                } label: {
-                    SubscriptionRow(
-                        letter: subscription.monogramLetter,
-                        color: subscription.tileColorToken.color,
-                        name: subscription.name,
-                        meta: metadata(for: subscription),
-                        amount: subscription.amount.formatted(),
-                        cadence: subscription.cadence.displayName,
-                        warns: subscription.status == .unused
-                    )
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier(accessibilityIdentifier(for: subscription))
-                .accessibilityLabel("\(subscription.name), \(metadata(for: subscription)), \(subscription.amount.formatted())")
+        // The separator starts under the name rather than under the monogram, matching
+        // where iOS insets a row separator that has a leading image.
+        SiftRowSection(
+            header: section.title,
+            data: section.subscriptions,
+            id: \.id,
+            separatorInset: Spacing.lg + 38 + Spacing.md
+        ) { subscription in
+            Button {
+                openDetail(subscription.id)
+            } label: {
+                SubscriptionRow(
+                    letter: subscription.monogramLetter,
+                    color: subscription.tileColorToken.color,
+                    name: subscription.name,
+                    meta: metadata(for: subscription),
+                    amount: subscription.amount.formatted(),
+                    cadence: subscription.cadence.displayName,
+                    warns: subscription.status == .unused
+                )
             }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(accessibilityIdentifier(for: subscription))
+            .accessibilityLabel("\(subscription.name), \(metadata(for: subscription)), \(subscription.amount.formatted())")
         }
     }
 
@@ -211,10 +212,10 @@ private struct SubscriptionCategorySectionView: View {
 private struct SubscriptionsLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.xl) {
-            SiftCard {
-                Text("MONTHLY TOTAL")
+            SiftSection {
+                Text("Monthly total")
                     .font(.siftLabel)
-                MoneyText(value: "$000.00", size: 48)
+                MoneyText(value: "$000.00", role: .hero)
                 Text("0 tracked · 0 unused")
                     .font(.siftBody)
             }

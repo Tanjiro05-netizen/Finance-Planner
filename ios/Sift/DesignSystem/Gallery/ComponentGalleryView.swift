@@ -7,8 +7,8 @@ struct ComponentGalleryView: View {
     private let sampleTimelineMarks = [
         RenewalMark(position: 0.08, color: Palette.inkFaint),
         RenewalMark(position: 0.20, color: Palette.inkFaint),
-        RenewalMark(position: 0.34, color: Palette.gold, label: "Tomorrow"),
-        RenewalMark(position: 0.58, color: Palette.clay),
+        RenewalMark(position: 0.34, color: Palette.accent, label: "Tomorrow"),
+        RenewalMark(position: 0.58, color: Palette.negative),
         RenewalMark(position: 0.82, color: Palette.inkFaint),
         RenewalMark(position: 0.94, color: Palette.inkFaint),
     ]
@@ -27,14 +27,14 @@ struct ComponentGalleryView: View {
             .padding(.top, 62)
             .padding(.bottom, 48)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
     }
 
     private var galleryHeader: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("SIFT")
+            Text("Sift")
                 .font(.siftLabel)
-                .foregroundStyle(Palette.goldDeep)
+                .foregroundStyle(Palette.accent)
 
             Text("Component Gallery")
                 .font(.screenTitle)
@@ -48,10 +48,10 @@ struct ComponentGalleryView: View {
     }
 
     private var moneyAndCards: some View {
-        SiftCard {
+        SiftSection {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("RECURRING THIS MONTH")
+                    Text("Recurring this month")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
                     MoneyText(value: "$247.83")
@@ -72,7 +72,7 @@ struct ComponentGalleryView: View {
             VStack(spacing: Spacing.sm) {
                 SubscriptionRow(
                     letter: "S",
-                    color: Palette.clay,
+                    color: Palette.negative,
                     name: "Streamline+",
                     meta: "Used yesterday",
                     amount: "$15.49",
@@ -80,7 +80,7 @@ struct ComponentGalleryView: View {
                 )
                 SubscriptionRow(
                     letter: "C",
-                    color: Palette.gold,
+                    color: Palette.accent,
                     name: "Creative Cloud",
                     meta: "Unused · 3 months",
                     amount: "$59.99",
@@ -125,22 +125,18 @@ struct ComponentGalleryView: View {
                             .font(.bodyEmphasis)
                             .foregroundStyle(Palette.ink)
                         Text("2 days before a charge.")
-                            .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                            .font(.system(.caption, design: .default).weight(.medium))
                             .foregroundStyle(Palette.inkSoft)
                     }
                 }
                 .toggleStyle(SiftToggleStyle())
                 .padding(Spacing.md)
-                .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                        .stroke(Palette.line, lineWidth: 1)
-                )
+                .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 SettingsRow(icon: SiftIcon.bank, title: "Linked accounts", detail: "2")
                 SettingsRow(icon: SiftIcon.privacy, title: "Privacy & data")
 
-                SiftCard {
+                SiftSection {
                     StatusTimeline(items: [
                         StatusTimelineItem(id: "received", title: "Request received", subtitle: "Just now", state: .done),
                         StatusTimelineItem(id: "contacting", title: "Contacting Streamline+", subtitle: "In progress", state: .current),
@@ -178,7 +174,7 @@ private struct GallerySection<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(title.uppercased())
+            Text(title)
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 

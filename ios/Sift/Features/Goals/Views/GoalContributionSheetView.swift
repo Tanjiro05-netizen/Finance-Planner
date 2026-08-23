@@ -31,7 +31,7 @@ struct GoalContributionSheetView: View {
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .font(.siftBody)
-                            .foregroundStyle(Palette.clay)
+                            .foregroundStyle(Palette.negative)
                     }
 
                     PrimaryButton(title: "Record") {
@@ -48,7 +48,7 @@ struct GoalContributionSheetView: View {
                 .padding(.horizontal, Spacing.screenHorizontal)
                 .padding(.vertical, Spacing.xl)
             }
-            .background(Palette.bone)
+            .background(Palette.ground)
             .navigationTitle(viewModel.goalName.isEmpty ? "Goal" : viewModel.goalName)
             .task { viewModel.load() }
             .toolbar {
@@ -64,11 +64,11 @@ struct GoalContributionSheetView: View {
     }
 
     private var savedCard: some View {
-        SiftCard {
-            Text("SAVED SO FAR")
+        SiftSection {
+            Text("Saved so far")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
-            MoneyText(value: viewModel.savedSoFar.formatted(), size: 34, color: Palette.goldDeep)
+            MoneyText(value: viewModel.savedSoFar.formatted(), role: .primary, color: Palette.accent)
         }
     }
 
@@ -87,8 +87,8 @@ struct GoalContributionSheetView: View {
     }
 
     private var amountField: some View {
-        SiftCard {
-            Text("AMOUNT")
+        SiftSection {
+            Text("Amount")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("0.00", text: $viewModel.amountText)
@@ -99,7 +99,7 @@ struct GoalContributionSheetView: View {
     }
 
     private var dateField: some View {
-        SiftCard {
+        SiftSection {
             DatePicker("Date", selection: $viewModel.date, displayedComponents: .date)
                 .font(.siftBody)
                 .accessibilityIdentifier("goal-contribution-date")
@@ -107,7 +107,7 @@ struct GoalContributionSheetView: View {
     }
 
     private var noteField: some View {
-        SiftCard {
+        SiftSection {
             Text("NOTE (OPTIONAL)")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
@@ -127,14 +127,8 @@ struct GoalContributionSheetView: View {
     @ViewBuilder
     private var history: some View {
         if !viewModel.contributions.isEmpty {
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                Text("HISTORY")
-                    .font(.siftLabel)
-                    .foregroundStyle(Palette.inkFaint)
-
-                ForEach(viewModel.contributions, id: \.id) { contribution in
-                    GoalContributionRow(contribution: contribution)
-                }
+            SiftRowSection(header: "History", data: viewModel.contributions, id: \.id) { contribution in
+                GoalContributionRow(contribution: contribution)
             }
         }
     }

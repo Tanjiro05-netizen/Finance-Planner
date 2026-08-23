@@ -17,7 +17,7 @@ struct GoalsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Goals", eyebrow: "SAVING TOWARD")
+                ScreenHeader(title: "Goals")
                     .accessibilityIdentifier("goals-title")
 
                 content
@@ -26,7 +26,7 @@ struct GoalsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Goals")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -70,23 +70,21 @@ struct GoalsView: View {
         } else {
             summaryCard
 
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                ForEach(viewModel.rows) { row in
-                    GoalRow(model: row) {
-                        appModel.present(.goalContribution(goalID: row.id))
-                    }
+            SiftRowSection(data: viewModel.rows, id: \.id) { row in
+                GoalRow(model: row) {
+                    appModel.present(.goalContribution(goalID: row.id))
                 }
             }
         }
     }
 
     private var summaryCard: some View {
-        SiftCard {
+        SiftSection {
             // Saved leads; the target is context. Progress made is what keeps people coming back.
-            Text("SAVED SO FAR")
+            Text("Saved so far")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
-            MoneyText(value: viewModel.totalSaved.formatted(), size: 42, color: Palette.goldDeep)
+            MoneyText(value: viewModel.totalSaved.formatted(), role: .primary, color: Palette.accent)
             Text("of \(viewModel.totalTarget.formatted()) across \(viewModel.rows.count) goals")
                 .font(.siftBody)
                 .foregroundStyle(Palette.inkSoft)

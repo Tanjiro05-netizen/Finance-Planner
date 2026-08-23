@@ -47,7 +47,7 @@ struct RootView: View {
                 }
             }
         }
-        .background(Palette.bone.ignoresSafeArea())
+        .background(Palette.ground.ignoresSafeArea())
         .overlay(alignment: .top) {
             if model.isOnboardingComplete, showNotificationPermissionBanner {
                 NotificationPermissionBanner {
@@ -159,7 +159,7 @@ struct RootView: View {
             }
         }
         .tabViewStyle(.automatic)
-        .tint(Palette.goldDeep)
+        .tint(Palette.accent)
         .sensoryFeedback(.selection, trigger: model.selectedTab)
     }
 
@@ -279,12 +279,12 @@ struct LockView: View {
 
     var body: some View {
         ZStack {
-            Palette.bone.ignoresSafeArea()
+            Palette.ground.ignoresSafeArea()
 
             VStack(spacing: Spacing.lg) {
                 Image(systemName: "lock.fill")
                     .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(Palette.bone)
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 64, height: 64)
                     .background(Palette.ink, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 

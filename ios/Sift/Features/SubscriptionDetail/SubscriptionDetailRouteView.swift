@@ -8,8 +8,8 @@ struct SubscriptionDetailRouteView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            ScreenHeader(title: subscription?.name ?? "Subscription", eyebrow: "NAVIGATION")
-            SiftCard {
+            ScreenHeader(title: subscription?.name ?? "Subscription")
+            SiftSection {
                 Text(routeDetailText)
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
@@ -21,7 +21,7 @@ struct SubscriptionDetailRouteView: View {
         }
         .padding(.horizontal, Spacing.screenHorizontal)
         .padding(.top, Spacing.xl)
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Detail")
     }
 

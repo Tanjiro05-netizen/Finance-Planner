@@ -17,7 +17,7 @@ struct TransactionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Transactions", eyebrow: "LEDGER")
+                ScreenHeader(title: "Transactions")
                     .accessibilityIdentifier("transactions-title")
 
                 content
@@ -26,7 +26,7 @@ struct TransactionsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Transactions")
         .refreshable { await viewModel.refresh() }
         .task { viewModel.load() }
@@ -92,7 +92,7 @@ private struct TransactionsContentView: View {
                     systemImage: SiftIcon.transactions
                 )
             } else {
-                ForEach(viewModel.filteredRows) { row in
+                SiftRowSection(data: viewModel.filteredRows, id: \.id) { row in
                     Button {
                         openDetail(row.id)
                     } label: {
@@ -118,26 +118,26 @@ private struct TransactionsTotalsCard: View {
     let viewModel: TransactionsViewModel
 
     var body: some View {
-        SiftCard {
+        SiftSection {
             Text("LAST 30 DAYS")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("SPENT")
+                    Text("Spent")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
-                    MoneyText(value: viewModel.totalSpend.formatted(), size: 24)
+                    MoneyText(value: viewModel.totalSpend.formatted(), role: .primary)
                 }
 
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("INCOME")
+                    Text("Income")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
-                    MoneyText(value: viewModel.totalIncome.formatted(), size: 24, color: Palette.green)
+                    MoneyText(value: viewModel.totalIncome.formatted(), role: .primary, color: Palette.positive)
                 }
             }
         }
@@ -147,13 +147,13 @@ private struct TransactionsTotalsCard: View {
 private struct TransactionsLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.xl) {
-            SiftCard {
+            SiftSection {
                 Text("LAST 30 DAYS")
                     .font(.siftLabel)
-                MoneyText(value: "$000.00", size: 24)
+                MoneyText(value: "$000.00", role: .primary)
             }
 
-            ForEach(0 ..< 5, id: \.self) { _ in
+            SiftRowSection(data: 0 ..< 5, id: \.self) { _ in
                 TransactionRow(
                     merchantName: "Merchant",
                     categoryLabel: "Category",

@@ -43,7 +43,7 @@ struct CancellationRequestsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Cancellation requests", eyebrow: "TRACKER")
+                ScreenHeader(title: "Cancellation requests")
                     .accessibilityIdentifier("cancellation-requests-title")
 
                 savingsBanner
@@ -56,12 +56,12 @@ struct CancellationRequestsView: View {
     }
 
     private var savingsBanner: some View {
-        SiftCard {
-            Text("CONFIRMED SAVINGS")
+        SiftSection {
+            Text("Confirmed savings")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
-            MoneyText(value: "\(viewModel.requestsSavings.formatted())/yr", size: 46)
+            MoneyText(value: "\(viewModel.requestsSavings.formatted())/yr", role: .primary)
                 .accessibilityIdentifier("requests-savings-total")
 
             Text("Confirmed concierge and guided cancellations are counted once.")
@@ -82,12 +82,10 @@ struct CancellationRequestsView: View {
                 systemImage: SiftIcon.list
             )
         } else {
-            VStack(spacing: Spacing.sm) {
-                ForEach(viewModel.requestRows) { row in
-                    CancellationRequestRow(row: row) {
-                        Task {
-                            await viewModel.switchToGuidedFromNeedsUser()
-                        }
+            SiftRowSection(data: viewModel.requestRows, id: \.id) { row in
+                CancellationRequestRow(row: row) {
+                    Task {
+                        await viewModel.switchToGuidedFromNeedsUser()
                     }
                 }
             }
@@ -110,7 +108,7 @@ private struct CancellationRequestRow: View {
                         .foregroundStyle(Palette.ink)
 
                     Text("\(row.methodText) · \(row.annualCostText)")
-                        .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                        .font(.system(.caption, design: .default).weight(.medium))
                         .foregroundStyle(Palette.inkSoft)
                 }
 
@@ -123,12 +121,8 @@ private struct CancellationRequestRow: View {
                 SecondaryButton(title: "Show me how", action: needsUserAction)
             }
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
         .accessibilityElement(children: .combine)
     }
 }
@@ -138,7 +132,7 @@ private struct RequestStatusPill: View {
     let tone: CancellationStatusTone
 
     var body: some View {
-        Text(text.uppercased())
+        Text(text)
             .font(.siftLabel)
             .foregroundStyle(foreground)
             .padding(.horizontal, 9)
@@ -149,34 +143,32 @@ private struct RequestStatusPill: View {
     private var foreground: Color {
         switch tone {
         case .progress:
-            Palette.goldDeep
+            Palette.accent
         case .confirmed:
-            Palette.green
+            Palette.positive
         case .needsUser:
-            Palette.clay
+            Palette.negative
         }
     }
 }
 
 private struct RequestsLoadingView: View {
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            ForEach(0 ..< 3, id: \.self) { _ in
-                CancellationRequestRow(
-                    row: CancellationRequestRowModel(
-                        id: UUID().uuidString,
-                        title: "Subscription",
-                        methodText: "Concierge",
-                        statusText: "In progress",
-                        statusTone: .progress,
-                        annualCostText: "$000.00/yr",
-                        monogramLetter: "S",
-                        tileColorToken: .inkFaint,
-                        needsUserAction: false
-                    ),
-                    needsUserAction: {}
-                )
-            }
+        SiftRowSection(data: 0 ..< 3, id: \.self) { _ in
+            CancellationRequestRow(
+                row: CancellationRequestRowModel(
+                    id: UUID().uuidString,
+                    title: "Subscription",
+                    methodText: "Concierge",
+                    statusText: "In progress",
+                    statusTone: .progress,
+                    annualCostText: "$000.00/yr",
+                    monogramLetter: "S",
+                    tileColorToken: .inkFaint,
+                    needsUserAction: false
+                ),
+                needsUserAction: {}
+            )
         }
         .redacted(reason: .placeholder)
         .accessibilityLabel("Loading cancellation requests")

@@ -8,7 +8,7 @@ struct GuidedStepsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Cancel with guidance", eyebrow: viewModel.subscriptionName.uppercased())
+                ScreenHeader(title: "Cancel with guidance", eyebrow: viewModel.subscriptionName)
                     .accessibilityIdentifier("guided-steps-title")
 
                 guideSummary
@@ -43,10 +43,10 @@ struct GuidedStepsView: View {
     }
 
     private var guideSummary: some View {
-        SiftCard {
+        SiftSection {
             Text((viewModel.guide?.isGeneric ?? true) ? "GENERIC GUIDE" : "VERIFIED GUIDE")
                 .font(.siftLabel)
-                .foregroundStyle((viewModel.guide?.isGeneric ?? true) ? Palette.inkFaint : Palette.goldDeep)
+                .foregroundStyle((viewModel.guide?.isGeneric ?? true) ? Palette.inkFaint : Palette.accent)
 
             Text(viewModel.guide?.title ?? "Cancellation guide")
                 .font(.cardTitle)
@@ -69,7 +69,7 @@ struct GuidedStepsView: View {
     }
 
     private var reminderCard: some View {
-        SiftCard {
+        SiftSection {
             Toggle(
                 isOn: Binding(
                     get: { viewModel.remindBeforeRenewal },

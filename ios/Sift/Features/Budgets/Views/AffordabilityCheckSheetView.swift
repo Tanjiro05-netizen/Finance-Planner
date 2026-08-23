@@ -30,7 +30,7 @@ struct AffordabilityCheckSheetView: View {
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .font(.siftBody)
-                            .foregroundStyle(Palette.clay)
+                            .foregroundStyle(Palette.negative)
                     }
 
                     if let assessment = viewModel.assessment {
@@ -40,7 +40,7 @@ struct AffordabilityCheckSheetView: View {
                 .padding(.horizontal, Spacing.screenHorizontal)
                 .padding(.vertical, Spacing.xl)
             }
-            .background(Palette.bone)
+            .background(Palette.ground)
             .navigationTitle("Can I afford this?")
             .task { viewModel.load() }
             .toolbar {
@@ -56,8 +56,8 @@ struct AffordabilityCheckSheetView: View {
     }
 
     private var amountField: some View {
-        SiftCard {
-            Text("AMOUNT")
+        SiftSection {
+            Text("Amount")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("0.00", text: $viewModel.amountText)
@@ -70,7 +70,7 @@ struct AffordabilityCheckSheetView: View {
     @ViewBuilder
     private var categoryField: some View {
         if !viewModel.categories.isEmpty {
-            SiftCard {
+            SiftSection {
                 Text("CATEGORY (OPTIONAL)")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
@@ -93,7 +93,7 @@ struct AffordabilityCheckSheetView: View {
     }
 
     private func verdictCard(_ assessment: AffordabilityAssessment) -> some View {
-        SiftCard {
+        SiftSection {
             Text(assessment.verdict.headline)
                 .font(.cardTitle)
                 .foregroundStyle(verdictColor(assessment.verdict))
@@ -115,11 +115,11 @@ struct AffordabilityCheckSheetView: View {
     private func verdictColor(_ verdict: AffordabilityVerdict) -> Color {
         switch verdict {
         case .comfortable:
-            Palette.green
+            Palette.positive
         case .tight:
-            Palette.goldDeep
+            Palette.accent
         case .notAdvisable:
-            Palette.clay
+            Palette.negative
         }
     }
 }

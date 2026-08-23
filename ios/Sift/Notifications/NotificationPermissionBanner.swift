@@ -8,9 +8,9 @@ struct NotificationPermissionBanner: View {
         HStack(alignment: .top, spacing: Spacing.md) {
             Image(systemName: SiftIcon.bell)
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(Palette.goldDeep)
+                .foregroundStyle(Palette.accent)
                 .frame(width: 34, height: 34)
-                .background(Palette.card.opacity(0.72), in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
+                .background(Palette.surface.opacity(0.72), in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 5) {
@@ -19,7 +19,7 @@ struct NotificationPermissionBanner: View {
                     .foregroundStyle(Palette.ink)
 
                 Text("Sift cannot remind you before renewals, trial endings, or price changes.")
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)
 
@@ -27,8 +27,8 @@ struct NotificationPermissionBanner: View {
                     openSettings()
                 } label: {
                     Label("Open Settings", systemImage: SiftIcon.externalLink)
-                        .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 12, relativeTo: .caption))
-                        .foregroundStyle(Palette.goldDeep)
+                        .font(.system(.caption, design: .default).weight(.semibold))
+                        .foregroundStyle(Palette.accent)
                 }
                 .buttonStyle(.plain)
                 .frame(minHeight: 32)

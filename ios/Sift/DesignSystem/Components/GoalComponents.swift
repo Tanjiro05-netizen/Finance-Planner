@@ -24,11 +24,11 @@ extension GoalOutcome {
     var tint: Color {
         switch self {
         case .reached, .ahead:
-            Palette.green
+            Palette.positive
         case .onTrack:
-            Palette.goldDeep
+            Palette.accent
         case .behind, .overdue:
-            Palette.clay
+            Palette.negative
         case .insufficientData:
             Palette.inkFaint
         }
@@ -82,7 +82,7 @@ struct GoalProgressRing: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Palette.sand, lineWidth: lineWidth)
+                .stroke(Palette.surfaceSunken, lineWidth: lineWidth)
 
             Circle()
                 .trim(from: 0, to: clamped)
@@ -135,13 +135,9 @@ struct GoalRow: View {
 
                 Spacer(minLength: Spacing.sm)
             }
-            .padding(.horizontal, 13)
-            .padding(.vertical, 12)
-            .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                    .stroke(Palette.line, lineWidth: 1)
-            )
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.md)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("goal-row-\(model.id)")
@@ -164,7 +160,7 @@ struct GoalContributionRow: View {
         HStack(spacing: Spacing.md) {
             Image(systemName: isWithdrawal ? SiftIcon.arrowDown : SiftIcon.arrowUp)
                 .font(.siftBody)
-                .foregroundStyle(isWithdrawal ? Palette.clay : Palette.green)
+                .foregroundStyle(isWithdrawal ? Palette.negative : Palette.positive)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(contribution.date.formatted(.dateTime.month(.abbreviated).day().year()))
@@ -183,16 +179,11 @@ struct GoalContributionRow: View {
 
             MoneyText(
                 value: "\(isWithdrawal ? "-" : "+")\(magnitude.formatted())",
-                size: 16,
-                color: isWithdrawal ? Palette.clay : Palette.ink
+                role: .row,
+                color: isWithdrawal ? Palette.negative : Palette.ink
             )
         }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 11)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }

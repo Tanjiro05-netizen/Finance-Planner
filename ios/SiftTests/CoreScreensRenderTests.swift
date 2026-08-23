@@ -200,18 +200,24 @@ struct CoreScreensRenderTests {
         }
     }
 
+    /// Every screen at both Dynamic Type extremes, in both appearances. The dark pass is
+    /// what actually exercises `ColorToken`'s `UIColor(dynamicProvider:)` — the contrast
+    /// ratios in the token comments are checked by a script outside this toolchain, not by
+    /// anything that runs here, so this is the only place a broken dark value would be
+    /// caught before a device does.
     private func assertRenders(@ViewBuilder content: () -> some View) {
-        render(content(), dynamicTypeSize: .large)
-        render(content(), dynamicTypeSize: .accessibility2)
+        render(content(), dynamicTypeSize: .large, colorScheme: .light)
+        render(content(), dynamicTypeSize: .accessibility2, colorScheme: .light)
+        render(content(), dynamicTypeSize: .large, colorScheme: .dark)
     }
 
-    private func render(_ content: some View, dynamicTypeSize: DynamicTypeSize) {
+    private func render(_ content: some View, dynamicTypeSize: DynamicTypeSize, colorScheme: ColorScheme) {
         let controller = UIHostingController(
             rootView: NavigationStack {
                 content
             }
             .environment(AppModel())
-            .environment(\.colorScheme, .light)
+            .environment(\.colorScheme, colorScheme)
             .environment(\.dynamicTypeSize, dynamicTypeSize)
         )
         controller.view.frame = CGRect(x: 0, y: 0, width: 393, height: 852)

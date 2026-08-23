@@ -39,7 +39,7 @@ struct OnboardingFlowView: View {
 
     var body: some View {
         ZStack {
-            Palette.bone.ignoresSafeArea()
+            Palette.ground.ignoresSafeArea()
             content
                 .transition(Motion.stepTransition(reduceMotion: reduceMotion))
         }

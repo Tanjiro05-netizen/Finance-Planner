@@ -37,7 +37,7 @@ struct BillEditorSheetView: View {
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .font(.siftBody)
-                            .foregroundStyle(Palette.clay)
+                            .foregroundStyle(Palette.negative)
                     }
 
                     PrimaryButton(title: "Save") {
@@ -60,7 +60,7 @@ struct BillEditorSheetView: View {
                 .padding(.horizontal, Spacing.screenHorizontal)
                 .padding(.vertical, Spacing.xl)
             }
-            .background(Palette.bone)
+            .background(Palette.ground)
             .navigationTitle(viewModel.title)
             .task { viewModel.load() }
             .toolbar {
@@ -76,8 +76,8 @@ struct BillEditorSheetView: View {
     }
 
     private var nameField: some View {
-        SiftCard {
-            Text("NAME")
+        SiftSection {
+            Text("Name")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("e.g. Rent", text: $viewModel.name)
@@ -88,8 +88,8 @@ struct BillEditorSheetView: View {
     }
 
     private var amountField: some View {
-        SiftCard {
-            Text("AMOUNT")
+        SiftSection {
+            Text("Amount")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("0.00", text: $viewModel.amountText)
@@ -100,8 +100,8 @@ struct BillEditorSheetView: View {
     }
 
     private var cadenceField: some View {
-        SiftCard {
-            Text("HOW OFTEN")
+        SiftSection {
+            Text("How often")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             Picker("How often", selection: $viewModel.cadence) {
@@ -115,7 +115,7 @@ struct BillEditorSheetView: View {
     }
 
     private var nextDueField: some View {
-        SiftCard {
+        SiftSection {
             Toggle("Next due", isOn: $viewModel.hasNextDue)
                 .toggleStyle(SiftToggleStyle())
                 .font(.siftBody)
@@ -132,8 +132,8 @@ struct BillEditorSheetView: View {
     @ViewBuilder
     private var categoryField: some View {
         if !viewModel.categories.isEmpty {
-            SiftCard {
-                Text("CATEGORY")
+            SiftSection {
+                Text("Category")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
                 Picker(

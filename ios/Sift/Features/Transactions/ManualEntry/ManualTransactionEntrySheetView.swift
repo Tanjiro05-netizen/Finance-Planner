@@ -29,7 +29,7 @@ struct ManualTransactionEntrySheetView: View {
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .font(.siftBody)
-                            .foregroundStyle(Palette.clay)
+                            .foregroundStyle(Palette.negative)
                     }
 
                     PrimaryButton(title: "Save") {
@@ -43,7 +43,7 @@ struct ManualTransactionEntrySheetView: View {
                 .padding(.horizontal, Spacing.screenHorizontal)
                 .padding(.vertical, Spacing.xl)
             }
-            .background(Palette.bone)
+            .background(Palette.ground)
             .navigationTitle("Add Transaction")
             .task { viewModel.load() }
             .toolbar {
@@ -70,8 +70,8 @@ struct ManualTransactionEntrySheetView: View {
     }
 
     private var merchantField: some View {
-        SiftCard {
-            Text("MERCHANT")
+        SiftSection {
+            Text("Merchant")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("e.g. Corner Market", text: $viewModel.merchantName)
@@ -82,8 +82,8 @@ struct ManualTransactionEntrySheetView: View {
     }
 
     private var amountField: some View {
-        SiftCard {
-            Text("AMOUNT")
+        SiftSection {
+            Text("Amount")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("0.00", text: $viewModel.amountText)
@@ -94,7 +94,7 @@ struct ManualTransactionEntrySheetView: View {
     }
 
     private var dateField: some View {
-        SiftCard {
+        SiftSection {
             DatePicker("Date", selection: $viewModel.date, displayedComponents: .date)
                 .font(.siftBody)
                 .accessibilityIdentifier("manual-entry-date")
@@ -104,8 +104,8 @@ struct ManualTransactionEntrySheetView: View {
     @ViewBuilder
     private var accountField: some View {
         if !viewModel.accounts.isEmpty {
-            SiftCard {
-                Text("ACCOUNT")
+            SiftSection {
+                Text("Account")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
                 Picker(
@@ -125,8 +125,8 @@ struct ManualTransactionEntrySheetView: View {
     @ViewBuilder
     private var categoryField: some View {
         if !viewModel.categories.isEmpty {
-            SiftCard {
-                Text("CATEGORY")
+            SiftSection {
+                Text("Category")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
                 Picker(
@@ -145,8 +145,8 @@ struct ManualTransactionEntrySheetView: View {
     }
 
     private var noteField: some View {
-        SiftCard {
-            Text("NOTE")
+        SiftSection {
+            Text("Note")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             TextField("Optional", text: $viewModel.note)

@@ -28,7 +28,7 @@ struct CancelFlowSheetView: View {
     var body: some View {
         NavigationStack {
             content
-                .background(Palette.bone)
+                .background(Palette.ground)
                 .navigationTitle(navigationTitle)
                 .task(id: subscriptionID) {
                     viewModel.load()

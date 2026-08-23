@@ -18,10 +18,10 @@ struct BankInstitution: Identifiable, Equatable {
     let colorToken: ColorToken
 
     static let popular: [BankInstitution] = [
-        BankInstitution(id: "ins_56", name: "Chase", monogram: "C", colorToken: .clay),
+        BankInstitution(id: "ins_56", name: "Chase", monogram: "C", colorToken: .ink),
         BankInstitution(id: "ins_10", name: "American Express", monogram: "A", colorToken: .ink),
         BankInstitution(id: "ins_127989", name: "Wells Fargo", monogram: "W", colorToken: .inkSoft),
-        BankInstitution(id: "ins_127991", name: "Bank of America", monogram: "B", colorToken: .green),
+        BankInstitution(id: "ins_127991", name: "Bank of America", monogram: "B", colorToken: .inkFaint),
     ]
 }
 

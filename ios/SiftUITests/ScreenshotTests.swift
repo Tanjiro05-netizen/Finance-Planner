@@ -91,18 +91,29 @@ final class ScreenshotTests: XCTestCase {
         app.tabBars.buttons["Ask"].tap()
         capture("12-ask", whenReady: anchor(app, "assistant-title"))
 
+        // Tapping the already-selected tab a second time pops that tab's stack to root,
+        // which is the standard iOS behaviour. Relying on it here guards against a stray
+        // pushed screen from an earlier step (forecast, subscription detail) leaving
+        // `home-profile-button` off-screen or absent, which is what silently dropped this
+        // screen and the one after it before: the old guard had no `else`, so a missed
+        // anchor here cost two screenshots and the run still reported success.
         app.tabBars.buttons["Home"].tap()
+        app.tabBars.buttons["Home"].tap()
+
         let settingsEntry = app.buttons["home-profile-button"]
-        if settingsEntry.waitForExistence(timeout: .screen) {
-            settingsEntry.tap()
-            if capture("13-settings", whenReady: anchor(app, "settings-title")) {
-                captureRoute(
-                    in: app,
-                    tapping: "settings-bills-income",
-                    named: "14-bills-and-income",
-                    waitingFor: "bills-income-title"
-                )
-            }
+        guard settingsEntry.waitForExistence(timeout: .launch) else {
+            XCTFail("Screenshot 13-settings: 'home-profile-button' never appeared.")
+            return
+        }
+        settingsEntry.tap()
+
+        if capture("13-settings", whenReady: anchor(app, "settings-title")) {
+            captureRoute(
+                in: app,
+                tapping: "settings-bills-income",
+                named: "14-bills-and-income",
+                waitingFor: "bills-income-title"
+            )
         }
     }
 

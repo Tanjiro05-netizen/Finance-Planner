@@ -71,7 +71,7 @@ func notificationTestSubscription(
         name: name,
         merchantKey: MerchantKey(name),
         monogramLetter: String(name.prefix(1)),
-        tileColorToken: .gold,
+        tileColorToken: .inkSoft,
         amount: amount,
         cadence: cadence,
         nextRenewal: nextRenewal,

@@ -11,7 +11,7 @@ struct OnboardingScreen<Content: View>: View {
         .padding(.top, Spacing.xl)
         .padding(.bottom, Spacing.xl)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Palette.bone)
+        .background(Palette.ground)
     }
 }
 
@@ -49,12 +49,12 @@ struct OnboardingHeadline: View {
 struct SubscriptionMotif: View {
     var body: some View {
         ZStack {
-            MonogramTile(letter: "R", color: Palette.clay, size: 76)
+            MonogramTile(letter: "R", color: Palette.negative, size: 76)
                 .offset(x: -42, y: 12)
                 .rotationEffect(.degrees(-8))
             MonogramTile(letter: "S", color: Palette.ink, size: 88)
                 .zIndex(1)
-            MonogramTile(letter: "T", color: Palette.goldDeep, size: 76)
+            MonogramTile(letter: "T", color: Palette.accent, size: 76)
                 .offset(x: 44, y: -8)
                 .rotationEffect(.degrees(8))
         }
@@ -70,7 +70,7 @@ struct PageDots: View {
         HStack(spacing: 6) {
             ForEach(0 ..< count, id: \.self) { index in
                 Capsule()
-                    .fill(index == currentIndex ? Palette.ink : Palette.sand)
+                    .fill(index == currentIndex ? Palette.ink : Palette.surfaceSunken)
                     .frame(width: index == currentIndex ? 18 : 7, height: 7)
             }
         }
@@ -100,16 +100,15 @@ struct WalletSourceCloud: View {
                 HStack(spacing: Spacing.sm) {
                     Image(systemName: "wallet.pass")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Palette.goldDeep)
+                        .foregroundStyle(Palette.accent)
                     Text(source)
-                        .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 13, relativeTo: .caption))
+                        .font(.system(.caption, design: .default).weight(.semibold))
                         .foregroundStyle(Palette.ink)
                         .lineLimit(1)
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, 10)
-                .background(Palette.card, in: Capsule())
-                .overlay(Capsule().stroke(Palette.line, lineWidth: 1))
+                .background(Palette.surface, in: Capsule())
             }
         }
     }
@@ -127,14 +126,13 @@ struct BankChipCloud: View {
                         .fill(chip.colorToken.color)
                         .frame(width: 10, height: 10)
                     Text(chip.name)
-                        .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 13, relativeTo: .caption))
+                        .font(.system(.caption, design: .default).weight(.semibold))
                         .foregroundStyle(Palette.ink)
                         .lineLimit(1)
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, 10)
-                .background(Palette.card, in: Capsule())
-                .overlay(Capsule().stroke(Palette.line, lineWidth: 1))
+                .background(Palette.surface, in: Capsule())
             }
         }
     }
@@ -153,11 +151,7 @@ struct SearchField: View {
         }
         .padding(.horizontal, Spacing.md)
         .frame(minHeight: 48)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
     }
 }
 
@@ -175,12 +169,8 @@ struct BankRow: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Palette.inkFaint)
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -193,20 +183,20 @@ struct ErrorCallout: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(message)
                 .font(.siftBody)
-                .foregroundStyle(Palette.clay)
+                .foregroundStyle(Palette.negative)
                 .fixedSize(horizontal: false, vertical: true)
 
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
                     .font(.buttonLabel)
-                    .foregroundStyle(Palette.clay)
+                    .foregroundStyle(Palette.negative)
             }
         }
         .padding(Spacing.md)
-        .background(Palette.clay.opacity(0.08), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+        .background(Palette.negative.opacity(0.08), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                .stroke(Palette.clay.opacity(0.24), lineWidth: 1)
+                .stroke(Palette.negative.opacity(0.24), lineWidth: 1)
         )
     }
 }
@@ -221,13 +211,13 @@ struct ScanRing: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Palette.sand, lineWidth: 12)
+                .stroke(Palette.surfaceSunken, lineWidth: 12)
             Circle()
                 .trim(from: 0, to: max(0.08, progress))
-                .stroke(Palette.gold, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                .stroke(Palette.accent, style: StrokeStyle(lineWidth: 12, lineCap: .round))
                 .rotationEffect(.degrees(-90 + rotation))
             Text("\(count)")
-                .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 38, relativeTo: .largeTitle))
+                .font(.system(.largeTitle, design: .default).weight(.bold))
                 .foregroundStyle(Palette.ink)
                 .contentTransition(.numericText(value: Double(count)))
         }
@@ -259,7 +249,7 @@ struct ReviewSubscriptionRow: View {
             HStack(spacing: Spacing.md) {
                 Image(systemName: item.isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 24, weight: .semibold))
-                    .foregroundStyle(item.isSelected ? Palette.goldDeep : Palette.inkFaint)
+                    .foregroundStyle(item.isSelected ? Palette.accent : Palette.inkFaint)
                     .frame(width: 30)
 
                 MonogramTile(
@@ -278,14 +268,10 @@ struct ReviewSubscriptionRow: View {
                 }
 
                 Spacer()
-                MoneyText(value: item.detection.amount.formatted(), size: 16)
+                MoneyText(value: item.detection.amount.formatted(), role: .row)
             }
-            .padding(Spacing.md)
-            .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                    .stroke(Palette.line, lineWidth: 1)
-            )
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.md)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(item.detection.name), \(item.detection.amount.formatted())")
@@ -302,7 +288,7 @@ struct NotificationPreviewBanner: View {
                     .font(.bodyEmphasis)
                     .foregroundStyle(Palette.ink)
                 Text("$15.49 · tap to cancel first")
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
             }
             Spacer()

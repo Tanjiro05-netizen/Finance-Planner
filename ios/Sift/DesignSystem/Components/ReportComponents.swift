@@ -66,12 +66,12 @@ struct SpendComparisonCard: View {
     let comparison: SpendComparison
 
     var body: some View {
-        SiftCard {
-            Text("THIS MONTH VS LAST")
+        SiftSection {
+            Text("This month vs last")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
-            MoneyText(value: comparison.currentTotal.formatted(), size: 38)
+            MoneyText(value: comparison.currentTotal.formatted(), role: .primary)
 
             HStack(spacing: Spacing.sm) {
                 Pill(text: comparison.deltaLabel, variant: comparison.deltaVariant)
@@ -111,13 +111,9 @@ struct CategoryMoverRow: View {
 
             Pill(text: mover.deltaLabel, variant: mover.deltaVariant)
         }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 11)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("mover-row-\(mover.id)")
     }
