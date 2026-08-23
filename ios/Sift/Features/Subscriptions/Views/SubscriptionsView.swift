@@ -215,7 +215,7 @@ private struct SubscriptionsLoadingView: View {
             SiftSection {
                 Text("Monthly total")
                     .font(.siftLabel)
-                MoneyText(value: "$000.00", size: 48)
+                MoneyText(value: "$000.00", role: .hero)
                 Text("0 tracked · 0 unused")
                     .font(.siftBody)
             }
