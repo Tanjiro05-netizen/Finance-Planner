@@ -352,8 +352,11 @@ final class Budget {
 /// override Sift's opinion without waiting for a release.
 ///
 /// The condition is stored as `kind` + `pattern` rather than as separate typed columns,
-/// which keeps persistence simple; `matcher` resolves it into a typed value and returns nil
-/// for a malformed row. `order` is dense and zero-based, rewritten wholesale by
+/// which keeps persistence simple. `matcher` (in `CategoryRuleEngine.swift`) resolves it
+/// into a typed value and returns nil for a malformed row -- it lives in an extension
+/// because `@Model` inspects every `var` in the class body and cannot handle a computed
+/// property whose type it has no way to persist. `order` is dense and zero-based,
+/// rewritten wholesale by
 /// `CategoryRuleRepository.reorder(ids:)` -- first match wins, so order is the whole
 /// disambiguation story when two rules could both fire.
 @Model
@@ -382,26 +385,6 @@ final class CategoryRule {
         self.categoryID = categoryID
         self.order = order
         self.isEnabled = isEnabled
-    }
-
-    /// The stored condition as something evaluable, or nil when `pattern` doesn't fit
-    /// `kind` -- an empty merchant string (which would match every transaction) or an MCC
-    /// rule whose pattern isn't an integer in range.
-    var matcher: CategoryRuleMatcher? {
-        let trimmed = pattern.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            return nil
-        }
-
-        switch kind {
-        case .merchantContains:
-            return .merchantContains(trimmed)
-        case .merchantCategoryCode:
-            guard let code = Int16(trimmed) else {
-                return nil
-            }
-            return .merchantCategoryCode(code)
-        }
     }
 }
 

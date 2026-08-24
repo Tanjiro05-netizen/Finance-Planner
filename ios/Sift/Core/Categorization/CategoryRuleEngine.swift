@@ -48,3 +48,36 @@ enum CategoryRuleEngine {
         }
     }
 }
+
+/// Resolution of a stored rule into something evaluable.
+///
+/// Deliberately an extension rather than a member of the `@Model` class. SwiftData's macro
+/// inspects every `var` in a class body to decide what to persist, and it traps at fetch
+/// time on a computed property whose type it cannot persist -- `CategoryRuleMatcher` is an
+/// enum with associated values and is `Equatable`, not `Codable`. `Subscription`'s computed
+/// `monthlyEquivalent` is fine only because `Money` happens to be `Codable`. An extension
+/// sits outside the macro expansion entirely, so the question never arises.
+///
+/// It also lands the layering in the right place: the model is storage, and turning a
+/// stored pattern into a decision belongs next to the engine that makes the decision.
+extension CategoryRule {
+    /// The stored condition as something evaluable, or nil when `pattern` doesn't fit
+    /// `kind` -- an empty merchant string (which would match every transaction) or an MCC
+    /// rule whose pattern isn't an integer in range.
+    var matcher: CategoryRuleMatcher? {
+        let trimmed = pattern.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return nil
+        }
+
+        switch kind {
+        case .merchantContains:
+            return .merchantContains(trimmed)
+        case .merchantCategoryCode:
+            guard let code = Int16(trimmed) else {
+                return nil
+            }
+            return .merchantCategoryCode(code)
+        }
+    }
+}
