@@ -70,9 +70,9 @@ struct RepositoryContainer {
             recurringIncome: [],
             bills: [],
             budgets: [],
-            categoryRules: [],
             goals: [],
-            goalContributions: []
+            goalContributions: [],
+            categoryRules: []
         )
 
         return RepositoryContainer(
