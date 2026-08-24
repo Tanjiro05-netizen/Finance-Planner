@@ -46,7 +46,7 @@ struct InsightPromptBuilderTests {
         )
     }
 
-    private func budgetProgress(spent: Int = 11735, budgeted: Int = 35000) -> BudgetProgress {
+    private func budgetProgress(spent: Int = 11735, budgeted: Int = 35000, pace: BudgetPace = .under) -> BudgetProgress {
         BudgetProgress(
             baseAmount: .usd(budgeted),
             rolloverCarry: .zeroUSD,
@@ -56,7 +56,7 @@ struct InsightPromptBuilderTests {
             fractionUsed: Double(spent) / Double(budgeted),
             isOverspent: spent > budgeted,
             projectedSpend: .usd(spent * 2),
-            pace: .under,
+            pace: pace,
             cycle: BudgetPeriodCalculator.cycle(for: .monthly, containing: date(2026, 6, 15))
         )
     }
@@ -255,6 +255,99 @@ struct InsightPromptBuilderTests {
 
         let text = InsightPromptBuilder.promptText(for: facts)
         #expect(text.components(separatedBy: "\n").count == 1)
+    }
+
+    // MARK: - Context window caps
+
+    /// The regression this guards: budgets and goals are per-person and unbounded, but the
+    /// on-device model's context window is a fixed 4096 tokens shared with the response. An
+    /// uncapped sheet fails only for the people with the most budgets and goals — i.e. the
+    /// ones using the app most.
+    @Test func budgetLinesAreCappedForTheContextWindow() {
+        let many = (1 ... 12).map {
+            BudgetFactInput(categoryName: "Category \($0)", progress: budgetProgress())
+        }
+
+        let facts = InsightPromptBuilder.facts(
+            safeToSpend: nil, comparison: nil, movers: [], budgets: many, goals: []
+        )
+
+        #expect(facts.lines.count == InsightPromptBuilder.maximumBudgetLines)
+    }
+
+    @Test func goalLinesAreCappedForTheContextWindow() {
+        let many = (1 ... 9).map {
+            GoalFactInput(
+                name: "Goal \($0)",
+                targetAmount: .usd(100_000),
+                outcome: .reached(saved: .usd(100_000), surplus: .zeroUSD)
+            )
+        }
+
+        let facts = InsightPromptBuilder.facts(
+            safeToSpend: nil, comparison: nil, movers: [], budgets: [], goals: many
+        )
+
+        #expect(facts.lines.count == InsightPromptBuilder.maximumGoalLines)
+    }
+
+    /// Truncating is only safe if the cut falls on the least useful lines. An over-pace
+    /// budget is the one a person can still act on, so it has to survive a sheet full of
+    /// comfortable ones.
+    @Test func anOverPaceBudgetSurvivesTheCap() {
+        var budgets = (1 ... 10).map {
+            BudgetFactInput(categoryName: "Comfortable \($0)", progress: budgetProgress(pace: .under))
+        }
+        budgets.append(BudgetFactInput(categoryName: "Overspent", progress: budgetProgress(pace: .over)))
+
+        let facts = InsightPromptBuilder.facts(
+            safeToSpend: nil, comparison: nil, movers: [], budgets: budgets, goals: []
+        )
+
+        #expect(facts.lines.contains { $0.label.contains("Overspent") })
+        #expect(facts.lines.contains { $0.label.contains("over pace") })
+    }
+
+    @Test func aGoalNeedingAttentionSurvivesTheCap() {
+        var goals = (1 ... 8).map {
+            GoalFactInput(
+                name: "Done \($0)",
+                targetAmount: .usd(100_000),
+                outcome: .reached(saved: .usd(100_000), surplus: .zeroUSD)
+            )
+        }
+        goals.append(GoalFactInput(
+            name: "Slipping",
+            targetAmount: .usd(300_000),
+            outcome: .behind(
+                saved: .usd(50000),
+                remaining: .usd(250_000),
+                requiredMonthly: .usd(50000),
+                shortfallPerMonth: .usd(25000)
+            )
+        ))
+
+        let facts = InsightPromptBuilder.facts(
+            safeToSpend: nil, comparison: nil, movers: [], budgets: [], goals: goals
+        )
+
+        #expect(facts.lines.contains { $0.label.contains("Slipping") })
+    }
+
+    /// Under the cap nothing is reordered, so a short sheet reads in the caller's order.
+    @Test func shortListsAreLeftAlone() {
+        let budgets = [
+            BudgetFactInput(categoryName: "First", progress: budgetProgress(pace: .under)),
+            BudgetFactInput(categoryName: "Second", progress: budgetProgress(pace: .over)),
+        ]
+
+        let facts = InsightPromptBuilder.facts(
+            safeToSpend: nil, comparison: nil, movers: [], budgets: budgets, goals: []
+        )
+
+        #expect(facts.lines.count == 2)
+        #expect(facts.lines[0].label.contains("First"))
+        #expect(facts.lines[1].label.contains("Second"))
     }
 
     // MARK: - Instructions

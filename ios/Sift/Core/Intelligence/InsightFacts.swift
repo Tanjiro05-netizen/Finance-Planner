@@ -57,6 +57,15 @@ enum InsightPromptBuilder {
     /// Anything longer than this is truncated rather than trusted.
     static let maximumCategoryNameLength = 40
 
+    /// Budgets and goals are per-person and unbounded — someone can create as many as they
+    /// like — but the on-device model's context window is a fixed 4096 tokens shared across
+    /// the instructions, this prompt, *and* the response. Left uncapped, the people who use
+    /// the app most are the ones whose narration silently stops working, which is backwards.
+    ///
+    /// `topMovers` already caps itself, so only these two need it here.
+    static let maximumBudgetLines = 4
+    static let maximumGoalLines = 3
+
     static func facts(
         safeToSpend: SafeToSpendResult?,
         comparison: SpendComparison?,
@@ -106,14 +115,14 @@ enum InsightPromptBuilder {
             ))
         }
 
-        for budget in budgets {
+        for budget in mostWorthMentioning(budgets) {
             lines.append(InsightFactLine(
                 label: "\(safeName(budget.categoryName)) budget, \(paceText(budget.progress.pace))",
                 value: "\(budget.progress.spent.formatted()) of \(budget.progress.budgeted.formatted())"
             ))
         }
 
-        for goal in goals {
+        for goal in mostWorthMentioning(goals) {
             lines.append(InsightFactLine(
                 label: "Goal: \(safeName(goal.name)) (\(outcomeText(goal.outcome)))",
                 value: "\(goal.outcome.saved.formatted()) of \(goal.targetAmount.formatted()) saved"
@@ -121,6 +130,60 @@ enum InsightPromptBuilder {
         }
 
         return InsightFacts(lines: lines)
+    }
+
+    /// The budgets most worth a sentence, capped for the context window.
+    ///
+    /// Sorted before truncating so the cut falls on the budgets nobody needs told about: a
+    /// budget running over pace is the one thing here a person can still act on this month,
+    /// and one comfortably under pace is the least interesting line in the sheet. `sorted`
+    /// is guaranteed stable in Swift, so equal-priority budgets keep the caller's order.
+    private static func mostWorthMentioning(_ budgets: [BudgetFactInput]) -> [BudgetFactInput] {
+        guard budgets.count > maximumBudgetLines else {
+            return budgets
+        }
+
+        let ordered = budgets.sorted { priority($0.progress.pace) < priority($1.progress.pace) }
+        return Array(ordered.prefix(maximumBudgetLines))
+    }
+
+    private static func priority(_ pace: BudgetPace) -> Int {
+        switch pace {
+        case .over:
+            0
+        case .onTrack:
+            1
+        case .under:
+            2
+        }
+    }
+
+    /// Same idea for goals: something needing attention outranks something already settled.
+    /// A reached goal is worth celebrating once, not at the cost of a goal falling behind.
+    private static func mostWorthMentioning(_ goals: [GoalFactInput]) -> [GoalFactInput] {
+        guard goals.count > maximumGoalLines else {
+            return goals
+        }
+
+        let ordered = goals.sorted { priority($0.outcome) < priority($1.outcome) }
+        return Array(ordered.prefix(maximumGoalLines))
+    }
+
+    private static func priority(_ outcome: GoalOutcome) -> Int {
+        switch outcome {
+        case .overdue:
+            0
+        case .behind:
+            1
+        case .insufficientData:
+            2
+        case .onTrack:
+            3
+        case .ahead:
+            4
+        case .reached:
+            5
+        }
     }
 
     /// Spelled out here rather than reusing `BudgetPace.label` / `GoalOutcome.label`: those
