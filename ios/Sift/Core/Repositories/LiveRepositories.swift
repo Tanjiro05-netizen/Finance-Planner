@@ -221,6 +221,7 @@ final class LiveTransactionRepository: TransactionRepository, @unchecked Sendabl
             existing.date = transaction.date
             existing.pending = transaction.pending
             existing.categoryHint = transaction.categoryHint
+            existing.merchantCategoryCode = transaction.merchantCategoryCode
             existing.direction = transaction.direction
             existing.kind = transaction.kind
             existing.source = transaction.source

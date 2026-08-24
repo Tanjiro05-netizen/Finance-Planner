@@ -53,6 +53,11 @@ final class Transaction {
     var date: Date
     var pending: Bool
     var categoryHint: String?
+    /// The card network's own classification (ISO 18245), when FinanceKit supplied one.
+    /// Kept alongside `categoryHint` rather than folded into it because the hint is only
+    /// ever the small set of codes `MerchantCategoryCodeMapper` has a verified opinion
+    /// about -- a user rule needs to be able to name a code Sift has no opinion about.
+    var merchantCategoryCode: Int16?
     var direction: TransactionDirection
     var kind: TransactionKind
     var categoryID: String?
@@ -70,6 +75,7 @@ final class Transaction {
         date: Date,
         pending: Bool = false,
         categoryHint: String? = nil,
+        merchantCategoryCode: Int16? = nil,
         direction: TransactionDirection = .debit,
         kind: TransactionKind = .purchase,
         categoryID: String? = nil,
@@ -86,6 +92,7 @@ final class Transaction {
         self.date = date
         self.pending = pending
         self.categoryHint = categoryHint
+        self.merchantCategoryCode = merchantCategoryCode
         self.direction = direction
         self.kind = kind
         self.categoryID = categoryID

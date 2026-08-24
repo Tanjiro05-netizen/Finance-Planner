@@ -80,6 +80,48 @@ struct FinanceKitAdaptersTests {
         #expect(mapped.category == nil)
     }
 
+    /// The hint is only the handful of codes `MerchantCategoryCodeMapper` has a verified
+    /// opinion about. The raw code has to survive too, or a user rule could never name a
+    /// code Sift has no opinion about -- which is most of them.
+    @Test func remoteTransactionCarriesTheRawCodeEvenWhenUnmapped() {
+        let mapped = FinancialDataMapper.remoteTransaction(
+            from: snapshot(id: "t5", merchant: "Some Consultant", amount: 40, daysAgo: 0, merchantCategoryCode: 7392),
+            userID: "user-42"
+        )
+
+        #expect(mapped.merchantCategoryCode == 7392)
+        #expect(mapped.category == nil)
+    }
+
+    @Test func transactionFromRemoteCarriesTheRawCode() {
+        let remote = FinancialDataMapper.remoteTransaction(
+            from: snapshot(id: "t6", merchant: "CORNER GROCERY", amount: 40, daysAgo: 0, merchantCategoryCode: 5411),
+            userID: "user-42"
+        )
+
+        let transaction = Transaction(remote: remote, merchantKey: MerchantKey("CORNER GROCERY"), source: .financeKit)
+
+        #expect(transaction.merchantCategoryCode == 5411)
+        #expect(transaction.categoryHint == "Groceries")
+    }
+
+    /// The custom decoder gained a field. A payload that predates it -- or any source with
+    /// no code at all -- still has to decode rather than throw.
+    @Test func remoteTransactionDecodesWithoutACategoryCode() throws {
+        let json = Data("""
+        {
+          "id": "t7", "userId": "user-42", "accountId": "acct-1",
+          "merchantName": "Tonebox", "amountMinor": 999, "isoCurrency": "USD",
+          "date": 760000000, "pending": false
+        }
+        """.utf8)
+
+        let decoded = try JSONDecoder().decode(RemoteTransaction.self, from: json)
+
+        #expect(decoded.merchantCategoryCode == nil)
+        #expect(decoded.direction == "debit")
+    }
+
     @Test func remoteAccountMapsLiabilityToCredit() {
         let asset = FinancialDataMapper.remoteAccount(from: FinancialAccountSnapshot(
             id: "a1", displayName: "Apple Cash", institutionName: "Apple", currencyCode: "USD", isLiability: false

@@ -211,6 +211,7 @@ extension Transaction {
             date: remote.date,
             pending: remote.pending,
             categoryHint: remote.category,
+            merchantCategoryCode: remote.merchantCategoryCode,
             direction: direction,
             kind: TransactionClassifier.kind(for: direction),
             source: source
@@ -235,6 +236,9 @@ struct RemoteTransaction: Codable, Equatable {
     let date: Date
     let pending: Bool
     let category: String?
+    /// Raw ISO 18245 merchant category code. Optional because manual entries and any
+    /// non-FinanceKit source have none.
+    let merchantCategoryCode: Int16?
     let direction: String
 
     init(
@@ -247,6 +251,7 @@ struct RemoteTransaction: Codable, Equatable {
         date: Date,
         pending: Bool,
         category: String?,
+        merchantCategoryCode: Int16? = nil,
         direction: String = TransactionDirection.debit.remoteValue
     ) {
         self.id = id
@@ -258,6 +263,7 @@ struct RemoteTransaction: Codable, Equatable {
         self.date = date
         self.pending = pending
         self.category = category
+        self.merchantCategoryCode = merchantCategoryCode
         self.direction = direction
     }
 
@@ -275,6 +281,7 @@ struct RemoteTransaction: Codable, Equatable {
         date = try container.decode(Date.self, forKey: .date)
         pending = try container.decode(Bool.self, forKey: .pending)
         category = try container.decodeIfPresent(String.self, forKey: .category)
+        merchantCategoryCode = try container.decodeIfPresent(Int16.self, forKey: .merchantCategoryCode)
         direction = try container.decodeIfPresent(String.self, forKey: .direction) ?? TransactionDirection.debit.remoteValue
     }
 }

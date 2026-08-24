@@ -149,6 +149,7 @@ enum FinancialDataMapper {
             date: snapshot.date,
             pending: snapshot.isPending,
             category: MerchantCategoryCodeMapper.categoryHint(for: snapshot.merchantCategoryCode),
+            merchantCategoryCode: snapshot.merchantCategoryCode,
             direction: (snapshot.isDebit ? TransactionDirection.debit : .credit).remoteValue
         )
     }
