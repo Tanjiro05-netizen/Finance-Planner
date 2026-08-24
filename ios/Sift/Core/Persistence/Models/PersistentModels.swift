@@ -366,7 +366,7 @@ final class CategoryRule {
     var kind: CategoryRuleKind
     var pattern: String
     var categoryID: String
-    var order: Int
+    var sortIndex: Int
     var isEnabled: Bool
 
     init(
@@ -375,7 +375,7 @@ final class CategoryRule {
         kind: CategoryRuleKind,
         pattern: String,
         categoryID: String,
-        order: Int,
+        sortIndex: Int,
         isEnabled: Bool = true
     ) {
         self.id = id
@@ -383,7 +383,7 @@ final class CategoryRule {
         self.kind = kind
         self.pattern = pattern
         self.categoryID = categoryID
-        self.order = order
+        self.sortIndex = sortIndex
         self.isEnabled = isEnabled
     }
 }

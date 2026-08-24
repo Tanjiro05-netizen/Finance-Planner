@@ -537,7 +537,7 @@ final class MockCategoryRuleRepository: CategoryRuleRepository, @unchecked Senda
     func all() throws -> [CategoryRule] {
         rules
             .filter { $0.userID == userID }
-            .sorted { $0.order < $1.order }
+            .sorted { $0.sortIndex < $1.sortIndex }
     }
 
     @MainActor
@@ -562,7 +562,7 @@ final class MockCategoryRuleRepository: CategoryRuleRepository, @unchecked Senda
     func reorder(ids: [String]) throws {
         let rulesByID = try Dictionary(uniqueKeysWithValues: all().map { ($0.id, $0) })
         for (index, id) in ids.enumerated() {
-            rulesByID[id]?.order = index
+            rulesByID[id]?.sortIndex = index
         }
     }
 

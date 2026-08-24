@@ -7,7 +7,7 @@ struct CategoryRuleEngineTests {
         kind: CategoryRuleKind = .merchantContains,
         pattern: String,
         categoryID: String = SeedData.ID.dining,
-        order: Int = 0,
+        sortIndex: Int = 0,
         isEnabled: Bool = true
     ) -> CategoryRule {
         CategoryRule(
@@ -16,7 +16,7 @@ struct CategoryRuleEngineTests {
             kind: kind,
             pattern: pattern,
             categoryID: categoryID,
-            order: order,
+            sortIndex: sortIndex,
             isEnabled: isEnabled
         )
     }
@@ -86,8 +86,8 @@ struct CategoryRuleEngineTests {
 
     @Test func lowestOrderWinsWhenSeveralMatch() {
         let rules = [
-            rule(id: "second", pattern: "CORNER", categoryID: SeedData.ID.dining, order: 1),
-            rule(id: "first", pattern: "GROCERY", categoryID: SeedData.ID.groceries, order: 0),
+            rule(id: "second", pattern: "CORNER", categoryID: SeedData.ID.dining, sortIndex: 1),
+            rule(id: "first", pattern: "GROCERY", categoryID: SeedData.ID.groceries, sortIndex: 0),
         ]
 
         let winner = CategoryRuleEngine.firstMatch(
@@ -99,8 +99,8 @@ struct CategoryRuleEngineTests {
 
     @Test func disabledRulesAreSkippedEvenWhenTheyWouldWin() {
         let rules = [
-            rule(id: "disabled", pattern: "GROCERY", order: 0, isEnabled: false),
-            rule(id: "enabled", pattern: "CORNER", order: 1),
+            rule(id: "disabled", pattern: "GROCERY", sortIndex: 0, isEnabled: false),
+            rule(id: "enabled", pattern: "CORNER", sortIndex: 1),
         ]
 
         let winner = CategoryRuleEngine.firstMatch(
@@ -112,8 +112,8 @@ struct CategoryRuleEngineTests {
 
     @Test func aMalformedRuleDoesNotBlockALaterValidOne() {
         let rules = [
-            rule(id: "malformed", kind: .merchantCategoryCode, pattern: "not-a-number", order: 0),
-            rule(id: "valid", pattern: "GROCERY", order: 1),
+            rule(id: "malformed", kind: .merchantCategoryCode, pattern: "not-a-number", sortIndex: 0),
+            rule(id: "valid", pattern: "GROCERY", sortIndex: 1),
         ]
 
         let winner = CategoryRuleEngine.firstMatch(
@@ -138,9 +138,9 @@ struct CategoryRuleEngineTests {
     /// The caller's array order must not matter -- only `order` does.
     @Test func evaluationIgnoresArrayOrder() {
         let rules = [
-            rule(id: "c", pattern: "GROCERY", order: 2),
-            rule(id: "a", pattern: "GROCERY", order: 0),
-            rule(id: "b", pattern: "GROCERY", order: 1),
+            rule(id: "c", pattern: "GROCERY", sortIndex: 2),
+            rule(id: "a", pattern: "GROCERY", sortIndex: 0),
+            rule(id: "b", pattern: "GROCERY", sortIndex: 1),
         ]
 
         #expect(CategoryRuleEngine.firstMatch(

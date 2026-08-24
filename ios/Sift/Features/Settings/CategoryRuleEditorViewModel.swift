@@ -96,14 +96,14 @@ final class CategoryRuleEditorViewModel {
                 existing.isEnabled = isEnabled
                 try repositories.categoryRules.update(existing)
             } else {
-                let order = try repositories.categoryRules.all().count
+                let sortIndex = try repositories.categoryRules.all().count
                 try repositories.categoryRules.insert(CategoryRule(
                     id: "rule-\(UUID().uuidString.lowercased())",
                     userID: SeedData.defaultUserID,
                     kind: kind,
                     pattern: trimmed,
                     categoryID: categoryID,
-                    order: order,
+                    sortIndex: sortIndex,
                     isEnabled: isEnabled
                 ))
             }
@@ -149,7 +149,7 @@ final class CategoryRuleEditorViewModel {
             kind: kind,
             pattern: pattern,
             categoryID: categoryID ?? "",
-            order: 0,
+            sortIndex: 0,
             isEnabled: isEnabled
         )
     }

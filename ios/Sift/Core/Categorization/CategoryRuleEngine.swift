@@ -19,7 +19,7 @@ enum CategoryRuleEngine {
     ) -> CategoryRule? {
         rules
             .filter(\.isEnabled)
-            .sorted { $0.order < $1.order }
+            .sorted { $0.sortIndex < $1.sortIndex }
             .first { matches($0, merchantName: merchantName, merchantCategoryCode: merchantCategoryCode) }
     }
 

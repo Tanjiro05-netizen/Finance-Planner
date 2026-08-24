@@ -102,7 +102,7 @@ struct CategoryServiceTests {
         kind: CategoryRuleKind = .merchantContains,
         pattern: String,
         categoryID: String,
-        order: Int = 0
+        sortIndex: Int = 0
     ) throws {
         try fixture.repositories.categoryRules.insert(CategoryRule(
             id: id,
@@ -110,7 +110,7 @@ struct CategoryServiceTests {
             kind: kind,
             pattern: pattern,
             categoryID: categoryID,
-            order: order
+            sortIndex: sortIndex
         ))
     }
 
@@ -171,8 +171,8 @@ struct CategoryServiceTests {
 
     @Test func lowestOrderWinsWhenTwoRulesMatchTheSameTransaction() throws {
         let fixture = try makeFixture()
-        try insertRule(fixture, id: "loser", pattern: "BLUE", categoryID: SeedData.ID.security, order: 1)
-        try insertRule(fixture, id: "winner", pattern: "BOTTLE", categoryID: SeedData.ID.audio, order: 0)
+        try insertRule(fixture, id: "loser", pattern: "BLUE", categoryID: SeedData.ID.security, sortIndex: 1)
+        try insertRule(fixture, id: "winner", pattern: "BOTTLE", categoryID: SeedData.ID.audio, sortIndex: 0)
 
         try fixture.service.applyAutoCategorizationForTransactions()
 

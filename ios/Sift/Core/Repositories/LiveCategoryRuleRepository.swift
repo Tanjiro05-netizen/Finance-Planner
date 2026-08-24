@@ -19,7 +19,7 @@ final class LiveCategoryRuleRepository: CategoryRuleRepository, @unchecked Senda
     @MainActor
     func all() throws -> [CategoryRule] {
         try fetchUserScoped(CategoryRule.self, in: context, userID: userID)
-            .sorted { $0.order < $1.order }
+            .sorted { $0.sortIndex < $1.sortIndex }
     }
 
     @MainActor
@@ -54,7 +54,7 @@ final class LiveCategoryRuleRepository: CategoryRuleRepository, @unchecked Senda
     func reorder(ids: [String]) throws {
         let rulesByID = try Dictionary(uniqueKeysWithValues: all().map { ($0.id, $0) })
         for (index, id) in ids.enumerated() {
-            rulesByID[id]?.order = index
+            rulesByID[id]?.sortIndex = index
         }
         try context.save()
     }

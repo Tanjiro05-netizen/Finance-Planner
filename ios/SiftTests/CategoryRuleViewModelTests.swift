@@ -19,7 +19,7 @@ struct CategoryRuleViewModelTests {
         _ fixture: Fixture,
         id: String,
         pattern: String,
-        order: Int,
+        sortIndex: Int,
         isEnabled: Bool = true
     ) throws {
         try fixture.repositories.categoryRules.insert(CategoryRule(
@@ -28,7 +28,7 @@ struct CategoryRuleViewModelTests {
             kind: .merchantContains,
             pattern: pattern,
             categoryID: SeedData.ID.dining,
-            order: order,
+            sortIndex: sortIndex,
             isEnabled: isEnabled
         ))
     }
@@ -42,8 +42,8 @@ struct CategoryRuleViewModelTests {
         viewModel.load()
         #expect(viewModel.isEmpty)
 
-        try insertRule(fixture, id: "b", pattern: "B", order: 1)
-        try insertRule(fixture, id: "a", pattern: "A", order: 0)
+        try insertRule(fixture, id: "b", pattern: "B", sortIndex: 1)
+        try insertRule(fixture, id: "a", pattern: "A", sortIndex: 0)
         viewModel.load()
 
         #expect(viewModel.isEmpty == false)
@@ -52,7 +52,7 @@ struct CategoryRuleViewModelTests {
 
     @Test func summaryReadsAsASentence() throws {
         let fixture = try makeFixture()
-        try insertRule(fixture, id: "a", pattern: "BLUE BOTTLE", order: 0)
+        try insertRule(fixture, id: "a", pattern: "BLUE BOTTLE", sortIndex: 0)
         let viewModel = CategoryRulesViewModel(repositories: fixture.repositories)
         viewModel.load()
 
@@ -63,22 +63,22 @@ struct CategoryRuleViewModelTests {
 
     @Test func moveRewritesOrder() throws {
         let fixture = try makeFixture()
-        try insertRule(fixture, id: "a", pattern: "A", order: 0)
-        try insertRule(fixture, id: "b", pattern: "B", order: 1)
-        try insertRule(fixture, id: "c", pattern: "C", order: 2)
+        try insertRule(fixture, id: "a", pattern: "A", sortIndex: 0)
+        try insertRule(fixture, id: "b", pattern: "B", sortIndex: 1)
+        try insertRule(fixture, id: "c", pattern: "C", sortIndex: 2)
         let viewModel = CategoryRulesViewModel(repositories: fixture.repositories)
         viewModel.load()
 
         viewModel.move(from: IndexSet(integer: 2), to: 0)
 
         #expect(viewModel.rules.map(\.id) == ["c", "a", "b"])
-        #expect(viewModel.rules.map(\.order) == [0, 1, 2])
+        #expect(viewModel.rules.map(\.sortIndex) == [0, 1, 2])
     }
 
     @Test func deleteRemovesTheRuleAndReloads() throws {
         let fixture = try makeFixture()
-        try insertRule(fixture, id: "a", pattern: "A", order: 0)
-        try insertRule(fixture, id: "b", pattern: "B", order: 1)
+        try insertRule(fixture, id: "a", pattern: "A", sortIndex: 0)
+        try insertRule(fixture, id: "b", pattern: "B", sortIndex: 1)
         let viewModel = CategoryRulesViewModel(repositories: fixture.repositories)
         viewModel.load()
 
@@ -99,7 +99,7 @@ struct CategoryRuleViewModelTests {
             kind: .merchantContains,
             pattern: "BLUE BOTTLE",
             categoryID: SeedData.ID.audio,
-            order: 0
+            sortIndex: 0
         ))
         let viewModel = CategoryRulesViewModel(repositories: fixture.repositories)
         viewModel.load()
@@ -144,7 +144,7 @@ struct CategoryRuleViewModelTests {
 
     @Test func editorLoadsAnExistingRule() throws {
         let fixture = try makeFixture()
-        try insertRule(fixture, id: "a", pattern: "BLUE BOTTLE", order: 0, isEnabled: false)
+        try insertRule(fixture, id: "a", pattern: "BLUE BOTTLE", sortIndex: 0, isEnabled: false)
         let viewModel = CategoryRuleEditorViewModel(ruleID: "a", repositories: fixture.repositories)
 
         viewModel.load()
@@ -216,7 +216,7 @@ struct CategoryRuleViewModelTests {
 
     @Test func newRulesAppendToTheEndOfTheOrder() throws {
         let fixture = try makeFixture()
-        try insertRule(fixture, id: "existing", pattern: "A", order: 0)
+        try insertRule(fixture, id: "existing", pattern: "A", sortIndex: 0)
 
         let viewModel = CategoryRuleEditorViewModel(repositories: fixture.repositories)
         viewModel.load()
@@ -225,13 +225,13 @@ struct CategoryRuleViewModelTests {
         #expect(viewModel.save())
 
         let stored = try fixture.repositories.categoryRules.all()
-        #expect(stored.map(\.order) == [0, 1])
+        #expect(stored.map(\.sortIndex) == [0, 1])
         #expect(stored.last?.pattern == "B")
     }
 
     @Test func editingUpdatesInPlaceRatherThanAppending() throws {
         let fixture = try makeFixture()
-        try insertRule(fixture, id: "a", pattern: "OLD", order: 0)
+        try insertRule(fixture, id: "a", pattern: "OLD", sortIndex: 0)
         let viewModel = CategoryRuleEditorViewModel(ruleID: "a", repositories: fixture.repositories)
         viewModel.load()
         viewModel.pattern = "NEW"
@@ -245,7 +245,7 @@ struct CategoryRuleViewModelTests {
 
     @Test func deletingRemovesTheRule() throws {
         let fixture = try makeFixture()
-        try insertRule(fixture, id: "a", pattern: "A", order: 0)
+        try insertRule(fixture, id: "a", pattern: "A", sortIndex: 0)
         let viewModel = CategoryRuleEditorViewModel(ruleID: "a", repositories: fixture.repositories)
         viewModel.load()
 
