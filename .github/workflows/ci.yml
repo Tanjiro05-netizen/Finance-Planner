@@ -30,15 +30,21 @@ jobs:
       # SiftUITests/ScreenshotTests is a slow walk that photographs every screen and asserts
       # almost nothing. It is what screenshots.yml runs; there is no reason for the PR gate
       # to pay for it.
+      # Output is teed to a file as well as the log. A Swift runtime trap that carries no
+      # `asi` message in its crash report -- a compiler-inserted precondition rather than an
+      # explicit fatalError -- leaves the *only* human-readable explanation in the
+      # simulator's stderr, which is buried thousands of lines up in a log that is awkward
+      # to page through after the fact. `Failure diagnostics` greps this file instead.
       - name: Test with coverage
         run: |
           mkdir -p ../build
+          set -o pipefail
           xcodebuild test \
             -scheme Sift \
             -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             -skip-testing:SiftUITests/ScreenshotTests \
             -enableCodeCoverage YES \
-            -resultBundlePath ../build/SiftTests.xcresult
+            -resultBundlePath ../build/SiftTests.xcresult 2>&1 | tee ../build/test-output.log
       # On failure xcodebuild only prints the *names* of failing tests. The assertion text
       # — and the crash report when the test process dies and takes every remaining test
       # down with it — live in the result bundle, so surface them in the log.
@@ -49,6 +55,11 @@ jobs:
             --path ../build/SiftTests.xcresult --format json || true
           echo "--- crash reports ---"
           python3 ../scripts/print-crash-report.py "$HOME/Library/Logs/DiagnosticReports" || true
+          echo "--- runtime traps and fatal errors from stderr ---"
+          grep -nE "Fatal error|Precondition failed|precondition|Unexpectedly found nil|SwiftData/|CoreData:|NSInternalInconsistency|Illegal instruction|__abort" \
+            ../build/test-output.log | head -40 || echo "(no runtime trap text captured)"
+          echo "--- last 60 lines of raw test stderr (in case the greps above miss it) ---"
+          tail -60 ../build/test-output.log || true
 
       - name: Enforce coverage floor
         run: |
