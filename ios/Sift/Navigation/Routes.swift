@@ -95,6 +95,8 @@ enum AppSheet: Hashable, Identifiable {
     case billEditor(billID: String?)
     /// nil creates new income; a value edits the existing one.
     case incomeEditor(incomeID: String?)
+    /// nil creates a new categorisation rule; a value edits the existing one.
+    case categoryRuleEditor(ruleID: String?)
 
     var id: String {
         switch self {
@@ -120,6 +122,8 @@ enum AppSheet: Hashable, Identifiable {
             "bill-editor-\(billID ?? "new")"
         case let .incomeEditor(incomeID):
             "income-editor-\(incomeID ?? "new")"
+        case let .categoryRuleEditor(ruleID):
+            "category-rule-editor-\(ruleID ?? "new")"
         }
     }
 
@@ -138,6 +142,7 @@ enum AppSheet: Hashable, Identifiable {
             .goalContribution(goalID: SampleRouteID.goal),
             .billEditor(billID: nil),
             .incomeEditor(incomeID: nil),
+            .categoryRuleEditor(ruleID: nil),
         ]
     }
 }

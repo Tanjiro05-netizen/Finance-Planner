@@ -64,6 +64,7 @@ struct SiftFeatureFlags: Equatable {
     var goalsEnabled: Bool
     var insightNarrationEnabled: Bool
     var assistantEnabled: Bool
+    var categoryRulesEnabled: Bool
 
     /// Defaulted so adding a flag stays additive — call sites that only care about one
     /// flag don't have to be updated every time a new one lands.
@@ -73,7 +74,8 @@ struct SiftFeatureFlags: Equatable {
         budgetsEnabled: Bool = false,
         goalsEnabled: Bool = false,
         insightNarrationEnabled: Bool = false,
-        assistantEnabled: Bool = false
+        assistantEnabled: Bool = false,
+        categoryRulesEnabled: Bool = false
     ) {
         self.conciergeEnabled = conciergeEnabled
         self.ledgerEnabled = ledgerEnabled
@@ -81,6 +83,7 @@ struct SiftFeatureFlags: Equatable {
         self.goalsEnabled = goalsEnabled
         self.insightNarrationEnabled = insightNarrationEnabled
         self.assistantEnabled = assistantEnabled
+        self.categoryRulesEnabled = categoryRulesEnabled
     }
 
     static let launchDefault = SiftFeatureFlags()
@@ -96,7 +99,8 @@ struct SiftFeatureFlags: Equatable {
                 "SIFT_INSIGHT_NARRATION_ENABLED",
                 processInfo
             ),
-            assistantEnabled: isEnabled("-siftAssistantEnabled", "SIFT_ASSISTANT_ENABLED", processInfo)
+            assistantEnabled: isEnabled("-siftAssistantEnabled", "SIFT_ASSISTANT_ENABLED", processInfo),
+            categoryRulesEnabled: isEnabled("-siftCategoryRulesEnabled", "SIFT_CATEGORY_RULES_ENABLED", processInfo)
         )
     }
 

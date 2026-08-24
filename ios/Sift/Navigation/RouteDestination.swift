@@ -79,6 +79,8 @@ enum RouteDestination {
             AffordabilityCheckSheetView(repositories: repositories)
         case let .goalEditor(goalID):
             GoalEditorSheetView(goalID: goalID, repositories: repositories)
+        case let .categoryRuleEditor(ruleID):
+            CategoryRuleEditorSheetView(ruleID: ruleID, repositories: repositories)
         case let .goalContribution(goalID):
             GoalContributionSheetView(goalID: goalID, repositories: repositories)
         case let .billEditor(billID):

@@ -190,6 +190,18 @@ struct CoreScreensRenderTests {
         }
     }
 
+    @Test func categoryRulesRendersItsEmptyState() {
+        assertRenders {
+            CategoryRulesView(repositories: .emptyMock())
+        }
+    }
+
+    @Test func categoryRuleEditorRenders() {
+        assertRenders {
+            CategoryRuleEditorSheetView(repositories: .mock())
+        }
+    }
+
     @Test func goalContributionRenders() {
         assertRenders {
             GoalContributionSheetView(

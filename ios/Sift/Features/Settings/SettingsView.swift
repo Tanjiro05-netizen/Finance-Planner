@@ -1070,6 +1070,8 @@ final class CategoriesViewModel {
 }
 
 struct CategoriesView: View {
+    @Environment(\.repositories) private var environmentRepositories
+    @Environment(\.featureFlags) private var featureFlags
     @State private var viewModel: CategoriesViewModel
 
     init(repositories: RepositoryContainer = .mock()) {
@@ -1092,6 +1094,22 @@ struct CategoriesView: View {
                         )
                     )
                     .accessibilityIdentifier("categories-auto-toggle")
+                }
+
+                if featureFlags.categoryRulesEnabled {
+                    SiftRowSection(
+                        footer: "Rules override what Sift would have guessed.",
+                        data: [0],
+                        id: \.self
+                    ) { _ in
+                        NavigationLink {
+                            CategoryRulesView(repositories: environmentRepositories)
+                        } label: {
+                            SettingsRow(icon: SiftIcon.list, title: "Rules")
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("categories-rules")
+                    }
                 }
 
                 SiftRowSection(data: viewModel.rows, id: \.id) { row in
