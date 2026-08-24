@@ -238,6 +238,39 @@ enum BudgetStatus: String, Codable, CaseIterable {
     case archived
 }
 
+/// What a user-written categorisation rule tests a transaction against.
+///
+/// Two kinds rather than one because they fail in opposite situations. Merchant text is
+/// readable and easy to write, but useless against the acquirer gibberish a lot of card
+/// descriptors are ("SQ *4471 ABC"). A category code is unreadable but always present when
+/// FinanceKit supplies one, and it is the card network's own classification rather than a
+/// guess at one.
+enum CategoryRuleKind: String, Codable, CaseIterable {
+    case merchantContains
+    case merchantCategoryCode
+
+    var label: String {
+        switch self {
+        case .merchantContains:
+            "Merchant name contains"
+        case .merchantCategoryCode:
+            "Category code is"
+        }
+    }
+}
+
+/// A rule's condition, resolved into something the engine can actually evaluate.
+///
+/// `CategoryRule` stores its condition as a `kind` plus a free-text `pattern`, because that
+/// is what SwiftData persists cleanly. Nothing evaluates that string directly: a rule
+/// resolves to one of these first, or to `nil` when the stored pattern doesn't fit its kind
+/// (an MCC rule whose pattern isn't an integer). A malformed row is then skipped rather
+/// than silently matching everything or crashing the pass.
+enum CategoryRuleMatcher: Equatable {
+    case merchantContains(String)
+    case merchantCategoryCode(Int16)
+}
+
 enum GoalStatus: String, Codable, CaseIterable {
     case active
     case reached

@@ -344,6 +344,67 @@ final class Budget {
     }
 }
 
+/// A user-written rule assigning a category to anything matching a condition.
+///
+/// Exists because `CategoryService.keywordRules` is compiled into the app: when it puts a
+/// merchant in the wrong place, the only recourse today is correcting every transaction by
+/// hand, forever. These rules are evaluated ahead of those built-ins, so a person can
+/// override Sift's opinion without waiting for a release.
+///
+/// The condition is stored as `kind` + `pattern` rather than as separate typed columns,
+/// which keeps persistence simple; `matcher` resolves it into a typed value and returns nil
+/// for a malformed row. `order` is dense and zero-based, rewritten wholesale by
+/// `CategoryRuleRepository.reorder(ids:)` -- first match wins, so order is the whole
+/// disambiguation story when two rules could both fire.
+@Model
+final class CategoryRule {
+    var id: String
+    var userID: String
+    var kind: CategoryRuleKind
+    var pattern: String
+    var categoryID: String
+    var order: Int
+    var isEnabled: Bool
+
+    init(
+        id: String,
+        userID: String,
+        kind: CategoryRuleKind,
+        pattern: String,
+        categoryID: String,
+        order: Int,
+        isEnabled: Bool = true
+    ) {
+        self.id = id
+        self.userID = userID
+        self.kind = kind
+        self.pattern = pattern
+        self.categoryID = categoryID
+        self.order = order
+        self.isEnabled = isEnabled
+    }
+
+    /// The stored condition as something evaluable, or nil when `pattern` doesn't fit
+    /// `kind` -- an empty merchant string (which would match every transaction) or an MCC
+    /// rule whose pattern isn't an integer in range.
+    var matcher: CategoryRuleMatcher? {
+        let trimmed = pattern.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return nil
+        }
+
+        switch kind {
+        case .merchantContains:
+            return .merchantContains(trimmed)
+        case .merchantCategoryCode:
+            guard let code = Int16(trimmed) else {
+                return nil
+            }
+            return .merchantCategoryCode(code)
+        }
+    }
+}
+
 /// Something the user is saving toward. Progress is never stored here — it's summed from
 /// `GoalContribution` rows, so a withdrawal can't leave the goal claiming money that's gone.
 ///

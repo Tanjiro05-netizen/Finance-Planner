@@ -65,6 +65,7 @@
 		C0000000000000000000B007 /* ManualTransactionEntryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F007 /* ManualTransactionEntryViewModel.swift */; };
 		C0000000000000000000B008 /* ManualTransactionEntrySheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F008 /* ManualTransactionEntrySheetView.swift */; };
 		C0000000000000000000B009 /* MerchantCategoryCodeMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F009 /* MerchantCategoryCodeMapper.swift */; };
+		C0000000000000000000B010 /* CategoryRuleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F010 /* CategoryRuleEngine.swift */; };
 		B0000000000000000000C001 /* FinanceKitAdaptersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T001 /* FinanceKitAdaptersTests.swift */; };
 		B0000000000000000000C002 /* SubscriptionRefreshServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T002 /* SubscriptionRefreshServiceTests.swift */; };
 		B0000000000000000000C003 /* TokenStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T003 /* TokenStoreTests.swift */; };
@@ -83,6 +84,8 @@
 		B0000000000000000000C007 /* TransactionRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T007 /* TransactionRepositoryTests.swift */; };
 		B0000000000000000000C008 /* ManualTransactionEntryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T008 /* ManualTransactionEntryViewModelTests.swift */; };
 		B0000000000000000000C009 /* MerchantCategoryCodeMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T009 /* MerchantCategoryCodeMapperTests.swift */; };
+		B0000000000000000000C010 /* CategoryRuleEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T010 /* CategoryRuleEngineTests.swift */; };
+		B0000000000000000000C011 /* CategoryRuleRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0000000000000000000T011 /* CategoryRuleRepositoryTests.swift */; };
 		60000000000000000000B001 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F001 /* Models.swift */; };
 		60000000000000000000B002 /* MerchantNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F002 /* MerchantNormalizer.swift */; };
 		60000000000000000000B003 /* DetectionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60000000000000000000F003 /* DetectionEngine.swift */; };
@@ -270,6 +273,7 @@
 		C0000000000000000000F007 /* ManualTransactionEntryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualTransactionEntryViewModel.swift; sourceTree = "<group>"; };
 		C0000000000000000000F008 /* ManualTransactionEntrySheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualTransactionEntrySheetView.swift; sourceTree = "<group>"; };
 		C0000000000000000000F009 /* MerchantCategoryCodeMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantCategoryCodeMapper.swift; sourceTree = "<group>"; };
+		C0000000000000000000F010 /* CategoryRuleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryRuleEngine.swift; sourceTree = "<group>"; };
 		B0000000000000000000F004 /* Sift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sift.entitlements; sourceTree = "<group>"; };
 		B0000000000000000000T001 /* FinanceKitAdaptersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceKitAdaptersTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T002 /* SubscriptionRefreshServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRefreshServiceTests.swift; sourceTree = "<group>"; };
@@ -287,6 +291,8 @@
 		B0000000000000000000T005 /* TransactionClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionClassifierTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T006 /* CategoryServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryServiceTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T009 /* MerchantCategoryCodeMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantCategoryCodeMapperTests.swift; sourceTree = "<group>"; };
+		B0000000000000000000T010 /* CategoryRuleEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryRuleEngineTests.swift; sourceTree = "<group>"; };
+		B0000000000000000000T011 /* CategoryRuleRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryRuleRepositoryTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T007 /* TransactionRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionRepositoryTests.swift; sourceTree = "<group>"; };
 		B0000000000000000000T008 /* ManualTransactionEntryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualTransactionEntryViewModelTests.swift; sourceTree = "<group>"; };
 		60000000000000000000F001 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
@@ -516,6 +522,8 @@
 				B0000000000000000000T005 /* TransactionClassifierTests.swift */,
 				B0000000000000000000T006 /* CategoryServiceTests.swift */,
 				B0000000000000000000T009 /* MerchantCategoryCodeMapperTests.swift */,
+				B0000000000000000000T010 /* CategoryRuleEngineTests.swift */,
+				B0000000000000000000T011 /* CategoryRuleRepositoryTests.swift */,
 				B0000000000000000000T007 /* TransactionRepositoryTests.swift */,
 				B0000000000000000000T008 /* ManualTransactionEntryViewModelTests.swift */,
 				70000000000000000000T001 /* CancellationViewModelTests.swift */,
@@ -780,6 +788,7 @@
 				D0000000000000000000F004 /* BillClassifier.swift */,
 				C0000000000000000000F002 /* TransactionClassifier.swift */,
 				C0000000000000000000F009 /* MerchantCategoryCodeMapper.swift */,
+				C0000000000000000000F010 /* CategoryRuleEngine.swift */,
 			);
 			path = Categorization;
 			sourceTree = "<group>";
@@ -1269,6 +1278,7 @@
 				C0000000000000000000B003 /* TransactionComponents.swift in Sources */,
 				C0000000000000000000B004 /* TransactionsViewModel.swift in Sources */,
 				C0000000000000000000B009 /* MerchantCategoryCodeMapper.swift in Sources */,
+				C0000000000000000000B010 /* CategoryRuleEngine.swift in Sources */,
 				C0000000000000000000B005 /* TransactionDetailSheetView.swift in Sources */,
 				C0000000000000000000B006 /* TransactionsView.swift in Sources */,
 				C0000000000000000000B007 /* ManualTransactionEntryViewModel.swift in Sources */,
@@ -1339,6 +1349,8 @@
 				B0000000000000000000C005 /* TransactionClassifierTests.swift in Sources */,
 				B0000000000000000000C006 /* CategoryServiceTests.swift in Sources */,
 				B0000000000000000000C009 /* MerchantCategoryCodeMapperTests.swift in Sources */,
+				B0000000000000000000C010 /* CategoryRuleEngineTests.swift in Sources */,
+				B0000000000000000000C011 /* CategoryRuleRepositoryTests.swift in Sources */,
 				B0000000000000000000C007 /* TransactionRepositoryTests.swift in Sources */,
 				B0000000000000000000C008 /* ManualTransactionEntryViewModelTests.swift in Sources */,
 			);

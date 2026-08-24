@@ -15,6 +15,7 @@ enum SiftModelContainerFactory {
             Budget.self,
             Goal.self,
             GoalContribution.self,
+            CategoryRule.self,
         ])
     }
 

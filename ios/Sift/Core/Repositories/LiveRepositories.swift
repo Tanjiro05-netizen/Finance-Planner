@@ -654,6 +654,67 @@ final class LiveBillRepository: BillRepository, @unchecked Sendable {
     }
 }
 
+final class LiveCategoryRuleRepository: CategoryRuleRepository, @unchecked Sendable {
+    private let context: ModelContext
+    private let userID: String
+
+    init(modelContext: ModelContext, userID: String = SeedData.defaultUserID) {
+        context = modelContext
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [CategoryRule] {
+        try fetchUserScoped(CategoryRule.self, in: context, userID: userID)
+            .sorted { $0.order < $1.order }
+    }
+
+    @MainActor
+    func rule(id: String) throws -> CategoryRule? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ rule: CategoryRule) throws {
+        context.insert(rule)
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ rule: CategoryRule) throws {
+        guard rule.userID == userID else {
+            throw SiftError.notFound("Rule")
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let rule = try rule(id: id) else {
+            throw SiftError.notFound("Rule")
+        }
+        context.delete(rule)
+        try context.save()
+    }
+
+    @MainActor
+    func reorder(ids: [String]) throws {
+        let rulesByID = try Dictionary(uniqueKeysWithValues: all().map { ($0.id, $0) })
+        for (index, id) in ids.enumerated() {
+            rulesByID[id]?.order = index
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        for rule in try all() {
+            context.delete(rule)
+        }
+        try context.save()
+    }
+}
+
 final class LiveBudgetRepository: BudgetRepository, @unchecked Sendable {
     private let context: ModelContext
     private let userID: String
@@ -833,6 +894,8 @@ private func fetchUserScoped<Model: PersistentModel>(
             goal.userID == userID
         case let contribution as GoalContribution:
             contribution.userID == userID
+        case let rule as CategoryRule:
+            rule.userID == userID
         default:
             false
         }

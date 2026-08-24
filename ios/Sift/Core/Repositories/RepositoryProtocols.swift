@@ -90,6 +90,19 @@ protocol BudgetRepository: AnyObject, Sendable {
     @MainActor func deleteAll() throws
 }
 
+protocol CategoryRuleRepository: AnyObject, Sendable {
+    /// Always in evaluation order, so no caller has to remember to sort.
+    @MainActor func all() throws -> [CategoryRule]
+    @MainActor func rule(id: String) throws -> CategoryRule?
+    @MainActor func insert(_ rule: CategoryRule) throws
+    @MainActor func update(_ rule: CategoryRule) throws
+    @MainActor func delete(id: String) throws
+    /// Rewrites `order` from array position in one save, so a drag can't leave the list
+    /// with duplicate or gapped orders.
+    @MainActor func reorder(ids: [String]) throws
+    @MainActor func deleteAll() throws
+}
+
 /// Covers both `Goal` and `GoalContribution`. A contribution is never reached except through
 /// its goal, so a second repository would add ceremony without adding a seam — and keeping
 /// `deleteAll()` responsible for both is what keeps `wipeLocalData()` honest.

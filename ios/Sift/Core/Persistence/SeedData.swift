@@ -58,6 +58,12 @@ enum SeedData {
         var budgets: [Budget]
         var goals: [Goal]
         var goalContributions: [GoalContribution]
+        /// Deliberately always empty. A seeded rule would re-run over the seeded ledger and
+        /// move the value-pinned figures in `BudgetsViewModelTests` and
+        /// `AffordabilityCheckViewModelTests` -- assertions seed changes have broken twice
+        /// before. It is also simply true that a new person has no rules, so an empty list
+        /// is the honest first-run state to render.
+        var categoryRules: [CategoryRule]
     }
 
     static func snapshot(userID: String = defaultUserID) -> Snapshot {
@@ -159,7 +165,8 @@ enum SeedData {
             bills: makeBills(userID: userID),
             budgets: makeBudgets(userID: userID),
             goals: makeGoals(userID: userID),
-            goalContributions: makeGoalContributions(userID: userID)
+            goalContributions: makeGoalContributions(userID: userID),
+            categoryRules: []
         )
     }
 

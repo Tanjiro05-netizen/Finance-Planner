@@ -524,6 +524,54 @@ final class MockBillRepository: BillRepository, @unchecked Sendable {
     }
 }
 
+final class MockCategoryRuleRepository: CategoryRuleRepository, @unchecked Sendable {
+    private var rules: [CategoryRule]
+    private let userID: String
+
+    init(snapshot: SeedData.Snapshot = SeedData.snapshot(), userID: String = SeedData.defaultUserID) {
+        rules = snapshot.categoryRules
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [CategoryRule] {
+        rules
+            .filter { $0.userID == userID }
+            .sorted { $0.order < $1.order }
+    }
+
+    @MainActor
+    func rule(id: String) throws -> CategoryRule? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ rule: CategoryRule) throws {
+        rules.append(rule)
+    }
+
+    @MainActor
+    func update(_: CategoryRule) throws {}
+
+    @MainActor
+    func delete(id: String) throws {
+        rules.removeAll { $0.id == id && $0.userID == userID }
+    }
+
+    @MainActor
+    func reorder(ids: [String]) throws {
+        let rulesByID = try Dictionary(uniqueKeysWithValues: all().map { ($0.id, $0) })
+        for (index, id) in ids.enumerated() {
+            rulesByID[id]?.order = index
+        }
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        rules.removeAll { $0.userID == userID }
+    }
+}
+
 final class MockBudgetRepository: BudgetRepository, @unchecked Sendable {
     private var budgets: [Budget]
     private let userID: String
