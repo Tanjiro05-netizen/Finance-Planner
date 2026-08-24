@@ -28,48 +28,88 @@ final class CategoryService {
         self.repositories = repositories
     }
 
-    func applyAutoCategorizationIfEnabled() throws {
+    /// Returns how many subscriptions changed category, so a caller that just saved a rule
+    /// can say what it did rather than leaving the person guessing.
+    @discardableResult
+    func applyAutoCategorizationIfEnabled() throws -> Int {
         guard try repositories.settings.settings().autoCategorizeSubscriptions else {
-            return
+            return 0
         }
 
         let transactions = try repositories.transactions.all()
         let categoryIDsByName = try ensureRuleCategories()
+        let userRules = try repositories.categoryRules.all()
         let hintsByMerchant = Dictionary(grouping: transactions, by: \.merchantKey)
             .mapValues { values in
                 values.compactMap(\.categoryHint).joined(separator: " ")
             }
 
+        var changed = 0
+
         for subscription in try repositories.subscriptions.all() where !subscription.categoryManuallySet {
-            let searchable = searchable(merchantKey: subscription.merchantKey, hint: hintsByMerchant[subscription.merchantKey])
-            guard let rule = rule(for: searchable) else {
+            // A subscription has no single transaction to read a code from, so only the
+            // merchant-text kind can apply here. Code rules simply never fire on this pass.
+            let resolved = CategoryRuleEngine.firstMatch(
+                rules: userRules,
+                merchantName: subscription.merchantKey.rawValue,
+                merchantCategoryCode: nil
+            )?.categoryID ?? builtInCategoryID(
+                merchantKey: subscription.merchantKey,
+                hint: hintsByMerchant[subscription.merchantKey],
+                categoryIDsByName: categoryIDsByName
+            )
+
+            guard let resolved, resolved != subscription.categoryID else {
                 continue
             }
 
-            subscription.categoryID = categoryIDsByName[rule.name.lowercased()]
+            subscription.categoryID = resolved
             try repositories.subscriptions.update(subscription)
+            changed += 1
         }
+
+        return changed
     }
 
     /// Same auto-categorization pass as `applyAutoCategorizationIfEnabled()`, applied to
     /// ledger transactions instead of subscriptions: a transaction's own `categoryHint`
     /// (its raw Plaid/FinanceKit category, if any) stands in for the merchant lookup.
-    func applyAutoCategorizationForTransactions() throws {
+    @discardableResult
+    func applyAutoCategorizationForTransactions() throws -> Int {
         guard try repositories.settings.settings().autoCategorizeSubscriptions else {
-            return
+            return 0
         }
 
         let categoryIDsByName = try ensureRuleCategories()
+        let userRules = try repositories.categoryRules.all()
+        var changed = 0
 
         for transaction in try repositories.transactions.all() where !transaction.categoryManuallySet {
-            let searchable = searchable(merchantKey: transaction.merchantKey, hint: transaction.categoryHint)
-            guard let rule = rule(for: searchable) else {
+            // Precedence: a manual assignment already excluded this row above and is
+            // absolute. Below that, the person's own rules beat the built-in keyword list --
+            // the built-ins are Sift's guess, and a rule is the person correcting it.
+            // Rules match `merchantRaw`, the descriptor actually shown on screen, rather
+            // than the normalised key, so what someone types matches what they read.
+            let resolved = CategoryRuleEngine.firstMatch(
+                rules: userRules,
+                merchantName: transaction.merchantRaw,
+                merchantCategoryCode: transaction.merchantCategoryCode
+            )?.categoryID ?? builtInCategoryID(
+                merchantKey: transaction.merchantKey,
+                hint: transaction.categoryHint,
+                categoryIDsByName: categoryIDsByName
+            )
+
+            guard let resolved, resolved != transaction.categoryID else {
                 continue
             }
 
-            transaction.categoryID = categoryIDsByName[rule.name.lowercased()]
+            transaction.categoryID = resolved
             try repositories.transactions.update(transaction)
+            changed += 1
         }
+
+        return changed
     }
 
     func manuallyAssign(subscriptionID: String, categoryID: String?) throws {
@@ -128,6 +168,20 @@ final class CategoryService {
         }
 
         return Dictionary(uniqueKeysWithValues: categories.map { ($0.name.lowercased(), $0.id) })
+    }
+
+    /// The built-in keyword fallback, resolved to a category id. Unchanged behaviour --
+    /// it just has a name now, so both passes can express "user rules, then the built-ins"
+    /// as one expression.
+    private func builtInCategoryID(
+        merchantKey: MerchantKey,
+        hint: String?,
+        categoryIDsByName: [String: String]
+    ) -> String? {
+        guard let rule = rule(for: searchable(merchantKey: merchantKey, hint: hint)) else {
+            return nil
+        }
+        return categoryIDsByName[rule.name.lowercased()]
     }
 
     private func searchable(merchantKey: MerchantKey, hint: String?) -> String {
