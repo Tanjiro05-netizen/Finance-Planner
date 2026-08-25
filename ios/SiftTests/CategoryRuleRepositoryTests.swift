@@ -5,9 +5,20 @@ import Testing
 
 @MainActor
 struct CategoryRuleRepositoryTests {
+    /// A suite per call. Rules live in `UserDefaults`, so without isolation these tests
+    /// would share one process-wide blob with each other and with the simulator's real
+    /// defaults, and would pass or fail depending on execution order.
+    private func isolatedRules() throws -> any CategoryRuleRepository {
+        let defaults = try #require(UserDefaults(suiteName: "sift-rules-\(UUID().uuidString)"))
+        return UserDefaultsCategoryRuleRepository(defaults: defaults)
+    }
+
     private func makeRepository() throws -> (any CategoryRuleRepository, RepositoryContainer) {
         let container = try SiftModelContainerFactory.makeSeededInMemoryContainer()
-        let repositories = RepositoryContainer.live(modelContext: container.mainContext)
+        let repositories = try RepositoryContainer.live(
+            modelContext: container.mainContext,
+            categoryRules: isolatedRules()
+        )
         return (repositories.categoryRules, repositories)
     }
 
@@ -81,8 +92,17 @@ struct CategoryRuleRepositoryTests {
 
     @Test func rulesAreScopedToTheirUser() throws {
         let container = try SiftModelContainerFactory.makeSeededInMemoryContainer()
-        let mine = RepositoryContainer.live(modelContext: container.mainContext)
-        let theirs = RepositoryContainer.live(modelContext: container.mainContext, userID: "someone-else")
+        // One shared defaults suite, two users -- which is the point of the test.
+        let defaults = try #require(UserDefaults(suiteName: "sift-rules-\(UUID().uuidString)"))
+        let mine = RepositoryContainer.live(
+            modelContext: container.mainContext,
+            categoryRules: UserDefaultsCategoryRuleRepository(defaults: defaults)
+        )
+        let theirs = RepositoryContainer.live(
+            modelContext: container.mainContext,
+            userID: "someone-else",
+            categoryRules: UserDefaultsCategoryRuleRepository(defaults: defaults, userID: "someone-else")
+        )
 
         try mine.categoryRules.insert(rule(id: "mine", pattern: "A", sortIndex: 0))
 

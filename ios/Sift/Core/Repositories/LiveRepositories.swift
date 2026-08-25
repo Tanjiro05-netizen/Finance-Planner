@@ -833,8 +833,6 @@ func fetchUserScoped<Model: PersistentModel>(
             goal.userID == userID
         case let contribution as GoalContribution:
             contribution.userID == userID
-        case let rule as CategoryRule:
-            rule.userID == userID
         default:
             false
         }

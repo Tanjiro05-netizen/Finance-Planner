@@ -89,7 +89,7 @@ final class CategoryRuleEditorViewModel {
         let trimmed = pattern.trimmingCharacters(in: .whitespacesAndNewlines)
 
         do {
-            if let ruleID, let existing = try repositories.categoryRules.rule(id: ruleID) {
+            if let ruleID, var existing = try repositories.categoryRules.rule(id: ruleID) {
                 existing.kind = kind
                 existing.pattern = trimmed
                 existing.categoryID = categoryID

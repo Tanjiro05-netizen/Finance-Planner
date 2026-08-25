@@ -15,7 +15,14 @@ struct RepositoryContainer {
     let goals: any GoalRepository
     let categoryRules: any CategoryRuleRepository
 
-    static func live(modelContext: ModelContext, userID: String = SeedData.defaultUserID) -> RepositoryContainer {
+    /// `categoryRules` is injectable because rules live in `UserDefaults` rather than the
+    /// model context -- tests need an isolated suite so they do not share one process-wide
+    /// blob with each other or with the simulator's real defaults.
+    static func live(
+        modelContext: ModelContext,
+        userID: String = SeedData.defaultUserID,
+        categoryRules: (any CategoryRuleRepository)? = nil
+    ) -> RepositoryContainer {
         RepositoryContainer(
             subscriptions: LiveSubscriptionRepository(modelContext: modelContext, userID: userID),
             accounts: LiveAccountRepository(modelContext: modelContext, userID: userID),
@@ -28,7 +35,7 @@ struct RepositoryContainer {
             bills: LiveBillRepository(modelContext: modelContext, userID: userID),
             budgets: LiveBudgetRepository(modelContext: modelContext, userID: userID),
             goals: LiveGoalRepository(modelContext: modelContext, userID: userID),
-            categoryRules: LiveCategoryRuleRepository(modelContext: modelContext, userID: userID)
+            categoryRules: categoryRules ?? UserDefaultsCategoryRuleRepository(userID: userID)
         )
     }
 

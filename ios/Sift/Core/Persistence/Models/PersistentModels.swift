@@ -344,55 +344,6 @@ final class Budget {
     }
 }
 
-/// A user-written rule assigning a category to anything matching a condition.
-///
-/// Exists because `CategoryService.keywordRules` is compiled into the app: when it puts a
-/// merchant in the wrong place, the only recourse today is correcting every transaction by
-/// hand, forever. These rules are evaluated ahead of those built-ins, so a person can
-/// override Sift's opinion without waiting for a release.
-///
-/// **TEMPORARY SHAPE -- isolation probe, not the intended design.** Any use of this entity
-/// traps SwiftData with a silent EXC_BREAKPOINT, and six rounds of reasoning from
-/// elimination have not found the cause; the trap carries no message anywhere, so there is
-/// nothing to read. This reduces the stored properties to `String` only -- the one type
-/// with dozens of working precedents in this file -- and moves `kind`, `categoryID`,
-/// `sortIndex` and `isEnabled` into computed accessors over a packed `metadata` string,
-/// declared in `CategoryRuleEngine.swift`.
-///
-/// The public shape of the type is unchanged, so the engine, repositories, view models,
-/// views and all 38 tests compile and behave exactly as before. That is the point: this
-/// changes one variable. If the suite goes green, the cause is one of the four
-/// non-`String` property types and can be bisected. If it still traps, the properties are
-/// innocent and the storage backend is the answer.
-@Model
-final class CategoryRule {
-    var id: String
-    var userID: String
-    var pattern: String
-    /// Packed `kind`, `categoryID`, `sortIndex`, `isEnabled`. See the note above.
-    var metadata: String
-
-    init(
-        id: String,
-        userID: String,
-        kind: CategoryRuleKind,
-        pattern: String,
-        categoryID: String,
-        sortIndex: Int,
-        isEnabled: Bool = true
-    ) {
-        self.id = id
-        self.userID = userID
-        self.pattern = pattern
-        metadata = CategoryRule.pack(
-            kind: kind,
-            categoryID: categoryID,
-            sortIndex: sortIndex,
-            isEnabled: isEnabled
-        )
-    }
-}
-
 /// Something the user is saving toward. Progress is never stored here — it's summed from
 /// `GoalContribution` rows, so a withdrawal can't leave the goal claiming money that's gone.
 ///

@@ -551,7 +551,12 @@ final class MockCategoryRuleRepository: CategoryRuleRepository, @unchecked Senda
     }
 
     @MainActor
-    func update(_: CategoryRule) throws {}
+    func update(_ rule: CategoryRule) throws {
+        guard let index = rules.firstIndex(where: { $0.id == rule.id && $0.userID == userID }) else {
+            throw SiftError.notFound("Rule")
+        }
+        rules[index] = rule
+    }
 
     @MainActor
     func delete(id: String) throws {
@@ -560,9 +565,11 @@ final class MockCategoryRuleRepository: CategoryRuleRepository, @unchecked Senda
 
     @MainActor
     func reorder(ids: [String]) throws {
-        let rulesByID = try Dictionary(uniqueKeysWithValues: all().map { ($0.id, $0) })
-        for (index, id) in ids.enumerated() {
-            rulesByID[id]?.sortIndex = index
+        for (position, id) in ids.enumerated() {
+            guard let index = rules.firstIndex(where: { $0.id == id && $0.userID == userID }) else {
+                continue
+            }
+            rules[index].sortIndex = position
         }
     }
 

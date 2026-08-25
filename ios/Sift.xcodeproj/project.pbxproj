@@ -66,7 +66,8 @@
 		C0000000000000000000B008 /* ManualTransactionEntrySheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F008 /* ManualTransactionEntrySheetView.swift */; };
 		C0000000000000000000B009 /* MerchantCategoryCodeMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F009 /* MerchantCategoryCodeMapper.swift */; };
 		C0000000000000000000B010 /* CategoryRuleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F010 /* CategoryRuleEngine.swift */; };
-		C0000000000000000000B015 /* LiveCategoryRuleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F015 /* LiveCategoryRuleRepository.swift */; };
+		C0000000000000000000B016 /* CategoryRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F016 /* CategoryRule.swift */; };
+		C0000000000000000000B017 /* CategoryRuleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F017 /* CategoryRuleStore.swift */; };
 		C0000000000000000000B011 /* CategoryRulesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F011 /* CategoryRulesViewModel.swift */; };
 		C0000000000000000000B012 /* CategoryRuleEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F012 /* CategoryRuleEditorViewModel.swift */; };
 		C0000000000000000000B013 /* CategoryRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0000000000000000000F013 /* CategoryRulesView.swift */; };
@@ -280,7 +281,8 @@
 		C0000000000000000000F008 /* ManualTransactionEntrySheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualTransactionEntrySheetView.swift; sourceTree = "<group>"; };
 		C0000000000000000000F009 /* MerchantCategoryCodeMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MerchantCategoryCodeMapper.swift; sourceTree = "<group>"; };
 		C0000000000000000000F010 /* CategoryRuleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryRuleEngine.swift; sourceTree = "<group>"; };
-		C0000000000000000000F015 /* LiveCategoryRuleRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCategoryRuleRepository.swift; sourceTree = "<group>"; };
+		C0000000000000000000F016 /* CategoryRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryRule.swift; sourceTree = "<group>"; };
+		C0000000000000000000F017 /* CategoryRuleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryRuleStore.swift; sourceTree = "<group>"; };
 		C0000000000000000000F011 /* CategoryRulesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryRulesViewModel.swift; sourceTree = "<group>"; };
 		C0000000000000000000F012 /* CategoryRuleEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryRuleEditorViewModel.swift; sourceTree = "<group>"; };
 		C0000000000000000000F013 /* CategoryRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryRulesView.swift; sourceTree = "<group>"; };
@@ -802,6 +804,7 @@
 				C0000000000000000000F002 /* TransactionClassifier.swift */,
 				C0000000000000000000F009 /* MerchantCategoryCodeMapper.swift */,
 				C0000000000000000000F010 /* CategoryRuleEngine.swift */,
+				C0000000000000000000F016 /* CategoryRule.swift */,
 			);
 			path = Categorization;
 			sourceTree = "<group>";
@@ -876,7 +879,7 @@
 			children = (
 				30000000000000000000F006 /* RepositoryProtocols.swift */,
 				30000000000000000000F007 /* LiveRepositories.swift */,
-				C0000000000000000000F015 /* LiveCategoryRuleRepository.swift */,
+				C0000000000000000000F017 /* CategoryRuleStore.swift */,
 				30000000000000000000F008 /* MockRepositories.swift */,
 				30000000000000000000F009 /* RepositoryContainer.swift */,
 			);
@@ -1297,7 +1300,8 @@
 				C0000000000000000000B004 /* TransactionsViewModel.swift in Sources */,
 				C0000000000000000000B009 /* MerchantCategoryCodeMapper.swift in Sources */,
 				C0000000000000000000B010 /* CategoryRuleEngine.swift in Sources */,
-				C0000000000000000000B015 /* LiveCategoryRuleRepository.swift in Sources */,
+				C0000000000000000000B016 /* CategoryRule.swift in Sources */,
+				C0000000000000000000B017 /* CategoryRuleStore.swift in Sources */,
 				C0000000000000000000B011 /* CategoryRulesViewModel.swift in Sources */,
 				C0000000000000000000B012 /* CategoryRuleEditorViewModel.swift in Sources */,
 				C0000000000000000000B013 /* CategoryRulesView.swift in Sources */,

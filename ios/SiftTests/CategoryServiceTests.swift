@@ -207,7 +207,11 @@ struct CategoryServiceTests {
 
     private func makeFixture() throws -> Fixture {
         let container = try SiftModelContainerFactory.makeSeededInMemoryContainer()
-        let repositories = RepositoryContainer.live(modelContext: container.mainContext)
+        let defaults = try #require(UserDefaults(suiteName: "sift-rules-\(UUID().uuidString)"))
+        let repositories = RepositoryContainer.live(
+            modelContext: container.mainContext,
+            categoryRules: UserDefaultsCategoryRuleRepository(defaults: defaults)
+        )
         return Fixture(container: container, repositories: repositories, service: CategoryService(repositories: repositories))
     }
 

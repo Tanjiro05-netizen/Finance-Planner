@@ -51,15 +51,9 @@ enum CategoryRuleEngine {
 
 /// Resolution of a stored rule into something evaluable.
 ///
-/// Deliberately an extension rather than a member of the `@Model` class. SwiftData's macro
-/// inspects every `var` in a class body to decide what to persist, and it traps at fetch
-/// time on a computed property whose type it cannot persist -- `CategoryRuleMatcher` is an
-/// enum with associated values and is `Equatable`, not `Codable`. `Subscription`'s computed
-/// `monthlyEquivalent` is fine only because `Money` happens to be `Codable`. An extension
-/// sits outside the macro expansion entirely, so the question never arises.
-///
-/// It also lands the layering in the right place: the model is storage, and turning a
-/// stored pattern into a decision belongs next to the engine that makes the decision.
+/// Lives beside the engine rather than on the type itself so the model stays plain storage
+/// and turning a stored pattern into a decision sits next to the code that makes the
+/// decision.
 extension CategoryRule {
     /// The stored condition as something evaluable, or nil when `pattern` doesn't fit
     /// `kind` -- an empty merchant string (which would match every transaction) or an MCC
@@ -79,54 +73,5 @@ extension CategoryRule {
             }
             return .merchantCategoryCode(code)
         }
-    }
-}
-
-/// Temporary scaffolding for the isolation probe described on `CategoryRule`.
-///
-/// These four were stored properties until any use of the entity started trapping
-/// SwiftData. They are computed over a single packed `String` here so the model stores
-/// nothing but `String`s, while every caller keeps the same property names, types and
-/// mutability it had before. Delete this and restore the stored properties once the cause
-/// is known.
-extension CategoryRule {
-    private static let separator = "\u{1}"
-
-    static func pack(kind: CategoryRuleKind, categoryID: String, sortIndex: Int, isEnabled: Bool) -> String {
-        [kind.rawValue, categoryID, String(sortIndex), isEnabled ? "1" : "0"]
-            .joined(separator: separator)
-    }
-
-    private var fields: [String] {
-        metadata.components(separatedBy: Self.separator)
-    }
-
-    private func rewrite(kind: CategoryRuleKind? = nil, categoryID: String? = nil, sortIndex: Int? = nil, isEnabled: Bool? = nil) {
-        metadata = Self.pack(
-            kind: kind ?? self.kind,
-            categoryID: categoryID ?? self.categoryID,
-            sortIndex: sortIndex ?? self.sortIndex,
-            isEnabled: isEnabled ?? self.isEnabled
-        )
-    }
-
-    var kind: CategoryRuleKind {
-        get { fields.first.flatMap(CategoryRuleKind.init(rawValue:)) ?? .merchantContains }
-        set { rewrite(kind: newValue) }
-    }
-
-    var categoryID: String {
-        get { fields.count > 1 ? fields[1] : "" }
-        set { rewrite(categoryID: newValue) }
-    }
-
-    var sortIndex: Int {
-        get { fields.count > 2 ? Int(fields[2]) ?? 0 : 0 }
-        set { rewrite(sortIndex: newValue) }
-    }
-
-    var isEnabled: Bool {
-        get { fields.count > 3 ? fields[3] == "1" : true }
-        set { rewrite(isEnabled: newValue) }
     }
 }

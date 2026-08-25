@@ -12,7 +12,15 @@ struct CategoryRuleViewModelTests {
 
     private func makeFixture() throws -> Fixture {
         let container = try SiftModelContainerFactory.makeSeededInMemoryContainer()
-        return Fixture(container: container, repositories: .live(modelContext: container.mainContext))
+        // Isolated defaults suite per fixture; see CategoryRuleRepositoryTests for why.
+        let defaults = try #require(UserDefaults(suiteName: "sift-rules-\(UUID().uuidString)"))
+        return Fixture(
+            container: container,
+            repositories: .live(
+                modelContext: container.mainContext,
+                categoryRules: UserDefaultsCategoryRuleRepository(defaults: defaults)
+            )
+        )
     }
 
     private func insertRule(
@@ -115,10 +123,12 @@ struct CategoryRuleViewModelTests {
 
         let rule = try #require(viewModel.rules.first)
         viewModel.setEnabled(false, for: rule)
+        // `rule` is a value snapshot taken before the edit, so read the stored one back.
+        let stored = try #require(viewModel.rules.first)
 
         // Back to the built-in keyword outcome ("coffee" -> Dining), not stuck on the
         // disabled rule's category.
-        #expect(rule.isEnabled == false)
+        #expect(stored.isEnabled == false)
         #expect(try coffeeCategory() == SeedData.ID.dining)
     }
 

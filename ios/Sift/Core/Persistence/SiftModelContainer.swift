@@ -18,7 +18,6 @@ enum SiftModelContainerFactory {
         Budget.self,
         Goal.self,
         GoalContribution.self,
-        CategoryRule.self,
     ])
 
     static func makeContainer(inMemory: Bool = false) throws -> ModelContainer {

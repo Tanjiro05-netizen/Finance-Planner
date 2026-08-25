@@ -65,8 +65,11 @@ final class CategoryRulesViewModel {
 
     func setEnabled(_ isEnabled: Bool, for rule: CategoryRule) {
         do {
-            rule.isEnabled = isEnabled
-            try repositories.categoryRules.update(rule)
+            // CategoryRule is a value, so this edits a copy and hands it back to the
+            // repository rather than mutating shared state in place.
+            var updated = rule
+            updated.isEnabled = isEnabled
+            try repositories.categoryRules.update(updated)
             load()
             rerun()
         } catch {
