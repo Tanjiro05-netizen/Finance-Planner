@@ -13,13 +13,31 @@ struct CategoryRuleRepositoryTests {
         return UserDefaultsCategoryRuleRepository(defaults: defaults)
     }
 
-    private func makeRepository() throws -> (any CategoryRuleRepository, RepositoryContainer) {
+    /// Holds the `ModelContainer`, which is the entire point of this struct.
+    ///
+    /// The previous version of this helper returned only the repositories and let the
+    /// container go out of scope. Nothing else retained it, so it deallocated the moment
+    /// the helper returned and left `mainContext` dangling -- every SwiftData call after
+    /// that was a use-after-free, which traps with a silent EXC_BREAKPOINT carrying no
+    /// message. Every other repository suite here keeps a `Fixture` with a `container`
+    /// field for exactly this reason.
+    private struct Fixture {
+        let container: ModelContainer
+        let repository: any CategoryRuleRepository
+        let repositories: RepositoryContainer
+    }
+
+    private func makeFixture() throws -> Fixture {
         let container = try SiftModelContainerFactory.makeSeededInMemoryContainer()
         let repositories = try RepositoryContainer.live(
             modelContext: container.mainContext,
             categoryRules: isolatedRules()
         )
-        return (repositories.categoryRules, repositories)
+        return Fixture(
+            container: container,
+            repository: repositories.categoryRules,
+            repositories: repositories
+        )
     }
 
     private func rule(id: String, pattern: String, sortIndex: Int) -> CategoryRule {
@@ -36,12 +54,14 @@ struct CategoryRuleRepositoryTests {
     /// §6 of the plan: seeding rules would re-run over the seeded ledger and move the
     /// value-pinned budget assertions. Asserted so nobody adds one casually.
     @Test func seededStoreShipsWithNoRules() throws {
-        let (repository, _) = try makeRepository()
+        let fixture = try makeFixture()
+        let repository = fixture.repository
         #expect(try repository.all().isEmpty)
     }
 
     @Test func insertAndFetchRoundTrips() throws {
-        let (repository, _) = try makeRepository()
+        let fixture = try makeFixture()
+        let repository = fixture.repository
         try repository.insert(rule(id: "r1", pattern: "GROCERY", sortIndex: 0))
 
         let fetched = try #require(try repository.rule(id: "r1"))
@@ -51,7 +71,8 @@ struct CategoryRuleRepositoryTests {
     }
 
     @Test func allReturnsEvaluationOrderNotInsertionOrder() throws {
-        let (repository, _) = try makeRepository()
+        let fixture = try makeFixture()
+        let repository = fixture.repository
         try repository.insert(rule(id: "third", pattern: "C", sortIndex: 2))
         try repository.insert(rule(id: "first", pattern: "A", sortIndex: 0))
         try repository.insert(rule(id: "second", pattern: "B", sortIndex: 1))
@@ -60,7 +81,8 @@ struct CategoryRuleRepositoryTests {
     }
 
     @Test func reorderRewritesOrderDenselyFromArrayPosition() throws {
-        let (repository, _) = try makeRepository()
+        let fixture = try makeFixture()
+        let repository = fixture.repository
         try repository.insert(rule(id: "a", pattern: "A", sortIndex: 0))
         try repository.insert(rule(id: "b", pattern: "B", sortIndex: 1))
         try repository.insert(rule(id: "c", pattern: "C", sortIndex: 2))
@@ -74,7 +96,8 @@ struct CategoryRuleRepositoryTests {
     }
 
     @Test func deleteRemovesOnlyTheNamedRule() throws {
-        let (repository, _) = try makeRepository()
+        let fixture = try makeFixture()
+        let repository = fixture.repository
         try repository.insert(rule(id: "keep", pattern: "A", sortIndex: 0))
         try repository.insert(rule(id: "drop", pattern: "B", sortIndex: 1))
 
@@ -84,7 +107,8 @@ struct CategoryRuleRepositoryTests {
     }
 
     @Test func deleteThrowsForAnUnknownRule() throws {
-        let (repository, _) = try makeRepository()
+        let fixture = try makeFixture()
+        let repository = fixture.repository
         #expect(throws: SiftError.self) {
             try repository.delete(id: "missing")
         }
@@ -112,7 +136,9 @@ struct CategoryRuleRepositoryTests {
 
     /// Rules are financial data. "Delete everything" has to mean it.
     @Test func wipeLocalDataClearsRules() throws {
-        let (repository, repositories) = try makeRepository()
+        let fixture = try makeFixture()
+        let repository = fixture.repository
+        let repositories = fixture.repositories
         try repository.insert(rule(id: "r1", pattern: "GROCERY", sortIndex: 0))
 
         try repositories.wipeLocalData()

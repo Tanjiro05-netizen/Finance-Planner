@@ -7,16 +7,17 @@ import Foundation
 /// by hand, forever. These rules are evaluated ahead of those built-ins, so a person can
 /// override Sift's opinion without waiting for a release.
 ///
-/// **A `Codable` value, not a SwiftData `@Model`.** Every use of this type as an `@Model`
-/// trapped SwiftData with a silent `EXC_BREAKPOINT` carrying no message anywhere -- not in
-/// the crash report's `asi`, not in the test process's stderr. An isolation probe reducing
-/// the model to `String`-only storage still trapped, which ruled out the property types and
-/// left no further hypothesis worth testing blind without a local toolchain.
+/// **A `Codable` value rather than a SwiftData `@Model` -- for now, and on a premise that
+/// turned out to be wrong.** This was moved off SwiftData while chasing a silent
+/// `EXC_BREAKPOINT` that fired on any use of the entity. The actual cause was a test
+/// fixture that let its `ModelContainer` deallocate, leaving `mainContext` dangling; it had
+/// nothing to do with this type, and SwiftData was never at fault.
 ///
-/// Storing rules as a value is also defensible on its own terms rather than purely as a
-/// workaround: they are a short, ordered list of user-authored configuration, never queried
-/// relationally and never joined against the ledger. `Money` and `MerchantKey` are already
-/// `Codable` values here for similar reasons.
+/// Storing rules as a value is still defensible on its own terms -- they are a short,
+/// ordered list of user-authored configuration, never queried relationally and never joined
+/// against the ledger, and the whole list is read on every evaluation pass anyway. But that
+/// is a reason it *can* be a value, not the reason it became one. Reverting to `@Model`
+/// would match every sibling repository and is a live option.
 ///
 /// The condition is stored as `kind` + `pattern` rather than as separate typed columns;
 /// `matcher` (in `CategoryRuleEngine.swift`) resolves it into a typed value and returns nil

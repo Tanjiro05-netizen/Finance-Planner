@@ -3,7 +3,8 @@ import Foundation
 /// `CategoryRuleRepository` over a JSON blob in `UserDefaults`.
 ///
 /// Named for what it is rather than `Live*`, because unlike its siblings it is not a
-/// SwiftData adapter -- see the note on `CategoryRule` for why rules are a value type.
+/// SwiftData adapter. See the note on `CategoryRule`: the reason it is not one turned out
+/// to be a mistaken diagnosis, so this may yet fold back into `LiveRepositories`.
 /// It follows the `UserDefaultsFinancialSyncState` /
 /// `UserDefaultsCancellationReminderIntentStore` convention already in this codebase.
 ///
