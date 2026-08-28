@@ -5,7 +5,7 @@ import Foundation
 /// Mirrors `FinanceKit.AuthorizationStatus` without importing FinanceKit, so the
 /// ingestion pipeline stays testable on any platform and the framework only has to
 /// be linked by the thin live adapter (`FinanceKitStore`).
-enum FinancialAuthorization: Equatable, Sendable {
+enum FinancialAuthorization: Equatable {
     case notDetermined
     case denied
     case authorized
@@ -13,19 +13,39 @@ enum FinancialAuthorization: Equatable, Sendable {
 
 /// A single account surfaced by the on-device financial data store (Apple Card,
 /// Apple Cash, or another Wallet-linked account).
-struct FinancialAccountSnapshot: Equatable, Sendable {
+struct FinancialAccountSnapshot: Equatable {
     let id: String
     let displayName: String
     let institutionName: String
     let currencyCode: String
     let isLiability: Bool
+    let currentBalance: Decimal?
+    let availableBalance: Decimal?
+
+    init(
+        id: String,
+        displayName: String,
+        institutionName: String,
+        currencyCode: String,
+        isLiability: Bool,
+        currentBalance: Decimal? = nil,
+        availableBalance: Decimal? = nil
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.institutionName = institutionName
+        self.currencyCode = currencyCode
+        self.isLiability = isLiability
+        self.currentBalance = currentBalance
+        self.availableBalance = availableBalance
+    }
 }
 
 /// A single transaction surfaced by the on-device financial data store.
 ///
 /// Amounts are stored as an unsigned magnitude; direction is carried separately by
 /// `isDebit` so callers decide how to treat spend versus credits.
-struct FinancialTransactionSnapshot: Equatable, Sendable {
+struct FinancialTransactionSnapshot: Equatable {
     let id: String
     let accountID: String
     let merchantName: String
@@ -34,6 +54,33 @@ struct FinancialTransactionSnapshot: Equatable, Sendable {
     let date: Date
     let isPending: Bool
     let isDebit: Bool
+    /// The card network's own classification (ISO 18245), when FinanceKit supplies one.
+    /// Kept as the raw code rather than `FinanceKit.MerchantCategoryCode` so this type
+    /// stays framework-free, per the doc comment above. `MerchantCategoryCodeMapper`
+    /// turns it into the category hint text `CategoryService` already knows how to use.
+    let merchantCategoryCode: Int16?
+
+    init(
+        id: String,
+        accountID: String,
+        merchantName: String,
+        amount: Decimal,
+        currencyCode: String,
+        date: Date,
+        isPending: Bool,
+        isDebit: Bool,
+        merchantCategoryCode: Int16? = nil
+    ) {
+        self.id = id
+        self.accountID = accountID
+        self.merchantName = merchantName
+        self.amount = amount
+        self.currencyCode = currencyCode
+        self.date = date
+        self.isPending = isPending
+        self.isDebit = isDebit
+        self.merchantCategoryCode = merchantCategoryCode
+    }
 }
 
 /// Read-only access to the device's financial data.
@@ -55,11 +102,24 @@ protocol FinancialDataStore: Sendable {
 /// shapes (`RemoteTransaction` / `RemoteAccount`) that Sift's existing detection and
 /// import pipeline already consumes. Keeping this pure keeps it fully unit-testable.
 enum FinancialDataMapper {
-    /// Converts a decimal money amount into integer minor units (e.g. cents).
-    ///
-    /// Uses two fraction digits, which covers USD and the other Wallet currencies Sift
-    /// supports today. The magnitude is always taken so sign lives with `isDebit`.
-    static func minorUnits(from amount: Decimal, fractionDigits: Int16 = 2) -> Int {
+    /// The number of minor-unit digits for an ISO 4217 currency (2 for most, 0 for
+    /// zero-decimal currencies like JPY, 3 for a few Gulf currencies). Defaults to 2.
+    static func fractionDigits(for currencyCode: String) -> Int16 {
+        switch currencyCode.uppercased() {
+        case "BIF", "CLP", "DJF", "GNF", "ISK", "JPY", "KMF", "KRW",
+             "PYG", "RWF", "UGX", "UYI", "VND", "VUV", "XAF", "XOF", "XPF":
+            0
+        case "BHD", "IQD", "JOD", "KWD", "LYD", "OMR", "TND":
+            3
+        default:
+            2
+        }
+    }
+
+    /// Converts a decimal money amount into integer minor units for its currency
+    /// (e.g. cents for USD, whole yen for JPY). The magnitude is always taken so sign
+    /// lives with `isDebit`.
+    static func minorUnits(from amount: Decimal, currencyCode: String = "USD") -> Int {
         let handler = NSDecimalNumberHandler(
             roundingMode: .plain,
             scale: 0,
@@ -70,7 +130,7 @@ enum FinancialDataMapper {
         )
         let magnitude = NSDecimalNumber(decimal: abs(amount))
         return magnitude
-            .multiplying(byPowerOf10: fractionDigits)
+            .multiplying(byPowerOf10: fractionDigits(for: currencyCode))
             .rounding(accordingToBehavior: handler)
             .intValue
     }
@@ -84,11 +144,13 @@ enum FinancialDataMapper {
             userId: userID,
             accountId: snapshot.accountID,
             merchantName: snapshot.merchantName,
-            amountMinor: minorUnits(from: snapshot.amount),
+            amountMinor: minorUnits(from: snapshot.amount, currencyCode: snapshot.currencyCode),
             isoCurrency: snapshot.currencyCode,
             date: snapshot.date,
             pending: snapshot.isPending,
-            category: nil
+            category: MerchantCategoryCodeMapper.categoryHint(for: snapshot.merchantCategoryCode),
+            merchantCategoryCode: snapshot.merchantCategoryCode,
+            direction: (snapshot.isDebit ? TransactionDirection.debit : .credit).remoteValue
         )
     }
 
@@ -100,23 +162,40 @@ enum FinancialDataMapper {
             mask: nil,
             name: snapshot.displayName,
             type: snapshot.isLiability ? "credit" : "depository",
-            status: "active"
+            status: "active",
+            currentBalanceMinor: snapshot.currentBalance.map { minorUnits(from: $0, currencyCode: snapshot.currencyCode) },
+            availableBalanceMinor: snapshot.availableBalance.map { minorUnits(from: $0, currencyCode: snapshot.currencyCode) },
+            isoCurrency: snapshot.currencyCode
         )
     }
 
     /// Charges eligible for subscription detection: settled or pending debits, most
-    /// recent first with a stable tiebreak so paging is deterministic.
+    /// recent first with a stable tiebreak so paging is deterministic. Credits are
+    /// intentionally excluded here -- this feeds subscription detection, not the ledger.
     static func spendTransactions(
         from snapshots: [FinancialTransactionSnapshot]
     ) -> [FinancialTransactionSnapshot] {
         snapshots
             .filter(\.isDebit)
-            .sorted { lhs, rhs in
-                if lhs.date != rhs.date {
-                    return lhs.date > rhs.date
-                }
-                return lhs.id < rhs.id
-            }
+            .sorted(by: chronological)
+    }
+
+    /// Every transaction (debit and credit), for the general ledger. Same deterministic
+    /// ordering as `spendTransactions`, just without the debit-only filter.
+    static func allTransactions(
+        from snapshots: [FinancialTransactionSnapshot]
+    ) -> [FinancialTransactionSnapshot] {
+        snapshots.sorted(by: chronological)
+    }
+
+    private static func chronological(
+        _ lhs: FinancialTransactionSnapshot,
+        _ rhs: FinancialTransactionSnapshot
+    ) -> Bool {
+        if lhs.date != rhs.date {
+            return lhs.date > rhs.date
+        }
+        return lhs.id < rhs.id
     }
 }
 
@@ -169,7 +248,49 @@ struct MockFinancialDataStore: FinancialDataStore {
     }
 }
 
-enum FinancialDataError: Error, Equatable, Sendable {
+enum FinancialDataError: Error, Equatable {
     case unavailable
     case notAuthorized
+}
+
+/// Records the last successful FinanceKit sync so the live store can fetch only recent
+/// transactions instead of the full history each time.
+protocol FinancialSyncStateStoring: Sendable {
+    var lastSyncDate: Date? { get }
+    func recordSync(at date: Date)
+}
+
+struct UserDefaultsFinancialSyncState: FinancialSyncStateStoring {
+    // UserDefaults is thread-safe but not marked Sendable.
+    private nonisolated(unsafe) let defaults: UserDefaults
+    private let key = "sift.financekit.lastSync"
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    var lastSyncDate: Date? {
+        let timestamp = defaults.double(forKey: key)
+        return timestamp > 0 ? Date(timeIntervalSince1970: timestamp) : nil
+    }
+
+    func recordSync(at date: Date) {
+        defaults.set(date.timeIntervalSince1970, forKey: key)
+    }
+}
+
+/// Pure calculation of the earliest transaction date to fetch on a sync.
+enum FinancialSyncWindow {
+    /// Re-fetch a month of overlap on incremental syncs; combined with upsert de-duping
+    /// this guards against gaps if an earlier sync failed after advancing the marker.
+    static let overlap: TimeInterval = 31 * 86400
+    /// First-ever sync looks back roughly six months (Sift's detection horizon).
+    static let fullLookback: TimeInterval = 182 * 86400
+
+    static func startDate(lastSync: Date?, now: Date) -> Date {
+        guard let lastSync else {
+            return now.addingTimeInterval(-fullLookback)
+        }
+        return min(lastSync.addingTimeInterval(-overlap), now)
+    }
 }

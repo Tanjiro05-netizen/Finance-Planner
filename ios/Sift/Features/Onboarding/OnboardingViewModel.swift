@@ -2,7 +2,7 @@ import Foundation
 import Observation
 import UserNotifications
 
-enum OnboardingStep: Int, CaseIterable, Sendable {
+enum OnboardingStep: Int, CaseIterable {
     case splash
     case welcome
     case connectIntro
@@ -12,6 +12,15 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
     case reviewFound
     case notifications
     case allSet
+    case connectUnavailable
+}
+
+/// Why the Apple Wallet connection produced nothing to scan.
+enum ConnectUnavailableReason: Equatable {
+    /// The person declined the FinanceKit permission prompt.
+    case accessDenied
+    /// Access was granted but there is no Apple Card / Cash / Pay activity to read.
+    case noWalletData
 }
 
 struct ReviewSubscriptionItem: Identifiable, Equatable {
@@ -76,6 +85,7 @@ final class OnboardingViewModel {
     var notificationsAuthorized = false
     var confirmedCount = 0
     var confirmedMonthlyTotal = Money.zeroUSD
+    var unavailableReason: ConnectUnavailableReason?
 
     init(
         apiClient: any SiftAPIClient,
@@ -128,13 +138,27 @@ final class OnboardingViewModel {
                 step = .scanning
                 try await scan()
             case .cancelled:
-                step = .connectIntro
-                errorMessage = "Apple Wallet access wasn't granted. You can try again whenever you're ready."
+                unavailableReason = .accessDenied
+                step = .connectUnavailable
             }
         }
     }
 
-    // Plaid path (retained for a future Android port and covered by tests).
+    /// Retry the Apple Wallet permission after an unavailable state.
+    func retryConnect() {
+        unavailableReason = nil
+        move(to: .secureLeadIn)
+    }
+
+    /// Continue onboarding without connected data (nothing to review yet).
+    func skipConnect() {
+        unavailableReason = nil
+        confirmedCount = 0
+        confirmedMonthlyTotal = .zeroUSD
+        move(to: .notifications)
+    }
+
+    /// Plaid path (retained for a future Android port and covered by tests).
     func showBankPicker() {
         move(to: .bankPicker)
     }
@@ -222,6 +246,7 @@ final class OnboardingViewModel {
         )
 
         let importedCount = try await importSyncedTransactions()
+        try await importAccounts()
         scanState = ScanState(
             progress: 0.72,
             foundCount: 0,
@@ -229,6 +254,13 @@ final class OnboardingViewModel {
         )
 
         let detections = try await detectionService.detect()
+
+        if detections.isEmpty, importedCount == 0 {
+            unavailableReason = .noWalletData
+            step = .connectUnavailable
+            return
+        }
+
         reviewItems = detections.map { ReviewSubscriptionItem(detection: $0, isSelected: true) }
         scanState = ScanState(
             progress: 1,
@@ -236,6 +268,16 @@ final class OnboardingViewModel {
             status: "\(detections.count) found · grouping by merchant"
         )
         step = .reviewFound
+    }
+
+    private func importAccounts() async throws {
+        let accounts = try await apiClient.listAccounts().map {
+            LinkedAccount(remote: $0, userID: userID)
+        }
+        guard !accounts.isEmpty else {
+            return
+        }
+        try repositories.accounts.replaceAll(with: accounts)
     }
 
     private func importSyncedTransactions() async throws -> Int {
@@ -252,17 +294,7 @@ final class OnboardingViewModel {
 
             for record in records {
                 let merchant = normalizer.normalize(record.merchantName)
-                try repositories.transactions.upsert(Transaction(
-                    id: record.id,
-                    userID: record.userId,
-                    accountID: record.accountId,
-                    merchantRaw: record.merchantName,
-                    merchantKey: merchant.merchantKey,
-                    amount: Money(amountMinor: record.amountMinor, currency: record.isoCurrency),
-                    date: record.date,
-                    pending: record.pending,
-                    categoryHint: record.category
-                ))
+                try upsert(record: record, merchantKey: merchant.merchantKey)
             }
 
             importedCount += records.count
@@ -271,6 +303,24 @@ final class OnboardingViewModel {
             }
             offset += records.count
         }
+    }
+
+    private func upsert(record: RemoteTransaction, merchantKey: MerchantKey) throws {
+        let transaction = Transaction(remote: record, merchantKey: merchantKey, source: .financeKit)
+        if transaction.direction == .credit {
+            let priorDebits = try repositories.transactions.transactions(for: transaction.accountID)
+                .filter { $0.direction == .debit }
+            transaction.kind = TransactionClassifier.refine(
+                kind: transaction.kind,
+                direction: transaction.direction,
+                merchantKey: transaction.merchantKey,
+                accountID: transaction.accountID,
+                amount: transaction.amount,
+                date: transaction.date,
+                priorDebits: priorDebits
+            )
+        }
+        try repositories.transactions.upsert(transaction)
     }
 
     private func run(_ operation: () async throws -> Void) async {

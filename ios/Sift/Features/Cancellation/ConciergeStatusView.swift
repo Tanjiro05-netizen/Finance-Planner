@@ -6,11 +6,11 @@ struct ConciergeStatusView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Concierge request", eyebrow: viewModel.subscriptionName.uppercased())
+                ScreenHeader(title: "Concierge request", eyebrow: viewModel.subscriptionName)
                     .accessibilityIdentifier("concierge-status-title")
 
-                SiftCard {
-                    Text("STATUS")
+                SiftSection {
+                    Text("Status")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
 
@@ -39,10 +39,10 @@ struct ConciergeStatusView: View {
     }
 
     private var needsUserCallout: some View {
-        SiftCard {
-            Text("NEEDS YOU")
+        SiftSection {
+            Text("Needs you")
                 .font(.siftLabel)
-                .foregroundStyle(Palette.clay)
+                .foregroundStyle(Palette.negative)
 
             Text("This provider requires the account holder to finish cancellation. You can switch to guided steps and keep the request tracked.")
                 .font(.siftBody)

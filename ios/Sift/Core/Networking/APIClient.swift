@@ -4,7 +4,7 @@ protocol HTTPDataLoading: Sendable {
     func loadData(for request: URLRequest) async throws -> HTTPDataResponse
 }
 
-struct HTTPDataResponse: Sendable {
+struct HTTPDataResponse {
     let data: Data
     let statusCode: Int
 }
@@ -22,6 +22,13 @@ extension URLSession: HTTPDataLoading {
 }
 
 protocol SiftAPIClient: Sendable {
+    /// Whether this backend can actually create and track a concierge cancellation.
+    ///
+    /// Concierge needs a server that a human team works from. The on-device FinanceKit
+    /// client has no such server, so it reports `false` and the UI offers guided steps
+    /// instead of letting someone tap into a dead end.
+    var supportsConcierge: Bool { get }
+
     func bootstrap() async throws -> AuthBootstrapResponse
     func createLinkToken() async throws -> LinkTokenResponse
     func exchange(publicToken: String) async throws -> ExchangePublicTokenResponse
@@ -44,6 +51,12 @@ protocol SiftAPIClient: Sendable {
 }
 
 extension SiftAPIClient {
+    /// Defaults to true so a server-backed client doesn't have to opt in; the on-device
+    /// client overrides it.
+    var supportsConcierge: Bool {
+        true
+    }
+
     func listAccounts() async throws -> [RemoteAccount] {
         []
     }
@@ -57,11 +70,11 @@ extension SiftAPIClient {
     }
 }
 
-struct AuthBootstrapResponse: Codable, Equatable, Sendable {
+struct AuthBootstrapResponse: Codable, Equatable {
     let token: String
 }
 
-struct LinkTokenResponse: Codable, Equatable, Sendable {
+struct LinkTokenResponse: Codable, Equatable {
     let linkToken: String
 
     enum CodingKeys: String, CodingKey {
@@ -69,15 +82,15 @@ struct LinkTokenResponse: Codable, Equatable, Sendable {
     }
 }
 
-struct ExchangePublicTokenResponse: Codable, Equatable, Sendable {
+struct ExchangePublicTokenResponse: Codable, Equatable {
     let ok: Bool
 }
 
-struct APIOKResponse: Codable, Equatable, Sendable {
+struct APIOKResponse: Codable, Equatable {
     let ok: Bool
 }
 
-struct RemoteAccount: Codable, Equatable, Sendable {
+struct RemoteAccount: Codable, Equatable {
     let id: String
     let plaidItemId: String
     let institutionName: String
@@ -85,6 +98,33 @@ struct RemoteAccount: Codable, Equatable, Sendable {
     let name: String
     let type: String
     let status: String
+    let currentBalanceMinor: Int?
+    let availableBalanceMinor: Int?
+    let isoCurrency: String?
+
+    init(
+        id: String,
+        plaidItemId: String,
+        institutionName: String,
+        mask: String?,
+        name: String,
+        type: String,
+        status: String,
+        currentBalanceMinor: Int? = nil,
+        availableBalanceMinor: Int? = nil,
+        isoCurrency: String? = nil
+    ) {
+        self.id = id
+        self.plaidItemId = plaidItemId
+        self.institutionName = institutionName
+        self.mask = mask
+        self.name = name
+        self.type = type
+        self.status = status
+        self.currentBalanceMinor = currentBalanceMinor
+        self.availableBalanceMinor = availableBalanceMinor
+        self.isoCurrency = isoCurrency
+    }
 }
 
 extension RemoteAccount {
@@ -96,6 +136,9 @@ extension RemoteAccount {
         name = account.type
         type = account.type
         status = account.status.remoteValue
+        currentBalanceMinor = account.currentBalance?.amountMinor
+        availableBalanceMinor = account.availableBalance?.amountMinor
+        isoCurrency = account.currentBalance?.currency ?? account.availableBalance?.currency
     }
 }
 
@@ -123,14 +166,67 @@ extension LinkedAccountStatus {
     }
 }
 
-struct TransactionSyncResponse: Codable, Equatable, Sendable {
+extension TransactionDirection {
+    init(remoteValue: String) {
+        self = remoteValue == "credit" ? .credit : .debit
+    }
+
+    var remoteValue: String {
+        self == .credit ? "credit" : "debit"
+    }
+}
+
+extension LinkedAccount {
+    convenience init(remote: RemoteAccount, userID: String, syncedAt: Date = Date()) {
+        let currency = remote.isoCurrency ?? "USD"
+        self.init(
+            id: remote.id,
+            userID: userID,
+            plaidItemID: remote.plaidItemId,
+            institutionName: remote.institutionName,
+            mask: remote.mask ?? "",
+            type: remote.type,
+            status: LinkedAccountStatus(remoteStatus: remote.status),
+            lastSyncedAt: syncedAt,
+            currentBalance: remote.currentBalanceMinor.map { Money(amountMinor: $0, currency: currency) },
+            availableBalance: remote.availableBalanceMinor.map { Money(amountMinor: $0, currency: currency) },
+            balanceAsOf: remote.currentBalanceMinor != nil ? syncedAt : nil
+        )
+    }
+}
+
+extension Transaction {
+    /// Shared construction point from a `RemoteTransaction` so every import path (FinanceKit
+    /// sync, onboarding scan, and a future Plaid backend) builds a `Transaction` identically
+    /// instead of hand-rolling the initializer in more than one place.
+    convenience init(remote: RemoteTransaction, merchantKey: MerchantKey, source: TransactionSource) {
+        let direction = TransactionDirection(remoteValue: remote.direction)
+        self.init(
+            id: remote.id,
+            userID: remote.userId,
+            accountID: remote.accountId,
+            merchantRaw: remote.merchantName,
+            merchantKey: merchantKey,
+            amount: Money(amountMinor: remote.amountMinor, currency: remote.isoCurrency),
+            date: remote.date,
+            pending: remote.pending,
+            categoryHint: remote.category,
+            merchantCategoryCode: remote.merchantCategoryCode,
+            direction: direction,
+            kind: TransactionClassifier.kind(for: direction),
+            source: source
+        )
+    }
+}
+
+struct TransactionSyncResponse: Codable, Equatable {
     let added: Int
     let modified: Int
     let removed: Int
     let hasMore: Bool
 }
 
-struct RemoteTransaction: Codable, Equatable, Sendable {
+struct RemoteTransaction: Codable, Equatable {
     let id: String
     let userId: String
     let accountId: String
@@ -140,9 +236,57 @@ struct RemoteTransaction: Codable, Equatable, Sendable {
     let date: Date
     let pending: Bool
     let category: String?
+    /// Raw ISO 18245 merchant category code. Optional because manual entries and any
+    /// non-FinanceKit source have none.
+    let merchantCategoryCode: Int16?
+    let direction: String
+
+    init(
+        id: String,
+        userId: String,
+        accountId: String,
+        merchantName: String,
+        amountMinor: Int,
+        isoCurrency: String,
+        date: Date,
+        pending: Bool,
+        category: String?,
+        merchantCategoryCode: Int16? = nil,
+        direction: String = TransactionDirection.debit.remoteValue
+    ) {
+        self.id = id
+        self.userId = userId
+        self.accountId = accountId
+        self.merchantName = merchantName
+        self.amountMinor = amountMinor
+        self.isoCurrency = isoCurrency
+        self.date = date
+        self.pending = pending
+        self.category = category
+        self.merchantCategoryCode = merchantCategoryCode
+        self.direction = direction
+    }
+
+    /// A server that doesn't send `direction` yet (or hasn't been updated for the
+    /// ledger) should still decode -- default to debit, matching every transaction's
+    /// historical meaning before this field existed.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        userId = try container.decode(String.self, forKey: .userId)
+        accountId = try container.decode(String.self, forKey: .accountId)
+        merchantName = try container.decode(String.self, forKey: .merchantName)
+        amountMinor = try container.decode(Int.self, forKey: .amountMinor)
+        isoCurrency = try container.decode(String.self, forKey: .isoCurrency)
+        date = try container.decode(Date.self, forKey: .date)
+        pending = try container.decode(Bool.self, forKey: .pending)
+        category = try container.decodeIfPresent(String.self, forKey: .category)
+        merchantCategoryCode = try container.decodeIfPresent(Int16.self, forKey: .merchantCategoryCode)
+        direction = try container.decodeIfPresent(String.self, forKey: .direction) ?? TransactionDirection.debit.remoteValue
+    }
 }
 
-struct RemoteCancellationRequest: Codable, Equatable, Sendable {
+struct RemoteCancellationRequest: Codable, Equatable {
     let id: String
     let userId: String
     let subscriptionRef: String
@@ -154,7 +298,7 @@ struct RemoteCancellationRequest: Codable, Equatable, Sendable {
     let updatedAt: Date
 }
 
-struct APIRetryPolicy: Equatable, Sendable {
+struct APIRetryPolicy: Equatable {
     let maxRetries: Int
     let baseDelayNanoseconds: UInt64
 
@@ -171,7 +315,7 @@ struct APIRetryPolicy: Equatable, Sendable {
     }
 
     func shouldRetry(statusCode: Int, attempt: Int) -> Bool {
-        attempt < maxRetries && (statusCode == 429 || (500..<600).contains(statusCode))
+        attempt < maxRetries && (statusCode == 429 || (500 ..< 600).contains(statusCode))
     }
 }
 
@@ -323,10 +467,10 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
         )
     }
 
-    private func send<Response: Decodable, Body: Encodable>(
+    private func send<Response: Decodable>(
         path: String,
         method: String,
-        body: Body,
+        body: some Encodable,
         requiresAuth: Bool
     ) async throws -> Response {
         try await send(
@@ -338,11 +482,11 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
         )
     }
 
-    private func send<Response: Decodable, Body: Encodable>(
+    private func send<Response: Decodable>(
         path: String,
         method: String,
         queryItems: [URLQueryItem],
-        body: Body,
+        body: some Encodable,
         requiresAuth: Bool
     ) async throws -> Response {
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)
@@ -369,7 +513,7 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
         let endpointLabel = analyticsEndpointLabel(for: path)
         var lastNetworkError: Error?
 
-        for attempt in 0...retryPolicy.maxRetries {
+        for attempt in 0 ... retryPolicy.maxRetries {
             let response: HTTPDataResponse
 
             do {
@@ -448,7 +592,7 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
     }
 
     private func decodeEnvelope<Response: Decodable>(
-        _ type: Response.Type,
+        _: Response.Type,
         from response: HTTPDataResponse
     ) throws -> Response {
         let envelope = try decoder.decode(APIEnvelope<Response>.self, from: response.data)
@@ -457,7 +601,7 @@ final class DefaultSiftAPIClient: SiftAPIClient, @unchecked Sendable {
             throw SiftError.api(code: error.code, message: error.message)
         }
 
-        guard (200..<300).contains(response.statusCode) else {
+        guard (200 ..< 300).contains(response.statusCode) else {
             throw SiftError.network("The server returned status \(response.statusCode).")
         }
 
@@ -501,7 +645,7 @@ struct MockSiftAPIClient: SiftAPIClient {
         linkTokenResponse
     }
 
-    func exchange(publicToken: String) async throws -> ExchangePublicTokenResponse {
+    func exchange(publicToken _: String) async throws -> ExchangePublicTokenResponse {
         exchangeResponse
     }
 

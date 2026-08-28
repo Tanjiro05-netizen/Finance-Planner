@@ -6,9 +6,14 @@ enum Motion {
     static let glassMorph = Animation.bouncy(duration: 0.45, extraBounce: 0.06)
 
     static let snappy = Animation.snappy(duration: 0.24)
-    static let press = Animation.spring(response: 0.22, dampingFraction: 0.70)
+    /// Damping raised from 0.70: press feedback that overshoots reads as toy-like. A
+    /// button should settle, not bounce.
+    static let press = Animation.spring(response: 0.22, dampingFraction: 0.85)
 
-    static let count = Animation.smooth(duration: 0.60)
+    /// Was 0.60s. UI animation that the eye is waiting on belongs under ~300ms — at 600ms
+    /// a counting balance stops reading as polish and starts reading as lag, and it delays
+    /// the number the person opened the app to see.
+    static let count = Animation.smooth(duration: 0.25)
     static let staggerStep = 0.04
 
     static let sheenPeriod: TimeInterval = 8.0

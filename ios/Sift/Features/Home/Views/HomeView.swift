@@ -9,18 +9,22 @@ struct HomeView: View {
         repositories: RepositoryContainer = .mock(),
         apiClient: any SiftAPIClient = MockSiftAPIClient(),
         detectionService: any DetectionServing = MockDetectionService(),
+        incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(),
         notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
+        featureFlags: SiftFeatureFlags = .launchDefault,
         referenceDateProvider: @escaping () -> Date = { Date() }
     ) {
         let refresher = DefaultSubscriptionRefreshService(
             apiClient: apiClient,
             detectionService: detectionService,
             repositories: repositories,
+            incomeDetectionService: incomeDetectionService,
             notificationScheduler: notificationScheduler
         )
         _viewModel = State(initialValue: HomeViewModel(
             repositories: repositories,
             refresher: refresher,
+            featureFlags: featureFlags,
             referenceDateProvider: referenceDateProvider
         ))
     }
@@ -37,7 +41,7 @@ struct HomeView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Home")
         .refreshable { await viewModel.refresh() }
         .task { viewModel.load() }
@@ -69,9 +73,17 @@ struct HomeView: View {
                 systemImage: SiftIcon.subscriptions
             )
         } else {
-            DashboardContentView(viewModel: viewModel) { subscriptionID in
-                appModel.present(.subscriptionDetail(id: subscriptionID))
-            }
+            DashboardContentView(
+                viewModel: viewModel,
+                openDetail: { subscriptionID in
+                    appModel.present(.subscriptionDetail(id: subscriptionID))
+                },
+                openForecast: { appModel.push(.cashFlowForecast, in: .home) },
+                openBudgets: {
+                    appModel.select(tab: .insights)
+                    appModel.push(.budgets, in: .insights)
+                }
+            )
         }
     }
 
@@ -94,9 +106,19 @@ struct HomeView: View {
 private struct DashboardContentView: View {
     let viewModel: HomeViewModel
     let openDetail: (String) -> Void
+    let openForecast: () -> Void
+    let openBudgets: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
+            if viewModel.showsSafeToSpend, let safeToSpend = viewModel.safeToSpend {
+                SafeToSpendCard(outcome: safeToSpend, onTap: openForecast)
+            }
+
+            if viewModel.showsBudgetNudge {
+                BudgetNudgeCard(rows: viewModel.overPaceBudgets, onTap: openBudgets)
+            }
+
             DashboardHeroCard(viewModel: viewModel)
 
             if let unusedNudge = viewModel.unusedNudge {
@@ -119,9 +141,9 @@ private struct DashboardHeroCard: View {
     let viewModel: HomeViewModel
 
     var body: some View {
-        SiftCard {
+        SiftSection {
             HStack(alignment: .firstTextBaseline) {
-                Text("RECURRING THIS MONTH")
+                Text("Recurring this month")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
 
@@ -130,7 +152,7 @@ private struct DashboardHeroCard: View {
                 Pill(text: viewModel.trend.text, variant: pillVariant)
             }
 
-            MoneyText(value: viewModel.monthlyTotal.formatted(), size: 54)
+            MoneyText(value: viewModel.monthlyTotal.formatted(), role: .primary)
                 .minimumScaleFactor(0.72)
                 .accessibilityLabel("Recurring this month, \(viewModel.monthlyTotal.formatted())")
                 .accessibilityIdentifier("dashboard-monthly-total")
@@ -143,7 +165,7 @@ private struct DashboardHeroCard: View {
                 marks: viewModel.timelineMarks.map { mark in
                     RenewalMark(
                         position: CGFloat(mark.position),
-                        color: mark.isNext ? Palette.gold : Palette.inkFaint,
+                        color: mark.isNext ? Palette.accent : Palette.inkFaint,
                         label: mark.isNext ? "Next" : nil
                     )
                 },
@@ -170,10 +192,10 @@ private struct UnusedNudgeCard: View {
     let keep: () -> Void
 
     var body: some View {
-        SiftCard {
-            Text("FLAGGED UNUSED")
+        SiftSection {
+            Text("Flagged unused")
                 .font(.siftLabel)
-                .foregroundStyle(Palette.clay)
+                .foregroundStyle(Palette.negative)
 
             HStack(spacing: Spacing.md) {
                 MonogramTile(
@@ -188,12 +210,12 @@ private struct UnusedNudgeCard: View {
                         .foregroundStyle(Palette.ink)
                     Text("Last opened \(lastUsedText)")
                         .font(.siftBody)
-                        .foregroundStyle(Palette.clay)
+                        .foregroundStyle(Palette.negative)
                 }
 
                 Spacer()
 
-                MoneyText(value: subscription.monthlyEquivalent.formatted(), size: 20, color: Palette.clay)
+                MoneyText(value: subscription.monthlyEquivalent.formatted(), role: .row, color: Palette.negative)
             }
 
             HStack(spacing: Spacing.sm) {
@@ -218,7 +240,7 @@ private struct RenewSoonSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("RENEWS SOON")
+            Text("Renews soon")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -262,16 +284,16 @@ private struct RenewSoonSection: View {
 private struct DashboardLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.xl) {
-            SiftCard {
-                Text("RECURRING THIS MONTH")
+            SiftSection {
+                Text("Recurring this month")
                     .font(.siftLabel)
-                MoneyText(value: "$000.00", size: 54)
+                MoneyText(value: "$000.00", role: .primary)
                 Text("Across 0 subscriptions · 0 renew this week")
                     .font(.siftBody)
                 RenewalTimelineStrip(marks: [], monthLabel: "JULY")
             }
 
-            ForEach(0..<3, id: \.self) { _ in
+            ForEach(0 ..< 3, id: \.self) { _ in
                 SubscriptionRow(
                     letter: "S",
                     color: Palette.inkFaint,

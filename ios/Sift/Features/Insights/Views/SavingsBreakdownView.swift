@@ -5,9 +5,9 @@ struct SavingsBreakdownView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            ScreenHeader(title: "Savings", eyebrow: "INSIGHTS")
-            SiftCard {
-                MoneyText(value: "\(annualSavings.formatted(showZeroFraction: false))/yr", size: 42)
+            ScreenHeader(title: "Savings")
+            SiftSection {
+                MoneyText(value: "\(annualSavings.formatted(showZeroFraction: false))/yr", role: .hero)
                 Text("\(unusedSubscriptions.count) subscriptions look unused based on recent activity.")
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
@@ -29,7 +29,7 @@ struct SavingsBreakdownView: View {
         }
         .padding(.horizontal, Spacing.screenHorizontal)
         .padding(.top, Spacing.xl)
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Savings")
     }
 

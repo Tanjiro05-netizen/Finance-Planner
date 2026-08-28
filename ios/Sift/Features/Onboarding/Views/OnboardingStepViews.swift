@@ -10,14 +10,14 @@ struct SplashView: View {
             Spacer()
             VStack(spacing: 18) {
                 Text("S")
-                    .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 40, relativeTo: .largeTitle))
-                    .foregroundStyle(Palette.bone)
+                    .font(.system(.largeTitle, design: .default).weight(.bold))
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 74, height: 74)
                     .background(Palette.ink, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
 
                 VStack(spacing: Spacing.sm) {
                     Text("Sift")
-                        .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 40, relativeTo: .largeTitle))
+                        .font(.system(.largeTitle, design: .default).weight(.bold))
                         .foregroundStyle(Palette.ink)
                     Text("EVERY RECURRING CHARGE, SURFACED")
                         .font(.siftLabel)
@@ -30,7 +30,7 @@ struct SplashView: View {
                 ErrorCallout(message: errorMessage, actionTitle: "Try again", action: onRetry)
             } else if isWorking {
                 ProgressView()
-                    .tint(Palette.gold)
+                    .tint(Palette.accent)
                     .accessibilityLabel("Preparing secure session")
             }
             Spacer()
@@ -101,22 +101,16 @@ struct BankPickerView: View {
 
             SearchField(text: $searchText)
 
-            Text("POPULAR")
-                .font(.siftLabel)
-                .foregroundStyle(Palette.inkFaint)
-                .padding(.top, Spacing.lg)
-
-            VStack(spacing: Spacing.md) {
-                ForEach(filteredInstitutions) { institution in
-                    Button {
-                        onSelect(institution)
-                    } label: {
-                        BankRow(institution: institution)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("bank-\(institution.id)")
+            SiftRowSection(header: "Popular", data: filteredInstitutions, id: \.id) { institution in
+                Button {
+                    onSelect(institution)
+                } label: {
+                    BankRow(institution: institution)
                 }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("bank-\(institution.id)")
             }
+            .padding(.top, Spacing.lg)
             Spacer()
         }
     }
@@ -143,9 +137,9 @@ struct SecureLeadInView: View {
             VStack(spacing: Spacing.lg) {
                 Image(systemName: "lock.shield")
                     .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(Palette.bone)
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 54, height: 54)
-                    .background(Palette.gold, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                    .background(Palette.accent, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 OnboardingHeadline(title: headline, subtitle: subtitle, alignment: .center)
             }
@@ -168,8 +162,8 @@ struct SecureLeadInView: View {
         }
     }
 
-    // Apple Wallet flow when no institution is selected; Plaid copy is kept for the
-    // retained bank-picker path.
+    /// Apple Wallet flow when no institution is selected; Plaid copy is kept for the
+    /// retained bank-picker path.
     private var isAppleWallet: Bool {
         institution == nil
     }
@@ -212,9 +206,9 @@ struct ScanningView: View {
                     alignment: .center
                 )
                 ProgressView(value: scanState.progress)
-                    .tint(Palette.gold)
+                    .tint(Palette.accent)
                     .accessibilityLabel("Scanning progress")
-                Text(scanState.status.uppercased())
+                Text(scanState.status)
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
             }
@@ -240,11 +234,7 @@ struct ReviewFoundView: View {
                         title: "We found \(items.count) recurring charges",
                         subtitle: "Toggle off anything that isn't a subscription."
                     )
-                    Text("DETECTED")
-                        .font(.siftLabel)
-                        .foregroundStyle(Palette.inkFaint)
-
-                    VStack(spacing: Spacing.md) {
+                    SiftSection(header: "Detected", padded: false) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             ReviewSubscriptionRow(item: item) {
                                 onToggle(item.id)
@@ -253,6 +243,10 @@ struct ReviewFoundView: View {
                             .transition(Motion.rowTransition(reduceMotion: reduceMotion))
                             .animation(Motion.staggered(index: index, reduceMotion: reduceMotion), value: items.count)
                             .animation(Motion.reduced(Motion.snappy, reduceMotion: reduceMotion), value: item.isSelected)
+
+                            if item.id != items.last?.id {
+                                SiftSeparator()
+                            }
                         }
                     }
 
@@ -272,7 +266,7 @@ struct ReviewFoundView: View {
             .padding(.horizontal, Spacing.screenHorizontal)
             .padding(.bottom, Spacing.lg)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
     }
 
     private var selectedCount: Int {
@@ -290,9 +284,9 @@ struct NotificationsOptInView: View {
             VStack(spacing: Spacing.lg) {
                 Image(systemName: "bell.badge")
                     .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(Palette.bone)
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 56, height: 56)
-                    .background(Palette.gold, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                    .background(Palette.accent, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 OnboardingHeadline(
                     title: "Stay ahead of renewals",
@@ -320,9 +314,9 @@ struct AllSetView: View {
             VStack(spacing: Spacing.lg) {
                 Image(systemName: SiftIcon.check)
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(Palette.bone)
+                    .foregroundStyle(Palette.ground)
                     .frame(width: 64, height: 64)
-                    .background(Palette.green, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                    .background(Palette.positive, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 OnboardingHeadline(
                     title: "You're all set.",
@@ -330,8 +324,8 @@ struct AllSetView: View {
                     alignment: .center
                 )
 
-                SiftCard {
-                    Text("NOW TRACKING")
+                SiftSection {
+                    Text("Now tracking")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -340,13 +334,72 @@ struct AllSetView: View {
                             .foregroundStyle(Palette.ink)
                         Text("·")
                             .foregroundStyle(Palette.inkFaint)
-                        MoneyText(value: "\(monthlyTotal.formatted())/mo", size: 28)
+                        MoneyText(value: "\(monthlyTotal.formatted())/mo", role: .primary)
                     }
                 }
             }
             Spacer()
             PrimaryButton(title: "Go to dashboard", action: onDashboard)
                 .accessibilityIdentifier("onboarding-go-dashboard")
+        }
+    }
+}
+
+struct ConnectUnavailableView: View {
+    let reason: ConnectUnavailableReason
+    let onRetry: () -> Void
+    let onSkip: () -> Void
+
+    var body: some View {
+        OnboardingScreen {
+            Spacer()
+
+            VStack(spacing: Spacing.lg) {
+                Image(systemName: iconName)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(Palette.ground)
+                    .frame(width: 56, height: 56)
+                    .background(Palette.negative, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+
+                OnboardingHeadline(title: title, subtitle: message, alignment: .center)
+            }
+
+            Spacer()
+
+            PrimaryButton(title: "Try again", action: onRetry)
+                .accessibilityIdentifier("onboarding-connect-retry")
+            SecondaryButton(title: "Skip for now", action: onSkip)
+                .accessibilityIdentifier("onboarding-connect-skip")
+        }
+        .accessibilityIdentifier("onboarding-connect-unavailable")
+    }
+
+    private var iconName: String {
+        switch reason {
+        case .accessDenied:
+            "lock.slash"
+        case .noWalletData:
+            "creditcard"
+        }
+    }
+
+    private var title: String {
+        switch reason {
+        case .accessDenied:
+            "Apple Wallet access is off"
+        case .noWalletData:
+            "No Wallet transactions yet"
+        }
+    }
+
+    private var message: String {
+        switch reason {
+        case .accessDenied:
+            "Sift needs permission to read your Apple Card, Apple Cash, and Apple Pay "
+                + "transactions. You can allow it in Settings › Privacy & Security › Wallet, or try again."
+        case .noWalletData:
+            "We couldn't find Apple Card, Apple Cash, or Apple Pay activity to scan. Once you've "
+                + "spent with Apple Pay, come back and Sift will find your subscriptions."
         }
     }
 }

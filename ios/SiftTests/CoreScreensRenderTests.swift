@@ -1,7 +1,7 @@
+@testable import Sift
 import SwiftUI
 import Testing
 import UIKit
-@testable import Sift
 
 @MainActor
 struct CoreScreensRenderTests {
@@ -41,18 +41,195 @@ struct CoreScreensRenderTests {
         }
     }
 
-    private func assertRenders<Content: View>(@ViewBuilder content: () -> Content) {
-        render(content(), dynamicTypeSize: .large)
-        render(content(), dynamicTypeSize: .accessibility2)
+    @Test func assistantRendersItsEmptyState() {
+        assertRenders {
+            AssistantView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate },
+                featureFlags: SiftFeatureFlags(assistantEnabled: true)
+            )
+        }
     }
 
-    private func render<Content: View>(_ content: Content, dynamicTypeSize: DynamicTypeSize) {
+    /// Flag on, model unusable — what most devices will actually show.
+    @Test func assistantRendersTheUnavailableNotice() {
+        assertRenders {
+            AssistantView(
+                repositories: .mock(),
+                conversation: MockInsightConversation(availabilityResult: .unavailable(.deviceNotEligible)),
+                referenceDateProvider: { Self.referenceDate },
+                featureFlags: SiftFeatureFlags(assistantEnabled: true)
+            )
+        }
+    }
+
+    /// The default render test runs with narration off, so the notes branch of
+    /// `NarrationSection` would otherwise never be drawn by any test.
+    @Test func insightsRendersWrittenNarration() {
+        assertRenders {
+            InsightsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate },
+                featureFlags: SiftFeatureFlags(insightNarrationEnabled: true),
+                insightNarrator: MockInsightNarrator()
+            )
+        }
+    }
+
+    /// The other branch: flag on, model unusable. This is what CI, older iPhones, and
+    /// anyone without Apple Intelligence actually see.
+    @Test func insightsRendersTheNarrationUnavailableNotice() {
+        assertRenders {
+            InsightsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate },
+                featureFlags: SiftFeatureFlags(insightNarrationEnabled: true),
+                insightNarrator: MockInsightNarrator(availabilityResult: .unavailable(.deviceNotEligible))
+            )
+        }
+    }
+
+    @Test func transactionsRendersAtDefaultAndLargeDynamicType() {
+        assertRenders {
+            TransactionsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func transactionsEmptyStateRenders() {
+        assertRenders {
+            TransactionsView(
+                repositories: .emptyMock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func cashFlowForecastRenders() {
+        assertRenders {
+            CashFlowForecastView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func cashFlowForecastUnavailableStateRenders() {
+        assertRenders {
+            CashFlowForecastView(
+                repositories: .emptyMock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func budgetsRendersAtDefaultAndLargeDynamicType() {
+        assertRenders {
+            BudgetsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func budgetsEmptyStateRenders() {
+        assertRenders {
+            BudgetsView(
+                repositories: .emptyMock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func budgetEditorRenders() {
+        assertRenders {
+            BudgetEditorSheetView(
+                budgetID: SeedData.ID.groceriesBudget,
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func affordabilityCheckRenders() {
+        assertRenders {
+            AffordabilityCheckSheetView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func goalsRendersAtDefaultAndLargeDynamicType() {
+        assertRenders {
+            GoalsView(
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func goalsEmptyStateRenders() {
+        assertRenders {
+            GoalsView(
+                repositories: .emptyMock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func goalEditorRenders() {
+        assertRenders {
+            GoalEditorSheetView(
+                goalID: SeedData.ID.emergencyGoal,
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    @Test func categoryRulesRendersItsEmptyState() {
+        assertRenders {
+            CategoryRulesView(repositories: .emptyMock())
+        }
+    }
+
+    @Test func categoryRuleEditorRenders() {
+        assertRenders {
+            CategoryRuleEditorSheetView(repositories: .mock())
+        }
+    }
+
+    @Test func goalContributionRenders() {
+        assertRenders {
+            GoalContributionSheetView(
+                goalID: SeedData.ID.emergencyGoal,
+                repositories: .mock(),
+                referenceDateProvider: { Self.referenceDate }
+            )
+        }
+    }
+
+    /// Every screen at both Dynamic Type extremes, in both appearances. The dark pass is
+    /// what actually exercises `ColorToken`'s `UIColor(dynamicProvider:)` — the contrast
+    /// ratios in the token comments are checked by a script outside this toolchain, not by
+    /// anything that runs here, so this is the only place a broken dark value would be
+    /// caught before a device does.
+    private func assertRenders(@ViewBuilder content: () -> some View) {
+        render(content(), dynamicTypeSize: .large, colorScheme: .light)
+        render(content(), dynamicTypeSize: .accessibility2, colorScheme: .light)
+        render(content(), dynamicTypeSize: .large, colorScheme: .dark)
+    }
+
+    private func render(_ content: some View, dynamicTypeSize: DynamicTypeSize, colorScheme: ColorScheme) {
         let controller = UIHostingController(
             rootView: NavigationStack {
                 content
             }
             .environment(AppModel())
-            .environment(\.colorScheme, .light)
+            .environment(\.colorScheme, colorScheme)
             .environment(\.dynamicTypeSize, dynamicTypeSize)
         )
         controller.view.frame = CGRect(x: 0, y: 0, width: 393, height: 852)

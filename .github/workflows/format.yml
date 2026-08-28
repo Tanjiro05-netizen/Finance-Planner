@@ -1,0 +1,34 @@
+name: Format
+
+on:
+  push:
+    branches:
+      - claude/swift-rewrite-ios-research-jwvrxo
+  workflow_dispatch:
+
+jobs:
+  swiftformat:
+    # Skip the bot's own formatting commit to avoid any re-trigger loop.
+    if: "!contains(github.event.head_commit.message, '[formatted]')"
+    name: Run SwiftFormat
+    runs-on: macos-26
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SwiftFormat
+        run: brew install swiftformat
+      - name: Format
+        working-directory: ios
+        run: swiftformat .
+      - name: Commit formatted code
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "style: apply swiftformat [formatted]"
+            git push
+          else
+            echo "Already formatted; nothing to commit."
+          fi

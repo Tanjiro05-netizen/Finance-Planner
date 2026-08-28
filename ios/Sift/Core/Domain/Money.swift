@@ -6,7 +6,7 @@ enum Cents {
     }
 }
 
-struct Money: Codable, Equatable, Hashable, Comparable, Sendable {
+struct Money: Codable, Equatable, Hashable, Comparable {
     let amountMinor: Int
     let currency: String
 
@@ -38,6 +38,14 @@ struct Money: Codable, Equatable, Hashable, Comparable, Sendable {
         return Money(amountMinor: lhs.amountMinor - rhs.amountMinor, currency: lhs.currency)
     }
 
+    static func += (lhs: inout Money, rhs: Money) {
+        lhs = lhs + rhs
+    }
+
+    static func -= (lhs: inout Money, rhs: Money) {
+        lhs = lhs - rhs
+    }
+
     static func sum(_ values: [Money], currency: String = "USD") throws -> Money {
         try values.reduce(Money(amountMinor: 0, currency: currency)) { partial, value in
             guard partial.currency == value.currency else {
@@ -57,6 +65,15 @@ struct Money: Codable, Equatable, Hashable, Comparable, Sendable {
         return Money(amountMinor: roundedQuotient(amountMinor, divisor: divisor), currency: currency)
     }
 
+    /// Plain `123.45` with no symbol or grouping — the form a text field can round-trip
+    /// back through `Decimal(string:)`. `formatted()` is for display only; its symbol and
+    /// thousands separators would fail to parse.
+    var editableAmountText: String {
+        let absolute = abs(amountMinor)
+        let sign = amountMinor < 0 ? "-" : ""
+        return "\(sign)\(absolute / 100).\(String(format: "%02d", absolute % 100))"
+    }
+
     func formatted(showZeroFraction: Bool = true) -> String {
         let absolute = abs(amountMinor)
         let major = absolute / 100
@@ -65,7 +82,7 @@ struct Money: Codable, Equatable, Hashable, Comparable, Sendable {
         let symbol = currency == "USD" ? "$" : "\(currency) "
         let majorText = groupedMajorDigits(major)
 
-        if fraction == 0 && !showZeroFraction {
+        if fraction == 0, !showZeroFraction {
             return "\(sign)\(symbol)\(majorText)"
         }
 
@@ -83,7 +100,7 @@ private func groupedMajorDigits(_ value: Int) -> String {
     let digits = Array(String(value).reversed())
     let grouped = digits.enumerated().reduce(into: [Character]()) { result, pair in
         let (index, character) = pair
-        if index > 0 && index.isMultiple(of: 3) {
+        if index > 0, index.isMultiple(of: 3) {
             result.append(",")
         }
         result.append(character)
@@ -91,4 +108,3 @@ private func groupedMajorDigits(_ value: Int) -> String {
 
     return String(grouped.reversed())
 }
-

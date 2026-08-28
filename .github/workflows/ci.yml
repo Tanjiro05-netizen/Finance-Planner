@@ -5,10 +5,18 @@ on:
   push:
     branches:
       - main
+      # Feature branches too. Without this, a branch that is never opened as a PR gets
+      # only screenshots.yml -- which runs `-only-testing:SiftUITests/ScreenshotTests`,
+      # so it proves the app *compiles* and nothing else. The design branches ran five
+      # green screenshot jobs each while the unit suite, SwiftFormat, SwiftLint and the
+      # coverage floor had never executed against them once.
+      - 'claude/**'
 
 jobs:
-  ios:
-    name: iOS
+  # Build, test, and coverage run on their own so a formatting nit never hides
+  # whether the app actually compiles and passes its tests.
+  build:
+    name: iOS Build & Test
     runs-on: macos-26
     defaults:
       run:
@@ -17,23 +25,63 @@ jobs:
       - uses: actions/checkout@v4
       - name: Toolchain
         run: xcodebuild -version
-      - name: Install Swift lint tools
-        run: brew install swiftlint swiftformat
-      - name: SwiftFormat lint
-        run: swiftformat --lint .
-      - name: SwiftLint
-        run: swiftlint
       - name: Build
-        run: xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
+        run: xcodebuild -scheme Sift -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+      # SiftUITests/ScreenshotTests is a slow walk that photographs every screen and asserts
+      # almost nothing. It is what screenshots.yml runs; there is no reason for the PR gate
+      # to pay for it.
+      # Output is teed to a file as well as the log. A Swift runtime trap that carries no
+      # `asi` message in its crash report -- a compiler-inserted precondition rather than an
+      # explicit fatalError -- leaves the *only* human-readable explanation in the
+      # simulator's stderr, which is buried thousands of lines up in a log that is awkward
+      # to page through after the fact. `Failure diagnostics` greps this file instead.
       - name: Test with coverage
         run: |
           mkdir -p ../build
+          set -o pipefail
           xcodebuild test \
             -scheme Sift \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -skip-testing:SiftUITests/ScreenshotTests \
             -enableCodeCoverage YES \
-            -resultBundlePath ../build/SiftTests.xcresult
+            -resultBundlePath ../build/SiftTests.xcresult 2>&1 | tee ../build/test-output.log
+      # On failure xcodebuild only prints the *names* of failing tests. The assertion text
+      # — and the crash report when the test process dies and takes every remaining test
+      # down with it — live in the result bundle, so surface them in the log.
+      - name: Failure diagnostics
+        if: failure()
+        run: |
+          xcrun xcresulttool get test-results summary \
+            --path ../build/SiftTests.xcresult --format json || true
+          echo "--- crash reports ---"
+          python3 ../scripts/print-crash-report.py "$HOME/Library/Logs/DiagnosticReports" || true
+          echo "--- runtime traps and fatal errors from stderr ---"
+          grep -nE "Fatal error|Precondition failed|precondition|Unexpectedly found nil|SwiftData/|CoreData:|NSInternalInconsistency|Illegal instruction|__abort" \
+            ../build/test-output.log | head -40 || echo "(no runtime trap text captured)"
+          echo "--- last 60 lines of raw test stderr (in case the greps above miss it) ---"
+          tail -60 ../build/test-output.log || true
+
       - name: Enforce coverage floor
         run: |
           xcrun xccov view --report --json ../build/SiftTests.xcresult > ../build/ios-coverage.json
           node ../scripts/check-ios-coverage.js ../build/ios-coverage.json 80
+
+  lint:
+    name: Lint & Format
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Swift lint tools
+        run: brew install swiftlint swiftformat
+      - name: SwiftFormat lint
+        run: swiftformat --lint .
+      # Runs from the repo root: .swiftlint.yml lives there, and its included/excluded
+      # paths (ios/Sift, ios/SiftTests) are written relative to it. Running from ios/
+      # silently fell back to SwiftLint's defaults, which left the design-system custom
+      # rules (raw hex, font literals, inline animation timings) unenforced.
+      - name: SwiftLint
+        run: swiftlint --config .swiftlint.yml
+        working-directory: .

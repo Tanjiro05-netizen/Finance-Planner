@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-struct RepositoryContainer: Sendable {
+struct RepositoryContainer {
     let subscriptions: any SubscriptionRepository
     let accounts: any AccountRepository
     let transactions: any TransactionRepository
@@ -9,8 +9,20 @@ struct RepositoryContainer: Sendable {
     let categories: any CategoryRepository
     let priceChanges: any PriceChangeRepository
     let settings: any SettingsRepository
+    let recurringIncome: any RecurringIncomeRepository
+    let bills: any BillRepository
+    let budgets: any BudgetRepository
+    let goals: any GoalRepository
+    let categoryRules: any CategoryRuleRepository
 
-    static func live(modelContext: ModelContext, userID: String = SeedData.defaultUserID) -> RepositoryContainer {
+    /// `categoryRules` is injectable because rules live in `UserDefaults` rather than the
+    /// model context -- tests need an isolated suite so they do not share one process-wide
+    /// blob with each other or with the simulator's real defaults.
+    static func live(
+        modelContext: ModelContext,
+        userID: String = SeedData.defaultUserID,
+        categoryRules: (any CategoryRuleRepository)? = nil
+    ) -> RepositoryContainer {
         RepositoryContainer(
             subscriptions: LiveSubscriptionRepository(modelContext: modelContext, userID: userID),
             accounts: LiveAccountRepository(modelContext: modelContext, userID: userID),
@@ -18,7 +30,12 @@ struct RepositoryContainer: Sendable {
             cancellations: LiveCancellationRepository(modelContext: modelContext, userID: userID),
             categories: LiveCategoryRepository(modelContext: modelContext, userID: userID),
             priceChanges: LivePriceChangeRepository(modelContext: modelContext, userID: userID),
-            settings: LiveSettingsRepository(modelContext: modelContext, userID: userID)
+            settings: LiveSettingsRepository(modelContext: modelContext, userID: userID),
+            recurringIncome: LiveRecurringIncomeRepository(modelContext: modelContext, userID: userID),
+            bills: LiveBillRepository(modelContext: modelContext, userID: userID),
+            budgets: LiveBudgetRepository(modelContext: modelContext, userID: userID),
+            goals: LiveGoalRepository(modelContext: modelContext, userID: userID),
+            categoryRules: categoryRules ?? UserDefaultsCategoryRuleRepository(userID: userID)
         )
     }
 
@@ -31,7 +48,12 @@ struct RepositoryContainer: Sendable {
             cancellations: MockCancellationRepository(snapshot: snapshot, userID: userID),
             categories: MockCategoryRepository(snapshot: snapshot, userID: userID),
             priceChanges: MockPriceChangeRepository(snapshot: snapshot, userID: userID),
-            settings: MockSettingsRepository(snapshot: snapshot)
+            settings: MockSettingsRepository(snapshot: snapshot),
+            recurringIncome: MockRecurringIncomeRepository(snapshot: snapshot, userID: userID),
+            bills: MockBillRepository(snapshot: snapshot, userID: userID),
+            budgets: MockBudgetRepository(snapshot: snapshot, userID: userID),
+            goals: MockGoalRepository(snapshot: snapshot, userID: userID),
+            categoryRules: MockCategoryRuleRepository(snapshot: snapshot, userID: userID)
         )
     }
 
@@ -51,7 +73,13 @@ struct RepositoryContainer: Sendable {
                 trialEndings: true,
                 unusedNudges: true,
                 weeklySummary: false
-            )
+            ),
+            recurringIncome: [],
+            bills: [],
+            budgets: [],
+            goals: [],
+            goalContributions: [],
+            categoryRules: []
         )
 
         return RepositoryContainer(
@@ -61,7 +89,12 @@ struct RepositoryContainer: Sendable {
             cancellations: MockCancellationRepository(snapshot: snapshot, userID: userID),
             categories: MockCategoryRepository(snapshot: snapshot, userID: userID),
             priceChanges: MockPriceChangeRepository(snapshot: snapshot, userID: userID),
-            settings: MockSettingsRepository(snapshot: snapshot)
+            settings: MockSettingsRepository(snapshot: snapshot),
+            recurringIncome: MockRecurringIncomeRepository(snapshot: snapshot, userID: userID),
+            bills: MockBillRepository(snapshot: snapshot, userID: userID),
+            budgets: MockBudgetRepository(snapshot: snapshot, userID: userID),
+            goals: MockGoalRepository(snapshot: snapshot, userID: userID),
+            categoryRules: MockCategoryRuleRepository(snapshot: snapshot, userID: userID)
         )
     }
 
@@ -79,108 +112,46 @@ struct RepositoryContainer: Sendable {
         try accounts.deleteAll()
         try categories.deleteAll()
         try settings.deleteAll()
+        try recurringIncome.deleteAll()
+        try bills.deleteAll()
+        try budgets.deleteAll()
+        try goals.deleteAll()
+        try categoryRules.deleteAll()
     }
-}
-
-private struct RepositoryContainerKey: EnvironmentKey {
-    static let defaultValue = RepositoryContainer.mock()
 }
 
 extension EnvironmentValues {
-    var repositories: RepositoryContainer {
-        get { self[RepositoryContainerKey.self] }
-        set { self[RepositoryContainerKey.self] = newValue }
-    }
-}
-
-private struct APIClientKey: EnvironmentKey {
-    static let defaultValue: any SiftAPIClient = MockSiftAPIClient()
-}
-
-private struct PlaidLinkPresenterKey: EnvironmentKey {
-    static let defaultValue: any PlaidLinkPresenting = MockPlaidLinkPresenter(result: .cancelled)
-}
-
-private struct DetectionServiceKey: EnvironmentKey {
-    static let defaultValue: any DetectionServing = MockDetectionService()
-}
-
-private struct NotificationAuthorizerKey: EnvironmentKey {
-    static let defaultValue: any NotificationAuthorizing = MockNotificationAuthorizer()
-}
-
-private struct NotificationSchedulerKey: EnvironmentKey {
-    static let defaultValue: any NotificationScheduling = NoopNotificationScheduler()
-}
-
-private struct NotificationRouterKey: EnvironmentKey {
-    static let defaultValue = NotificationRouter()
-}
-
-private struct OnboardingStateStoreKey: EnvironmentKey {
-    static let defaultValue: any OnboardingStateStoring = InMemoryOnboardingStateStore()
-}
-
-private struct TokenStoreKey: EnvironmentKey {
-    static let defaultValue: any TokenStoring = KeychainTokenStore()
-}
-
-private struct FeatureFlagsKey: EnvironmentKey {
-    static let defaultValue = SiftFeatureFlags.launchDefault
-}
-
-private struct AnalyticsRecorderKey: EnvironmentKey {
-    static let defaultValue: any AnalyticsRecording = NoopAnalyticsRecorder()
+    @Entry var repositories: RepositoryContainer = .mock()
 }
 
 extension EnvironmentValues {
-    var apiClient: any SiftAPIClient {
-        get { self[APIClientKey.self] }
-        set { self[APIClientKey.self] = newValue }
-    }
+    @Entry var apiClient: any SiftAPIClient = MockSiftAPIClient()
 
-    var plaidLinkPresenter: any PlaidLinkPresenting {
-        get { self[PlaidLinkPresenterKey.self] }
-        set { self[PlaidLinkPresenterKey.self] = newValue }
-    }
+    @Entry var plaidLinkPresenter: any PlaidLinkPresenting = MockPlaidLinkPresenter(result: .cancelled)
 
-    var detectionService: any DetectionServing {
-        get { self[DetectionServiceKey.self] }
-        set { self[DetectionServiceKey.self] = newValue }
-    }
+    @Entry var detectionService: any DetectionServing = MockDetectionService()
 
-    var notificationAuthorizer: any NotificationAuthorizing {
-        get { self[NotificationAuthorizerKey.self] }
-        set { self[NotificationAuthorizerKey.self] = newValue }
-    }
+    @Entry var incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService()
 
-    var notificationScheduler: any NotificationScheduling {
-        get { self[NotificationSchedulerKey.self] }
-        set { self[NotificationSchedulerKey.self] = newValue }
-    }
+    @Entry var notificationAuthorizer: any NotificationAuthorizing = MockNotificationAuthorizer()
 
-    var notificationRouter: NotificationRouter {
-        get { self[NotificationRouterKey.self] }
-        set { self[NotificationRouterKey.self] = newValue }
-    }
+    @Entry var notificationScheduler: any NotificationScheduling = NoopNotificationScheduler()
 
-    var onboardingStateStore: any OnboardingStateStoring {
-        get { self[OnboardingStateStoreKey.self] }
-        set { self[OnboardingStateStoreKey.self] = newValue }
-    }
+    @Entry var notificationRouter: NotificationRouter = .init()
 
-    var tokenStore: any TokenStoring {
-        get { self[TokenStoreKey.self] }
-        set { self[TokenStoreKey.self] = newValue }
-    }
+    /// Defaults to the mock so previews and tests never reach the on-device model. `SiftApp`
+    /// substitutes `FoundationModelsNarrator` for the real app.
+    @Entry var insightNarrator: any InsightNarrating = MockInsightNarrator()
 
-    var featureFlags: SiftFeatureFlags {
-        get { self[FeatureFlagsKey.self] }
-        set { self[FeatureFlagsKey.self] = newValue }
-    }
+    /// Same default rationale as `insightNarrator`: previews and tests never reach the
+    /// on-device model.
+    @Entry var insightConversation: any InsightConversing = MockInsightConversation()
 
-    var analyticsRecorder: any AnalyticsRecording {
-        get { self[AnalyticsRecorderKey.self] }
-        set { self[AnalyticsRecorderKey.self] = newValue }
-    }
+    @Entry var onboardingStateStore: any OnboardingStateStoring = InMemoryOnboardingStateStore()
+
+    @Entry var tokenStore: any TokenStoring = KeychainTokenStore()
+
+    @Entry var featureFlags: SiftFeatureFlags = .launchDefault
+
+    @Entry var analyticsRecorder: any AnalyticsRecording = NoopAnalyticsRecorder()
 }

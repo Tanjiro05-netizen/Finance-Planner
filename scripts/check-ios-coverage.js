@@ -47,5 +47,21 @@ console.log(`Scoped iOS coverage: ${coverage.toFixed(2)}%`);
 
 if (coverage < floor) {
   console.error(`Coverage floor not met: ${coverage.toFixed(2)}% < ${floor}%`);
+  console.error("Per-file breakdown (worst first):");
+  scopedFiles
+    .map((file) => {
+      const executable = Number(file.executableLines ?? 0);
+      const covered = file.coveredLines === undefined
+        ? executable * Number(file.lineCoverage ?? 0)
+        : Number(file.coveredLines);
+      const percent = executable === 0 ? 100 : (covered / executable) * 100;
+      return { path: file.path ?? "(unknown)", executable, covered, percent };
+    })
+    .sort((a, b) => a.percent - b.percent)
+    .forEach(({ path, executable, covered, percent }) => {
+      console.error(
+        `  ${percent.toFixed(1).padStart(5)}%  (${Math.round(covered)}/${executable} lines)  ${path}`
+      );
+    });
   process.exit(1);
 }

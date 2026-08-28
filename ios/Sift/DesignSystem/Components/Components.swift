@@ -1,40 +1,132 @@
 import SwiftUI
 
-struct SiftCard<Content: View>: View {
+/// A grouped section, in the shape iOS uses for `insetGrouped` content.
+///
+/// This replaces the card. The card had a fill *and* a 1px border *and* a 30pt shadow, all
+/// unconditional, on 77 instances — the combination the design literature calls a "ghost
+/// card", and the rule it breaks is "declare elevation once, border or shadow." It carried
+/// all three because it had to: the old `card` and `bone` sat 1.10:1 apart, so fill alone
+/// could not make a surface read as a surface.
+///
+/// The palette now puts a real value step between `surface` and `ground`, which means the
+/// scaffolding can go. What is left is what iOS itself does: a filled, rounded group
+/// sitting on a slightly darker ground, with an optional sentence-case header outside it.
+struct SiftSection<Content: View>: View {
+    var header: String?
+    var footer: String?
+    /// Rows manage their own horizontal insets, so a row list turns this off.
+    var padded = true
     @ViewBuilder var content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            content
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            if let header, !header.isEmpty {
+                Text(header)
+                    .font(.sectionHeader)
+                    .foregroundStyle(Palette.inkSoft)
+                    .padding(.horizontal, Spacing.xs)
+            }
+
+            VStack(alignment: .leading, spacing: padded ? Spacing.md : 0) {
+                content
+            }
+            .padding(padded ? Spacing.lg : 0)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.standard, style: .continuous))
+
+            if let footer, !footer.isEmpty {
+                Text(footer)
+                    .font(.cadence)
+                    .foregroundStyle(Palette.inkFaint)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, Spacing.xs)
+            }
         }
-        .padding(Spacing.lg)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
-        .shadow(color: Elevation.card.color, radius: Elevation.card.radius, x: Elevation.card.x, y: Elevation.card.y)
     }
+}
+
+/// The hairline between rows, inset from the leading edge the way iOS insets it — so the
+/// line starts under the text rather than under the icon.
+struct SiftSeparator: View {
+    var leadingInset: CGFloat = Spacing.lg
+
+    var body: some View {
+        Rectangle()
+            .fill(Palette.separator)
+            .frame(height: 1)
+            .padding(.leading, leadingInset)
+            .accessibilityHidden(true)
+    }
+}
+
+/// A section of rows with separators drawn between them, but not after the last one.
+///
+/// Interleaving separators by hand is where row lists usually go wrong — a trailing
+/// hairline sitting on the section's rounded corner is the giveaway. Taking the collection
+/// means the component knows which row is last.
+/// Takes an explicit id key path rather than requiring `Identifiable`, the way `ForEach`
+/// does. The SwiftData models here carry both a `String` id of their own and the
+/// `PersistentIdentifier` that `PersistentModel` supplies, so leaving the choice implicit
+/// picks the wrong one.
+struct SiftRowSection<Data: RandomAccessCollection, ID: Hashable, Row: View>: View {
+    var header: String?
+    var footer: String?
+    let data: Data
+    let id: KeyPath<Data.Element, ID>
+    var separatorInset: CGFloat = Spacing.lg
+    @ViewBuilder var row: (Data.Element) -> Row
+
+    var body: some View {
+        SiftSection(header: header, footer: footer, padded: false) {
+            ForEach(data, id: id) { element in
+                row(element)
+
+                if element[keyPath: id] != data.last?[keyPath: id] {
+                    SiftSeparator(leadingInset: separatorInset)
+                }
+            }
+        }
+    }
+}
+
+/// How much room a state message deserves.
+///
+/// One component served first-run invitations, filter-returned-nothing, empty sub-sections
+/// and errors — 36 times, identically. An invitation and an apology should not look the
+/// same, and a section that happens to be empty should not shout as loudly as a screen
+/// that has nothing in it at all.
+enum StateMessageProminence {
+    /// A whole screen with nothing in it yet. Icon, title, message.
+    case full
+    /// A section inside an otherwise-populated screen. One quiet line.
+    case inline
 }
 
 struct StateMessageCard: View {
     let title: String
     let message: String
     let systemImage: String
+    var prominence: StateMessageProminence = .full
+    var tone: StateMessageTone = .neutral
     var actionTitle: String?
     var action: (() -> Void)?
 
     var body: some View {
-        SiftCard {
+        switch prominence {
+        case .full:
+            fullBody
+        case .inline:
+            inlineBody
+        }
+    }
+
+    private var fullBody: some View {
+        SiftSection {
             Image(systemName: systemImage)
                 .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(Palette.goldDeep)
+                .foregroundStyle(tone.accent)
                 .frame(width: 42, height: 42)
-                .background(Palette.bone, in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
-                        .stroke(Palette.line, lineWidth: 1)
-                )
+                .background(tone.wash, in: RoundedRectangle(cornerRadius: Radius.tight, style: .continuous))
                 .accessibilityHidden(true)
 
             Text(title)
@@ -51,6 +143,43 @@ struct StateMessageCard: View {
             }
         }
     }
+
+    private var inlineBody: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text(message)
+                .font(.siftBody)
+                .foregroundStyle(Palette.inkSoft)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .font(.bodyEmphasis)
+                    .foregroundStyle(Palette.accent)
+                    .buttonStyle(.plain)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Whether an empty state is an invitation or a failure. They used to look identical.
+enum StateMessageTone {
+    case neutral
+    case problem
+
+    var accent: Color {
+        switch self {
+        case .neutral: Palette.accent
+        case .problem: Palette.negative
+        }
+    }
+
+    var wash: Color {
+        switch self {
+        case .neutral: Palette.accentSoft
+        case .problem: Palette.negative.opacity(0.12)
+        }
+    }
 }
 
 struct MonogramTile: View {
@@ -60,8 +189,8 @@ struct MonogramTile: View {
 
     var body: some View {
         Text(letter.prefix(1).uppercased())
-            .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: size * 0.45))
-            .foregroundStyle(Palette.bone)
+            .font(.system(size: size * 0.45, weight: .semibold, design: .default))
+            .foregroundStyle(Palette.ground)
             .frame(width: size, height: size)
             .background(color, in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
             .accessibilityHidden(true)
@@ -75,9 +204,9 @@ enum PillVariant {
 
     var foreground: Color {
         switch self {
-        case .up: Palette.clay
-        case .down: Palette.green
-        case .neutral: Palette.goldDeep
+        case .up: Palette.negative
+        case .down: Palette.positive
+        case .neutral: Palette.accent
         }
     }
 
@@ -129,28 +258,26 @@ struct SubscriptionRow: View {
                     .lineLimit(1)
 
                 Text(meta)
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
-                    .foregroundStyle(warns ? Palette.clay : Palette.inkSoft)
+                    .font(.system(.caption, design: .default).weight(.medium))
+                    .foregroundStyle(warns ? Palette.negative : Palette.inkSoft)
                     .lineLimit(1)
             }
 
             Spacer(minLength: Spacing.sm)
 
             VStack(alignment: .trailing, spacing: 2) {
-                MoneyText(value: amount, size: 16)
-                Text(cadence.uppercased())
+                MoneyText(value: amount, role: .row)
+                Text(cadence)
                     .font(.cadence)
                     .foregroundStyle(Palette.inkFaint)
             }
         }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 11)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
-        .shadow(color: Elevation.row.color, radius: Elevation.row.radius, x: Elevation.row.x, y: Elevation.row.y)
+        // No fill or radius of its own: the section it sits in already carries both, and a
+        // filled row inside a filled section is the card-inside-a-card this layout was
+        // full of.
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
+        .contentShape(Rectangle())
     }
 }
 
@@ -162,7 +289,7 @@ enum SiftButtonRole {
 
     var foreground: Color {
         switch self {
-        case .primary, .gold, .clay: Palette.bone
+        case .primary, .gold, .clay: Palette.ground
         case .secondary: Palette.ink
         }
     }
@@ -170,15 +297,15 @@ enum SiftButtonRole {
     var background: Color {
         switch self {
         case .primary: Palette.ink
-        case .gold: Palette.gold
-        case .clay: Palette.clay
+        case .gold: Palette.accent
+        case .clay: Palette.negative
         case .secondary: .clear
         }
     }
 
     var border: Color {
         switch self {
-        case .secondary: Palette.line
+        case .secondary: Palette.separator
         default: .clear
         }
     }
@@ -274,7 +401,7 @@ struct GlassTabBar: View {
                     ZStack {
                         if tab.id == selectedID {
                             RoundedRectangle(cornerRadius: Radius.pill, style: .continuous)
-                                .fill(Palette.card.opacity(0.78))
+                                .fill(Palette.surface.opacity(0.78))
                                 .glassEffectID("activeTab", in: namespace)
                         }
 
@@ -283,10 +410,10 @@ struct GlassTabBar: View {
                                 .font(.system(size: 20, weight: .regular))
                                 .contentTransition(.symbolEffect(.replace))
                             Text(tab.title)
-                                .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 9, relativeTo: .caption2))
+                                .font(.system(.caption2, design: .default).weight(.semibold))
                         }
                     }
-                    .foregroundStyle(tab.id == selectedID ? Palette.goldDeep : Palette.inkSoft)
+                    .foregroundStyle(tab.id == selectedID ? Palette.accent : Palette.inkSoft)
                     .frame(maxWidth: .infinity, minHeight: 48)
                     .accessibilityLabel(tab.title)
                 }
@@ -316,14 +443,14 @@ struct SegmentedControlGlass: View {
                         }
                     } label: {
                         Text(segment)
-                            .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 12, relativeTo: .caption))
+                            .font(.system(.caption, design: .default).weight(.semibold))
                             .foregroundStyle(selection == segment ? Palette.ink : Palette.inkSoft)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 9)
                             .background {
                                 if selection == segment {
                                     RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
-                                        .fill(Palette.card)
+                                        .fill(Palette.surface)
                                         .glassEffectID("selected-segment", in: namespace)
                                 }
                             }
@@ -356,21 +483,17 @@ struct StatCell: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(label.uppercased())
+            Text(label)
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
             Text(value)
                 .font(.cardTitle)
-                .foregroundStyle(warns ? Palette.clay : Palette.ink)
+                .foregroundStyle(warns ? Palette.negative : Palette.ink)
                 .monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
     }
 }
 
@@ -387,11 +510,11 @@ struct SiftToggleStyle: ToggleStyle {
                 configuration.label
                 Spacer()
                 Capsule()
-                    .fill(configuration.isOn ? Palette.gold : Palette.sand)
+                    .fill(configuration.isOn ? Palette.accent : Palette.surfaceSunken)
                     .frame(width: 44, height: 27)
                     .overlay(alignment: configuration.isOn ? .trailing : .leading) {
                         Circle()
-                            .fill(Palette.card)
+                            .fill(Palette.surface)
                             .frame(width: 23, height: 23)
                             .padding(2)
                             .shadow(color: Palette.ink.opacity(0.16), radius: 3, x: 0, y: 1)
@@ -413,13 +536,9 @@ struct SettingsRow: View {
         HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .font(.system(size: 15, weight: .regular))
-                .foregroundStyle(Palette.goldDeep)
+                .foregroundStyle(Palette.accent)
                 .frame(width: 32, height: 32)
-                .background(Palette.bone, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .stroke(Palette.line, lineWidth: 1)
-                )
+                .background(Palette.ground, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
 
             Text(title)
                 .font(.bodyEmphasis)
@@ -434,15 +553,15 @@ struct SettingsRow: View {
             }
 
             Image(systemName: SiftIcon.chevronRight)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Palette.inkFaint)
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        // A row inside a section does not carry its own fill or its own corner radius.
+        // Every settings row used to be a separate rounded slab, which is what made a
+        // list of eight options read as a deck of eight cards.
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
+        .contentShape(Rectangle())
     }
 }
 
@@ -453,9 +572,9 @@ enum StatusTimelineState: Equatable {
 
     var color: Color {
         switch self {
-        case .done: Palette.green
-        case .current: Palette.gold
-        case .pending: Palette.sand
+        case .done: Palette.positive
+        case .current: Palette.accent
+        case .pending: Palette.surfaceSunken
         }
     }
 }
@@ -465,13 +584,6 @@ struct StatusTimelineItem: Identifiable, Equatable {
     let title: String
     let subtitle: String
     let state: StatusTimelineState
-
-    init(id: String, title: String, subtitle: String, state: StatusTimelineState) {
-        self.id = id
-        self.title = title
-        self.subtitle = subtitle
-        self.state = state
-    }
 }
 
 struct StatusTimeline: View {
@@ -503,7 +615,7 @@ private struct StatusTimelineRow: View {
                         if item.state == .done {
                             Image(systemName: SiftIcon.check)
                                 .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(Palette.card)
+                                .foregroundStyle(Palette.surface)
                                 .transition(.opacity)
                         }
                     }
@@ -519,7 +631,7 @@ private struct StatusTimelineRow: View {
                     .font(.bodyEmphasis)
                     .foregroundStyle(item.state == .pending ? Palette.inkFaint : Palette.ink)
                 Text(item.subtitle)
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
             }
         }
@@ -534,7 +646,7 @@ private struct TimelineConnector: View {
     var body: some View {
         ZStack(alignment: .top) {
             Rectangle()
-                .fill(Palette.sand)
+                .fill(Palette.surfaceSunken)
             Rectangle()
                 .fill(connectorColor)
                 .scaleEffect(y: connectorProgress, anchor: .top)
@@ -546,11 +658,11 @@ private struct TimelineConnector: View {
     private var connectorColor: Color {
         switch state {
         case .done:
-            Palette.green
+            Palette.positive
         case .current:
-            Palette.gold
+            Palette.accent
         case .pending:
-            Palette.sand
+            Palette.surfaceSunken
         }
     }
 
@@ -573,8 +685,8 @@ struct NumberedStep: View {
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.md) {
             Text("\(number)")
-                .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 14))
-                .foregroundStyle(Palette.bone)
+                .font(.system(size: 14, weight: .semibold, design: .default))
+                .foregroundStyle(Palette.ground)
                 .frame(width: 26, height: 26)
                 .background(Palette.ink, in: Circle())
 
@@ -584,11 +696,7 @@ struct NumberedStep: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
     }
 }
 
@@ -603,10 +711,10 @@ struct OptionCard: View {
             if recommended || badgeText != nil {
                 Text(badgeText ?? "RECOMMENDED")
                     .font(.siftLabel)
-                    .foregroundStyle(recommended ? Palette.card : Palette.inkSoft)
+                    .foregroundStyle(recommended ? Palette.surface : Palette.inkSoft)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 4)
-                    .background(recommended ? Palette.gold : Palette.sand, in: Capsule())
+                    .background(recommended ? Palette.accent : Palette.surfaceSunken, in: Capsule())
                     .offset(y: -Spacing.md)
                     .padding(.bottom, -Spacing.md)
             }
@@ -614,13 +722,9 @@ struct OptionCard: View {
             HStack(spacing: Spacing.md) {
                 Image(systemName: recommended ? SiftIcon.check : SiftIcon.list)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(Palette.goldDeep)
+                    .foregroundStyle(Palette.accent)
                     .frame(width: 34, height: 34)
-                    .background(Palette.bone, in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
-                            .stroke(Palette.line, lineWidth: 1)
-                    )
+                    .background(Palette.ground, in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
 
                 Text(title)
                     .font(.cardTitle)
@@ -633,10 +737,10 @@ struct OptionCard: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(Spacing.lg)
-        .background(recommended ? Palette.gold.opacity(0.08) : Palette.card, in: RoundedRectangle(cornerRadius: Radius.pill, style: .continuous))
+        .background(recommended ? Palette.accent.opacity(0.08) : Palette.surface, in: RoundedRectangle(cornerRadius: Radius.pill, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: Radius.pill, style: .continuous)
-                .stroke(recommended ? Palette.gold : Palette.line, lineWidth: recommended ? 1.5 : 1)
+                .stroke(recommended ? Palette.accent : Palette.separator, lineWidth: recommended ? 1.5 : 1)
         )
     }
 }
@@ -655,7 +759,7 @@ struct RenewalTimelineStrip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
-                Text("RENEWAL TIMELINE")
+                Text("Renewal timeline")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkSoft)
                 Spacer()
@@ -667,7 +771,7 @@ struct RenewalTimelineStrip: View {
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Palette.sand)
+                        .fill(Palette.surfaceSunken)
                         .frame(height: 2)
                         .position(x: proxy.size.width / 2, y: 18)
 
@@ -679,9 +783,9 @@ struct RenewalTimelineStrip: View {
                             .position(x: proxy.size.width * mark.position, y: 18)
 
                         if let label = mark.label {
-                            Text(label.uppercased())
+                            Text(label)
                                 .font(.cadence)
-                                .foregroundStyle(Palette.goldDeep)
+                                .foregroundStyle(Palette.accent)
                                 .position(x: proxy.size.width * mark.position, y: 0)
                         }
                     }

@@ -1,7 +1,7 @@
 import Foundation
+@testable import Sift
 import SwiftData
 import Testing
-@testable import Sift
 
 @MainActor
 struct DetectionServiceTests {
@@ -10,7 +10,7 @@ struct DetectionServiceTests {
         try insertTransactions(
             monthlyPersistentSeries(
                 merchant: "STREAMLINE PLUS",
-                amountByIndex: { index in index < 3 ? 1_199 : 1_399 },
+                amountByIndex: { index in index < 3 ? 1199 : 1399 },
                 firstCharge: date(2026, 1, 1),
                 count: 6
             ),
@@ -24,10 +24,10 @@ struct DetectionServiceTests {
         let priceChanges = try fetchPriceChanges(in: container)
         #expect(result.candidates.count == 1)
         #expect(subscriptions.count == 1)
-        #expect(subscriptions[0].amount == .usd(1_399))
+        #expect(subscriptions[0].amount == .usd(1399))
         #expect(priceChanges.count == 1)
-        #expect(priceChanges[0].oldAmount == .usd(1_199))
-        #expect(priceChanges[0].newAmount == .usd(1_399))
+        #expect(priceChanges[0].oldAmount == .usd(1199))
+        #expect(priceChanges[0].newAmount == .usd(1399))
     }
 
     @Test func rerunUpdatesExistingSubscriptionWithoutDuplicate() async throws {
@@ -35,7 +35,7 @@ struct DetectionServiceTests {
         try insertTransactions(
             monthlyPersistentSeries(
                 merchant: "NETFLIX",
-                amountByIndex: { _ in 1_549 },
+                amountByIndex: { _ in 1549 },
                 firstCharge: date(2026, 1, 15),
                 count: 3
             ),
@@ -48,7 +48,7 @@ struct DetectionServiceTests {
             transaction(
                 id: "netflix-3",
                 merchant: "NETFLIX",
-                amount: 1_549,
+                amount: 1549,
                 date: date(2026, 4, 15)
             ),
         ], into: container)
@@ -90,20 +90,99 @@ struct DetectionServiceTests {
         #expect(subscriptions[0].status == .cancelled)
         #expect(subscriptions[0].nextRenewal == nil)
     }
+
+    @Test func creditTransactionsAreExcludedFromDetection() async throws {
+        // Regression check: once the ledger stopped dropping credits, transactionInputs
+        // needed an explicit direction filter, since amount.amountMinor >= 0 is always
+        // true (amounts are unsigned magnitudes) and was never actually filtering credits.
+        let container = try SiftModelContainerFactory.makeContainer(inMemory: true)
+        try insertTransactions(
+            monthlyPersistentSeries(
+                merchant: "REFUND CO",
+                amountByIndex: { _ in 1999 },
+                firstCharge: date(2026, 1, 1),
+                count: 6,
+                direction: .credit
+            ),
+            into: container
+        )
+        let service = LiveDetectionService(modelContainer: container)
+
+        let result = try await service.recompute(referenceDate: date(2026, 6, 15))
+
+        let subscriptions = try fetchSubscriptions(in: container)
+        #expect(result.candidates.isEmpty)
+        #expect(subscriptions.isEmpty)
+    }
+
+    @Test func recomputeIncomePersistsBiweeklyPayroll() async throws {
+        let container = try SiftModelContainerFactory.makeContainer(inMemory: true)
+        let firstPayroll = date(2026, 1, 2)
+        let payroll = (0 ..< 6).map { index -> Transaction in
+            transaction(
+                id: "pay-\(index)",
+                merchant: "NORTHWIND LABS PAYROLL",
+                amount: 210_000,
+                date: Calendar.utc.date(byAdding: .day, value: index * 14, to: firstPayroll) ?? firstPayroll,
+                direction: .credit
+            )
+        }
+        try insertTransactions(payroll, into: container)
+        let service = LiveIncomeDetectionService(modelContainer: container)
+
+        // A biweekly stream goes stale 14 days (one cycle) plus its 12-day grace after the
+        // last deposit, so recompute inside that window. Derived from the series rather
+        // than hardcoded so changing the occurrence count can't silently push the
+        // reference date past the deadline and reclassify the run as stopped.
+        let lastPayroll = try #require(Calendar.utc.date(byAdding: .day, value: 5 * 14, to: firstPayroll))
+        let referenceDate = try #require(Calendar.utc.date(byAdding: .day, value: 7, to: lastPayroll))
+        let result = try await service.recompute(referenceDate: referenceDate)
+
+        #expect(result.candidates.count == 1)
+        let incomes = try fetchRecurringIncome(in: container)
+        #expect(incomes.count == 1)
+        #expect(incomes[0].cadence == .biweekly)
+        #expect(incomes[0].status == .active)
+    }
+
+    @Test func recurringDebitWithBillKeywordRoutesToBillNotSubscription() async throws {
+        let container = try SiftModelContainerFactory.makeContainer(inMemory: true)
+        try insertTransactions(
+            monthlyPersistentSeries(
+                merchant: "NORTHGATE APARTMENTS RENT",
+                amountByIndex: { _ in 185_000 },
+                firstCharge: date(2026, 1, 1),
+                count: 6
+            ),
+            into: container
+        )
+        let service = LiveDetectionService(modelContainer: container)
+
+        let result = try await service.recompute(referenceDate: date(2026, 6, 15))
+
+        #expect(result.candidates.isEmpty)
+        #expect(try fetchSubscriptions(in: container).isEmpty)
+        let bills = try fetchBills(in: container)
+        #expect(bills.count == 1)
+        #expect(bills[0].cadence == .monthly)
+        #expect(bills[0].status == .active)
+    }
 }
 
 private func monthlyPersistentSeries(
     merchant: String,
     amountByIndex: (Int) -> Int,
     firstCharge: Date,
-    count: Int
+    count: Int,
+    direction: TransactionDirection = .debit
 ) -> [Transaction] {
-    (0..<count).map { index in
+    (0 ..< count).map { index in
         transaction(
             id: "\(merchant)-\(index)",
             merchant: merchant,
             amount: amountByIndex(index),
-            date: Calendar.utc.date(byAdding: .month, value: index, to: firstCharge) ?? firstCharge
+            date: Calendar.utc.date(byAdding: .month, value: index, to: firstCharge) ?? firstCharge,
+            direction: direction
         )
     }
 }
@@ -119,7 +198,8 @@ private func transaction(
     id: String,
     merchant: String,
     amount: Int,
-    date: Date
+    date: Date,
+    direction: TransactionDirection = .debit
 ) -> Transaction {
     Transaction(
         id: id,
@@ -128,7 +208,8 @@ private func transaction(
         merchantRaw: merchant,
         merchantKey: MerchantKey(merchant),
         amount: .usd(amount),
-        date: date
+        date: date,
+        direction: direction
     )
 }
 
@@ -142,6 +223,18 @@ private func fetchSubscriptions(in container: ModelContainer) throws -> [Subscri
 private func fetchPriceChanges(in container: ModelContainer) throws -> [PriceChange] {
     let context = ModelContext(container)
     return try context.fetch(FetchDescriptor<PriceChange>())
+        .filter { $0.userID == SeedData.defaultUserID }
+}
+
+private func fetchRecurringIncome(in container: ModelContainer) throws -> [RecurringIncome] {
+    let context = ModelContext(container)
+    return try context.fetch(FetchDescriptor<RecurringIncome>())
+        .filter { $0.userID == SeedData.defaultUserID }
+}
+
+private func fetchBills(in container: ModelContainer) throws -> [Bill] {
+    let context = ModelContext(container)
+    return try context.fetch(FetchDescriptor<Bill>())
         .filter { $0.userID == SeedData.defaultUserID }
 }
 

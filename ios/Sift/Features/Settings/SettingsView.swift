@@ -1,6 +1,17 @@
+// swiftlint:disable file_length
+// This file bundles five screens (Hub, Linked Accounts, Alert Settings, Categories,
+// Privacy Data). It should be split into one file per screen under Features/Settings/
+// to match the project's feature-first convention, but that move needs compiler
+// verification to catch any `private`-scope boundary crossed by the split, so it's
+// tracked as a follow-up rather than done blind.
 import Foundation
 import Observation
 import SwiftUI
+
+/// Where a settings row's separator starts: past the section inset and the icon, so the
+/// hairline begins under the title rather than under the glyph. This is the detail that
+/// makes a row list read as an iOS row list.
+private let settingsSeparatorInset: CGFloat = Spacing.lg + 32 + Spacing.md
 
 struct SettingsView: View {
     @Environment(AppModel.self) private var appModel
@@ -133,12 +144,16 @@ struct SettingsHubView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Settings", eyebrow: "ACCOUNT")
+                ScreenHeader(title: "Settings")
                     .accessibilityIdentifier("settings-title")
 
                 SettingsProfileCard()
 
-                VStack(spacing: Spacing.sm) {
+                // Three groups rather than one run of eight, because the grouping is true:
+                // what Sift reads, what it is doing on your behalf, and what it holds about
+                // you. A section header that encodes something real is worth having; the
+                // ones this screen used to carry — "ACCOUNT", "CONTROL" — did not.
+                SiftSection(header: "Accounts and data", padded: false) {
                     NavigationLink {
                         LinkedAccountsView(
                             repositories: repositories,
@@ -153,6 +168,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-linked-accounts")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     NavigationLink {
                         AlertSettingsView(
                             repositories: repositories,
@@ -164,6 +181,8 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-notifications")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     NavigationLink {
                         CategoriesView(repositories: repositories)
                     } label: {
@@ -172,6 +191,18 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-categories")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
+                    NavigationLink {
+                        BillsAndIncomeView(repositories: repositories)
+                    } label: {
+                        SettingsRow(icon: SiftIcon.calendar, title: "Bills & income")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("settings-bills-income")
+                }
+
+                SiftSection(header: "Cancellations", padded: false) {
                     Button {
                         appModel.present(.cancellationRequests)
                     } label: {
@@ -183,7 +214,9 @@ struct SettingsHubView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-cancellation-requests")
+                }
 
+                SiftSection(header: "Privacy and legal", padded: false) {
                     NavigationLink {
                         PrivacyDataView(
                             repositories: repositories,
@@ -198,16 +231,20 @@ struct SettingsHubView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-privacy-data")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     Button {
-                        openLegalURL("https://sift.app/privacy")
+                        openLegalURL(LegalLinks.privacyPolicy)
                     } label: {
                         SettingsRow(icon: SiftIcon.privacy, title: "Privacy Policy")
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("settings-privacy-policy")
 
+                    SiftSeparator(leadingInset: settingsSeparatorInset)
+
                     Button {
-                        openLegalURL("https://sift.app/terms")
+                        openLegalURL(LegalLinks.termsOfService)
                     } label: {
                         SettingsRow(icon: SiftIcon.list, title: "Terms of Service")
                     }
@@ -238,7 +275,7 @@ struct SettingsHubView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Settings")
         .task { viewModel.load() }
         .onChange(of: appModel.sheet) { _, newValue in
@@ -248,8 +285,8 @@ struct SettingsHubView: View {
         }
     }
 
-    private func openLegalURL(_ rawValue: String) {
-        guard let url = URL(string: rawValue) else {
+    private func openLegalURL(_ url: URL?) {
+        guard let url else {
             return
         }
 
@@ -286,7 +323,7 @@ struct AppSupportMetadata: Equatable {
 
     static func current(
         bundle: Bundle = .main,
-        supportEmail: String = "support@sift.app"
+        supportEmail: String = LegalLinks.supportEmail
     ) -> AppSupportMetadata {
         AppSupportMetadata(
             version: bundleString("CFBundleShortVersionString", in: bundle, fallback: "1.0"),
@@ -312,7 +349,7 @@ struct AppSupportMetadata: Equatable {
 
 private struct SettingsProfileCard: View {
     var body: some View {
-        SiftCard {
+        SiftSection {
             HStack(spacing: Spacing.md) {
                 MonogramTile(letter: "A", color: Palette.ink, size: 54)
 
@@ -323,7 +360,7 @@ private struct SettingsProfileCard: View {
 
                     Text("Sift Premium")
                         .font(.cadence)
-                        .foregroundStyle(Palette.goldDeep)
+                        .foregroundStyle(Palette.accent)
                 }
 
                 Spacer()
@@ -339,9 +376,9 @@ private struct SupportAboutSection: View {
     let openFeedback: (URL) -> Void
 
     var body: some View {
-        SiftCard {
+        SiftSection {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text("SUPPORT")
+                Text("Support")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
 
@@ -362,12 +399,8 @@ private struct SupportAboutSection: View {
                         .foregroundStyle(Palette.ink)
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .background(
-                            Palette.bone,
+                            Palette.ground,
                             in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                                .stroke(Palette.line, lineWidth: 1)
                         )
                 }
                 .buttonStyle(.plain)
@@ -477,7 +510,7 @@ final class LinkedAccountsViewModel {
 
     private func rebuildRows() {
         do {
-            rows = makeRows(from: try repositories.accounts.all())
+            rows = try makeRows(from: repositories.accounts.all())
         } catch {
             errorMessage = userFacingMessage(for: error)
         }
@@ -532,6 +565,7 @@ struct LinkedAccountsView: View {
         repositories: RepositoryContainer = .mock(),
         apiClient: any SiftAPIClient = MockSiftAPIClient(),
         detectionService: any DetectionServing = MockDetectionService(),
+        incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(),
         linkPresenter: any PlaidLinkPresenting = MockPlaidLinkPresenter(),
         notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
         referenceDateProvider: @escaping () -> Date = { Date() }
@@ -541,6 +575,7 @@ struct LinkedAccountsView: View {
             apiClient: apiClient,
             detectionService: detectionService,
             repositories: repositories,
+            incomeDetectionService: incomeDetectionService,
             notificationScheduler: notificationScheduler
         )
         _viewModel = State(initialValue: LinkedAccountsViewModel(
@@ -556,7 +591,7 @@ struct LinkedAccountsView: View {
         ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.xl) {
-                    ScreenHeader(title: "Linked accounts", eyebrow: "BANKS")
+                    ScreenHeader(title: "Linked accounts")
                         .accessibilityIdentifier("linked-accounts-title")
 
                     linkedAccountsContent
@@ -582,7 +617,7 @@ struct LinkedAccountsView: View {
             .padding(.horizontal, Spacing.screenHorizontal)
             .padding(.bottom, Spacing.md)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Linked accounts")
         .task { await viewModel.load() }
         .alert("Remove linked account?", isPresented: removeConfirmationBinding) {
@@ -626,11 +661,9 @@ struct LinkedAccountsView: View {
                 systemImage: SiftIcon.bank
             )
         } else {
-            VStack(spacing: Spacing.sm) {
-                ForEach(viewModel.rows) { row in
-                    LinkedAccountRow(row: row) {
-                        accountPendingRemoval = row
-                    }
+            SiftRowSection(data: viewModel.rows, id: \.id) { row in
+                LinkedAccountRow(row: row) {
+                    accountPendingRemoval = row
                 }
             }
 
@@ -661,7 +694,7 @@ private struct LinkedAccountRow: View {
                     .font(.bodyEmphasis)
                     .foregroundStyle(Palette.ink)
                 Text("\(row.accountMeta) - \(row.syncMeta)")
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -669,16 +702,12 @@ private struct LinkedAccountRow: View {
             Spacer(minLength: Spacing.sm)
 
             Button("Remove", role: .destructive, action: remove)
-                .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 12, relativeTo: .caption))
-                .foregroundStyle(Palette.clay)
+                .font(.system(.caption, design: .default).weight(.semibold))
+                .foregroundStyle(Palette.negative)
                 .frame(minHeight: 44)
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(row.institutionName), \(row.accountMeta), \(statusLabel)")
     }
@@ -686,11 +715,11 @@ private struct LinkedAccountRow: View {
     private var statusColor: Color {
         switch row.status {
         case .connected:
-            Palette.green
+            Palette.positive
         case .needsAttention:
-            Palette.gold
+            Palette.accent
         case .disconnected:
-            Palette.clay
+            Palette.negative
         }
     }
 
@@ -708,19 +737,17 @@ private struct LinkedAccountRow: View {
 
 private struct LinkedAccountsLoadingView: View {
     var body: some View {
-        VStack(spacing: Spacing.sm) {
-            ForEach(0..<2, id: \.self) { _ in
-                LinkedAccountRow(
-                    row: LinkedAccountRowModel(
-                        id: UUID().uuidString,
-                        institutionName: "Linked institution",
-                        accountCount: 2,
-                        status: .connected,
-                        lastSyncedAt: SeedData.referenceDate
-                    ),
-                    remove: {}
-                )
-            }
+        SiftRowSection(data: 0 ..< 2, id: \.self) { _ in
+            LinkedAccountRow(
+                row: LinkedAccountRowModel(
+                    id: UUID().uuidString,
+                    institutionName: "Linked institution",
+                    accountCount: 2,
+                    status: .connected,
+                    lastSyncedAt: SeedData.referenceDate
+                ),
+                remove: {}
+            )
         }
         .redacted(reason: .placeholder)
         .accessibilityLabel("Loading linked accounts")
@@ -738,6 +765,7 @@ final class AlertSettingsViewModel {
     var trialEndings = true
     var unusedNudges = true
     var weeklySummary = false
+    var budgetAlerts = true
     var errorMessage: String?
 
     init(
@@ -756,6 +784,7 @@ final class AlertSettingsViewModel {
             trialEndings = settings.trialEndings
             unusedNudges = settings.unusedNudges
             weeklySummary = settings.weeklySummary
+            budgetAlerts = settings.budgetAlerts
             errorMessage = nil
         } catch {
             errorMessage = userFacingMessage(for: error)
@@ -780,6 +809,10 @@ final class AlertSettingsViewModel {
 
     func setWeeklySummary(_ value: Bool) {
         update { $0.weeklySummary = value }
+    }
+
+    func setBudgetAlerts(_ value: Bool) {
+        update { $0.budgetAlerts = value }
     }
 
     private func update(_ mutation: (AlertSettings) -> Void) {
@@ -825,10 +858,10 @@ struct AlertSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Notifications", eyebrow: "ALERTS")
+                ScreenHeader(title: "Notifications")
                     .accessibilityIdentifier("alert-settings-title")
 
-                VStack(spacing: Spacing.sm) {
+                SiftSection(padded: false) {
                     AlertToggleRow(
                         title: "Renewal reminders",
                         detail: "Upcoming renewals",
@@ -838,6 +871,7 @@ struct AlertSettingsView: View {
                         )
                     )
                     .accessibilityIdentifier("alert-renewal-reminders-toggle")
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Price-change alerts",
@@ -847,6 +881,7 @@ struct AlertSettingsView: View {
                             set: { viewModel.setPriceChanges($0) }
                         )
                     )
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Free-trial endings",
@@ -856,6 +891,7 @@ struct AlertSettingsView: View {
                             set: { viewModel.setTrialEndings($0) }
                         )
                     )
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Unused nudges",
@@ -865,6 +901,7 @@ struct AlertSettingsView: View {
                             set: { viewModel.setUnusedNudges($0) }
                         )
                     )
+                    SiftSeparator()
 
                     AlertToggleRow(
                         title: "Weekly summary",
@@ -875,6 +912,17 @@ struct AlertSettingsView: View {
                         )
                     )
                     .accessibilityIdentifier("alert-weekly-summary-toggle")
+                    SiftSeparator()
+
+                    AlertToggleRow(
+                        title: "Budget alerts",
+                        detail: "When a category budget is spent",
+                        isOn: Binding(
+                            get: { viewModel.budgetAlerts },
+                            set: { viewModel.setBudgetAlerts($0) }
+                        )
+                    )
+                    .accessibilityIdentifier("alert-budget-toggle")
                 }
 
                 if let errorMessage = viewModel.errorMessage {
@@ -889,7 +937,7 @@ struct AlertSettingsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Notifications")
         .task { viewModel.load() }
     }
@@ -907,17 +955,13 @@ private struct AlertToggleRow: View {
                     .font(.bodyEmphasis)
                     .foregroundStyle(Palette.ink)
                 Text(detail)
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
             }
         }
         .toggleStyle(SiftToggleStyle())
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -926,104 +970,6 @@ struct CategoryRowModel: Identifiable, Equatable {
     let name: String
     let count: Int
     let monthlyTotal: Money
-}
-
-@MainActor
-final class CategoryService {
-    struct KeywordRule: Sendable {
-        let name: String
-        let iconToken: String
-        let keywords: [String]
-    }
-
-    // Keyword map: merchant keys and Plaid categories are lowercased, then matched
-    // against these stable terms. Manual category overrides set categoryManuallySet
-    // and are never changed by automatic categorisation.
-    static let keywordRules: [KeywordRule] = [
-        KeywordRule(name: "Streaming", iconToken: "play.rectangle", keywords: ["stream", "netflix", "hulu", "video", "reel", "entertainment"]),
-        KeywordRule(name: "Audio", iconToken: "waveform", keywords: ["audio", "music", "spotify", "tonebox", "podcast"]),
-        KeywordRule(name: "Design", iconToken: "paintpalette", keywords: ["design", "adobe", "creative", "figma", "canva"]),
-        KeywordRule(name: "Productivity", iconToken: "square.and.pencil", keywords: ["productivity", "note", "readwise", "cloud", "daybook", "parcel"]),
-        KeywordRule(name: "Security", iconToken: "lock.shield", keywords: ["security", "vpn", "password", "atlas"]),
-        KeywordRule(name: "Health", iconToken: "heart.text.square", keywords: ["health", "fitness", "workout", "wellness"]),
-    ]
-
-    private let repositories: RepositoryContainer
-
-    init(repositories: RepositoryContainer) {
-        self.repositories = repositories
-    }
-
-    func applyAutoCategorizationIfEnabled() throws {
-        guard try repositories.settings.settings().autoCategorizeSubscriptions else {
-            return
-        }
-
-        let transactions = try repositories.transactions.all()
-        let categoryIDsByName = try ensureRuleCategories()
-        let hintsByMerchant = Dictionary(grouping: transactions, by: \.merchantKey)
-            .mapValues { values in
-                values.compactMap(\.categoryHint).joined(separator: " ")
-            }
-
-        for subscription in try repositories.subscriptions.all() where !subscription.categoryManuallySet {
-            guard let rule = rule(for: subscription, hint: hintsByMerchant[subscription.merchantKey]) else {
-                continue
-            }
-
-            subscription.categoryID = categoryIDsByName[rule.name.lowercased()]
-            try repositories.subscriptions.update(subscription)
-        }
-    }
-
-    func manuallyAssign(subscriptionID: String, categoryID: String?) throws {
-        guard let subscription = try repositories.subscriptions.subscription(id: subscriptionID) else {
-            throw SiftError.notFound("Subscription")
-        }
-
-        subscription.categoryID = categoryID
-        subscription.categoryManuallySet = true
-        try repositories.subscriptions.update(subscription)
-    }
-
-    func mergeCategory(id sourceID: String, into targetID: String) throws {
-        guard sourceID != targetID else {
-            return
-        }
-
-        for subscription in try repositories.subscriptions.all() where subscription.categoryID == sourceID {
-            subscription.categoryID = targetID
-            subscription.categoryManuallySet = true
-            try repositories.subscriptions.update(subscription)
-        }
-
-        try repositories.categories.delete(id: sourceID)
-    }
-
-    private func ensureRuleCategories() throws -> [String: String] {
-        var categories = try repositories.categories.all()
-
-        for rule in Self.keywordRules where !categories.contains(where: { $0.name.caseInsensitiveCompare(rule.name) == .orderedSame }) {
-            let category = Category(
-                id: "cat-\(MerchantKey(rule.name).rawValue)",
-                userID: SeedData.defaultUserID,
-                name: rule.name,
-                iconToken: rule.iconToken,
-                isAuto: true
-            )
-            try repositories.categories.insert(category)
-            categories.append(category)
-        }
-
-        return Dictionary(uniqueKeysWithValues: categories.map { ($0.name.lowercased(), $0.id) })
-    }
-
-    private func rule(for subscription: Subscription, hint: String?) -> KeywordRule? {
-        let searchable = "\(subscription.merchantKey.rawValue) \(hint ?? "")".lowercased()
-        return Self.keywordRules.first { rule in
-            rule.keywords.contains { searchable.contains($0) }
-        }
-    }
 }
 
 @MainActor
@@ -1048,6 +994,7 @@ final class CategoriesViewModel {
             let settings = try repositories.settings.settings()
             autoCategorize = settings.autoCategorizeSubscriptions
             try service.applyAutoCategorizationIfEnabled()
+            try service.applyAutoCategorizationForTransactions()
             categories = try repositories.categories.all()
             subscriptions = try repositories.subscriptions.all()
             rows = makeRows()
@@ -1123,6 +1070,8 @@ final class CategoriesViewModel {
 }
 
 struct CategoriesView: View {
+    @Environment(\.repositories) private var environmentRepositories
+    @Environment(\.featureFlags) private var featureFlags
     @State private var viewModel: CategoriesViewModel
 
     init(repositories: RepositoryContainer = .mock()) {
@@ -1132,28 +1081,44 @@ struct CategoriesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Categories & rules", eyebrow: "GROUPS")
+                ScreenHeader(title: "Categories & rules")
                     .accessibilityIdentifier("categories-title")
 
-                AlertToggleRow(
-                    title: "Auto-categorise",
-                    detail: "Keyword rules apply unless you change a category",
-                    isOn: Binding(
-                        get: { viewModel.autoCategorize },
-                        set: { viewModel.setAutoCategorize($0) }
+                SiftSection(padded: false) {
+                    AlertToggleRow(
+                        title: "Auto-categorise",
+                        detail: "Keyword rules apply unless you change a category",
+                        isOn: Binding(
+                            get: { viewModel.autoCategorize },
+                            set: { viewModel.setAutoCategorize($0) }
+                        )
                     )
-                )
-                .accessibilityIdentifier("categories-auto-toggle")
+                    .accessibilityIdentifier("categories-auto-toggle")
+                }
 
-                VStack(spacing: Spacing.sm) {
-                    ForEach(viewModel.rows) { row in
+                if featureFlags.categoryRulesEnabled {
+                    SiftRowSection(
+                        footer: "Rules override what Sift would have guessed.",
+                        data: [0],
+                        id: \.self
+                    ) { _ in
                         NavigationLink {
-                            CategorySubscriptionsView(category: row, viewModel: viewModel)
+                            CategoryRulesView(repositories: environmentRepositories)
                         } label: {
-                            CategoryRow(row: row)
+                            SettingsRow(icon: SiftIcon.list, title: "Rules")
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier("categories-rules")
                     }
+                }
+
+                SiftRowSection(data: viewModel.rows, id: \.id) { row in
+                    NavigationLink {
+                        CategorySubscriptionsView(category: row, viewModel: viewModel)
+                    } label: {
+                        CategoryRow(row: row)
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 if let errorMessage = viewModel.errorMessage {
@@ -1168,7 +1133,7 @@ struct CategoriesView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Categories")
         .task { viewModel.load() }
     }
@@ -1181,37 +1146,29 @@ private struct CategoryRow: View {
         HStack(spacing: Spacing.md) {
             Image(systemName: SiftIcon.list)
                 .font(.system(size: 15, weight: .regular))
-                .foregroundStyle(Palette.goldDeep)
+                .foregroundStyle(Palette.accent)
                 .frame(width: 32, height: 32)
-                .background(Palette.bone, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .stroke(Palette.line, lineWidth: 1)
-                )
+                .background(Palette.ground, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(row.name)
                     .font(.bodyEmphasis)
                     .foregroundStyle(Palette.ink)
                 Text(row.count == 1 ? "1 subscription" : "\(row.count) subscriptions")
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
             }
 
             Spacer()
 
-            MoneyText(value: row.monthlyTotal.formatted(), size: 16)
+            MoneyText(value: row.monthlyTotal.formatted(), role: .row)
 
             Image(systemName: SiftIcon.chevronRight)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Palette.inkFaint)
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -1222,7 +1179,7 @@ private struct CategorySubscriptionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: category.name, eyebrow: "CATEGORY")
+                ScreenHeader(title: category.name)
 
                 if viewModel.subscriptions(for: category.id).isEmpty {
                     StateMessageCard(
@@ -1231,17 +1188,15 @@ private struct CategorySubscriptionsView: View {
                         systemImage: SiftIcon.list
                     )
                 } else {
-                    VStack(spacing: Spacing.sm) {
-                        ForEach(viewModel.subscriptions(for: category.id), id: \.id) { subscription in
-                            CategorySubscriptionRow(
-                                subscription: subscription,
-                                categories: viewModel.categories,
-                                currentCategoryID: category.id,
-                                recategorize: { targetID in
-                                    viewModel.recategorize(subscriptionID: subscription.id, categoryID: targetID)
-                                }
-                            )
-                        }
+                    SiftRowSection(data: viewModel.subscriptions(for: category.id), id: \.id) { subscription in
+                        CategorySubscriptionRow(
+                            subscription: subscription,
+                            categories: viewModel.categories,
+                            currentCategoryID: category.id,
+                            recategorize: { targetID in
+                                viewModel.recategorize(subscriptionID: subscription.id, categoryID: targetID)
+                            }
+                        )
                     }
                 }
 
@@ -1251,7 +1206,7 @@ private struct CategorySubscriptionsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle(category.name)
     }
 }
@@ -1271,7 +1226,7 @@ private struct CategorySubscriptionRow: View {
                     .font(.bodyEmphasis)
                     .foregroundStyle(Palette.ink)
                 Text(subscription.amount.formatted())
-                    .font(.custom(SiftFontPostScriptName.plusJakartaMedium.rawValue, size: 12, relativeTo: .caption))
+                    .font(.system(.caption, design: .default).weight(.medium))
                     .foregroundStyle(Palette.inkSoft)
             }
 
@@ -1290,17 +1245,13 @@ private struct CategorySubscriptionRow: View {
                 }
             } label: {
                 Label("Move", systemImage: SiftIcon.chevronRight)
-                    .font(.custom(SiftFontPostScriptName.plusJakartaSemiBold.rawValue, size: 12, relativeTo: .caption))
-                    .foregroundStyle(Palette.goldDeep)
+                    .font(.system(.caption, design: .default).weight(.semibold))
+                    .foregroundStyle(Palette.accent)
                     .frame(minHeight: 44)
             }
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
@@ -1309,8 +1260,8 @@ private struct MergeCategorySection: View {
     let viewModel: CategoriesViewModel
 
     var body: some View {
-        SiftCard {
-            Text("MERGE DUPLICATES")
+        SiftSection {
+            Text("Merge duplicates")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -1329,11 +1280,7 @@ private struct MergeCategorySection: View {
                     .font(.buttonLabel)
                     .foregroundStyle(Palette.ink)
                     .frame(maxWidth: .infinity, minHeight: 48)
-                    .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                            .stroke(Palette.line, lineWidth: 1)
-                    )
+                    .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
             }
         }
     }
@@ -1430,11 +1377,11 @@ struct PrivacyDataView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Privacy & data", eyebrow: "CONTROL")
+                ScreenHeader(title: "Privacy & data")
                     .accessibilityIdentifier("privacy-data-title")
 
-                SiftCard {
-                    Text("WHAT SIFT STORES")
+                SiftSection {
+                    Text("What sift stores")
                         .font(.siftLabel)
                         .foregroundStyle(Palette.inkFaint)
 
@@ -1462,13 +1409,13 @@ struct PrivacyDataView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Privacy")
         .alert("Disconnect all accounts?", isPresented: confirmationBinding) {
             switch confirmation {
             case .some(.first):
                 Button("Continue", role: .destructive) {
-                    self.confirmation = .second
+                    confirmation = .second
                 }
                 Button("Cancel", role: .cancel) {}
             case .some(.second):

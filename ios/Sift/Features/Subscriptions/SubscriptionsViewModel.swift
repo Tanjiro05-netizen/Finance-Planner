@@ -60,11 +60,11 @@ final class SubscriptionsViewModel {
     }
 
     var activeCount: Int {
-        subscriptions.filter { $0.status == .active }.count
+        subscriptions.count(where: { $0.status == .active })
     }
 
     var unusedCount: Int {
-        subscriptions.filter { $0.status == .unused }.count
+        subscriptions.count(where: { $0.status == .unused })
     }
 
     var segmentTitles: [String] {

@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Sift
+import Testing
 
 @MainActor
 struct CoreScreensViewModelTests {
@@ -13,7 +13,7 @@ struct CoreScreensViewModelTests {
 
         viewModel.load()
 
-        #expect(viewModel.monthlyTotal == Money.usd(24_783))
+        #expect(viewModel.monthlyTotal == Money.usd(24783))
         #expect(viewModel.subscriptionCount == 11)
         #expect(viewModel.renewThisWeekCount == 3)
         #expect(viewModel.unusedNudge?.id == SeedData.ID.creativeCloud)
@@ -51,12 +51,53 @@ struct CoreScreensViewModelTests {
 
         await viewModel.load()
 
-        #expect(viewModel.potentialSavings == Money.usd(14_600))
+        #expect(viewModel.potentialSavings == Money.usd(14600))
         #expect(viewModel.annualSavings == Money.usd(175_200))
         #expect(viewModel.categorySpend.first?.name == "Design")
-        #expect(viewModel.categorySpend.first?.total == Money.usd(8_436))
+        #expect(viewModel.categorySpend.first?.total == Money.usd(8436))
         #expect(viewModel.priceChangeRows.count == 1)
         #expect(viewModel.priceChangeRows.first?.subscriptionName == "Streamline+")
+    }
+
+    @Test func insightsHidesTheGoalsEntryUntilTheFlagIsOn() {
+        let offViewModel = InsightsViewModel(
+            repositories: .mock(),
+            detectionService: MockDetectionService(),
+            refresher: NoopSubscriptionRefreshService(),
+            referenceDateProvider: { Self.referenceDate }
+        )
+        #expect(offViewModel.showsGoalsEntry == false)
+
+        let onViewModel = InsightsViewModel(
+            repositories: .mock(),
+            detectionService: MockDetectionService(),
+            refresher: NoopSubscriptionRefreshService(),
+            referenceDateProvider: { Self.referenceDate },
+            featureFlags: SiftFeatureFlags(goalsEnabled: true)
+        )
+        #expect(onViewModel.showsGoalsEntry)
+    }
+
+    @Test func insightsOffersAPermanentWayIntoBudgets() {
+        // Budgets used to be reachable only through Home's over-pace nudge, so a user with
+        // no budgets could never create a first one.
+        let offViewModel = InsightsViewModel(
+            repositories: .mock(),
+            detectionService: MockDetectionService(),
+            refresher: NoopSubscriptionRefreshService(),
+            referenceDateProvider: { Self.referenceDate }
+        )
+        #expect(offViewModel.showsBudgetsEntry == false)
+
+        let onViewModel = InsightsViewModel(
+            repositories: .mock(),
+            detectionService: MockDetectionService(),
+            refresher: NoopSubscriptionRefreshService(),
+            referenceDateProvider: { Self.referenceDate },
+            featureFlags: SiftFeatureFlags(budgetsEnabled: true)
+        )
+        // Present whenever the feature is on — not only once something is already wrong.
+        #expect(onViewModel.showsBudgetsEntry)
     }
 
     @Test func detailAnnualizesMonthlyAndYearlyCadences() {
@@ -73,10 +114,10 @@ struct CoreScreensViewModelTests {
         monthlyViewModel.load()
         yearlyViewModel.load()
 
-        #expect(monthlyViewModel.monthlyCost == Money.usd(1_549))
-        #expect(monthlyViewModel.annualCost == Money.usd(18_588))
+        #expect(monthlyViewModel.monthlyCost == Money.usd(1549))
+        #expect(monthlyViewModel.annualCost == Money.usd(18588))
         #expect(yearlyViewModel.monthlyCost == Money.usd(999))
-        #expect(yearlyViewModel.annualCost == Money.usd(11_988))
+        #expect(yearlyViewModel.annualCost == Money.usd(11988))
     }
 
     @Test func refreshCallsSharedRefreshService() async {
@@ -91,6 +132,40 @@ struct CoreScreensViewModelTests {
 
         #expect(refresher.callCount == 1)
         #expect(refresher.lastReferenceDate == Self.referenceDate)
+    }
+
+    @Test func safeToSpendHiddenWhenLedgerFlagOff() {
+        let viewModel = HomeViewModel(
+            repositories: .mock(),
+            refresher: NoopSubscriptionRefreshService(),
+            featureFlags: SiftFeatureFlags(conciergeEnabled: false, ledgerEnabled: false),
+            referenceDateProvider: { SeedData.referenceDate }
+        )
+
+        viewModel.load()
+
+        #expect(viewModel.showsSafeToSpend == false)
+        #expect(viewModel.safeToSpend == nil)
+    }
+
+    @Test func safeToSpendAvailableWhenLedgerFlagOn() {
+        let viewModel = HomeViewModel(
+            repositories: .mock(),
+            refresher: NoopSubscriptionRefreshService(),
+            featureFlags: SiftFeatureFlags(conciergeEnabled: false, ledgerEnabled: true),
+            referenceDateProvider: { SeedData.referenceDate }
+        )
+
+        viewModel.load()
+
+        #expect(viewModel.showsSafeToSpend)
+        guard case let .available(result) = viewModel.safeToSpend else {
+            Issue.record("Expected an available safe-to-spend outcome from seeded balances")
+            return
+        }
+        // Seeded checking balance is spendable; the seeded payroll gives a real income horizon.
+        #expect(result.usedFallbackWindow == false)
+        #expect(result.horizonEndDate > SeedData.referenceDate)
     }
 
     private static var referenceDate: Date {

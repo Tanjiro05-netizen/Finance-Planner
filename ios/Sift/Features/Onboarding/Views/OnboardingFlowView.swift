@@ -39,7 +39,7 @@ struct OnboardingFlowView: View {
 
     var body: some View {
         ZStack {
-            Palette.bone.ignoresSafeArea()
+            Palette.ground.ignoresSafeArea()
             content
                 .transition(Motion.stepTransition(reduceMotion: reduceMotion))
         }
@@ -103,6 +103,12 @@ struct OnboardingFlowView: View {
                 viewModel.completeOnboarding()
                 onComplete()
             }
+        case .connectUnavailable:
+            ConnectUnavailableView(
+                reason: viewModel.unavailableReason ?? .accessDenied,
+                onRetry: { viewModel.retryConnect() },
+                onSkip: { viewModel.skipConnect() }
+            )
         }
     }
 

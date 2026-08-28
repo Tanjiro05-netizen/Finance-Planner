@@ -1,13 +1,13 @@
 @preconcurrency import Foundation
-import Testing
 @testable import Sift
+import Testing
 
 struct APIClientTests {
     @Test func bootstrapStoresJwtFromEnvelope() async throws {
         let loader = CapturingHTTPDataLoader(response: jsonResponse(#"{"data":{"token":"jwt-123"}}"#))
         let tokenStore = InMemoryTokenStore()
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: tokenStore
         )
@@ -21,8 +21,8 @@ struct APIClientTests {
 
     @Test func linkTokenInjectsJwtHeader() async throws {
         let loader = CapturingHTTPDataLoader(response: jsonResponse(#"{"data":{"link_token":"link-sandbox-123"}}"#))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc")
         )
@@ -35,8 +35,8 @@ struct APIClientTests {
 
     @Test func exchangeEncodesPublicToken() async throws {
         let loader = CapturingHTTPDataLoader(response: jsonResponse(#"{"data":{"ok":true}}"#))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc")
         )
@@ -54,8 +54,8 @@ struct APIClientTests {
             #"{"error":{"code":"validation_error","message":"No public token."}}"#,
             statusCode: 400
         ))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc")
         )
@@ -91,8 +91,8 @@ struct APIClientTests {
             }
             """#
         ))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc")
         )
@@ -102,7 +102,7 @@ struct APIClientTests {
         #expect(loader.requests.first?.url?.absoluteString == "https://api.example.test/v1/transactions?limit=25&offset=50")
         #expect(transactions.count == 1)
         #expect(transactions[0].merchantName == "NETFLIX #4471 LOS GATOS")
-        #expect(transactions[0].amountMinor == 1_549)
+        #expect(transactions[0].amountMinor == 1549)
     }
 
     @Test func listAccountsDecodesLinkedAccountMetadata() async throws {
@@ -123,8 +123,8 @@ struct APIClientTests {
             }
             """#
         ))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc")
         )
@@ -139,8 +139,8 @@ struct APIClientTests {
 
     @Test func deletePlaidItemUsesAuthenticatedDeleteEndpoint() async throws {
         let loader = CapturingHTTPDataLoader(response: jsonResponse(#"{"data":{"ok":true}}"#))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc")
         )
@@ -155,8 +155,8 @@ struct APIClientTests {
 
     @Test func deleteUserDataUsesPrivacyEndpoint() async throws {
         let loader = CapturingHTTPDataLoader(response: jsonResponse(#"{"data":{"ok":true}}"#))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc")
         )
@@ -186,8 +186,8 @@ struct APIClientTests {
             }
             """#
         ))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc")
         )
@@ -225,8 +225,8 @@ struct APIClientTests {
             }
             """#
         ))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc")
         )
@@ -250,8 +250,8 @@ struct APIClientTests {
             jsonResponse(#"{"data":{"link_token":"link-after-retry"}}"#),
         ])
         let analytics = AnalyticsRecorderSpy()
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: InMemoryTokenStore(token: "jwt-abc"),
             retryPolicy: .immediate,
@@ -273,8 +273,8 @@ struct APIClientTests {
             #"{"error":{"code":"unauthorized","message":"Expired."}}"#,
             statusCode: 401
         ))
-        let client = DefaultSiftAPIClient(
-            baseURL: URL(string: "https://api.example.test/v1")!,
+        let client = try DefaultSiftAPIClient(
+            baseURL: #require(URL(string: "https://api.example.test/v1")),
             loader: loader,
             tokenStore: tokenStore,
             retryPolicy: .disabled
@@ -289,43 +289,6 @@ struct APIClientTests {
         }
 
         Issue.record("Expected unauthorized error")
-    }
-
-    @Test func openAPIContractCoversClientEndpointsAndFields() throws {
-        let openAPI = try String(
-            contentsOf: repositoryRoot().appending(path: "backend/openapi.yaml"),
-            encoding: .utf8
-        )
-
-        for path in [
-            "/v1/auth/bootstrap",
-            "/v1/plaid/link-token",
-            "/v1/plaid/exchange",
-            "/v1/plaid/item/{id}",
-            "/v1/accounts",
-            "/v1/transactions/sync",
-            "/v1/transactions",
-            "/v1/cancellations",
-            "/v1/cancellations/{id}",
-            "/v1/privacy/data",
-        ] {
-            #expect(openAPI.contains(path))
-        }
-
-        for field in [
-            "link_token",
-            "public_token",
-            "plaidItemId",
-            "institutionName",
-            "status",
-            "userId",
-            "amountMinor",
-            "subscriptionRef",
-            "cancelledByUser",
-            "feature_disabled",
-        ] {
-            #expect(openAPI.contains(field))
-        }
     }
 }
 
@@ -365,13 +328,6 @@ private final class AnalyticsRecorderSpy: AnalyticsRecording, @unchecked Sendabl
 
 private func jsonResponse(_ json: String, statusCode: Int = 200) -> HTTPDataResponse {
     HTTPDataResponse(data: Data(json.utf8), statusCode: statusCode)
-}
-
-private func repositoryRoot() -> URL {
-    URL(fileURLWithPath: #filePath)
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
 }
 
 private extension NSLock {

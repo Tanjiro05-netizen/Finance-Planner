@@ -1,13 +1,13 @@
 import Foundation
 import UserNotifications
 
-enum NotificationAuthorizationState: Equatable, Sendable {
+enum NotificationAuthorizationState: Equatable {
     case authorized
     case denied
     case notDetermined
 }
 
-struct NotificationReconcileResult: Equatable, Sendable {
+struct NotificationReconcileResult: Equatable {
     let authorizationState: NotificationAuthorizationState
     let scheduledIdentifiers: [String]
     let cancelledIdentifiers: [String]
@@ -167,7 +167,9 @@ final class NotificationScheduler: NotificationScheduling, @unchecked Sendable {
 
         if settings.renewalReminders {
             requests += subscriptions.compactMap { subscription in
-                guard !subscription.isTrialEnding else {
+                // Active subscriptions only: unused ones get the nudge instead of a
+                // renewal reminder, and trial-ending ones get the trial alert.
+                guard subscription.status == .active, !subscription.isTrialEnding else {
                     return nil
                 }
 
@@ -203,6 +205,10 @@ final class NotificationScheduler: NotificationScheduling, @unchecked Sendable {
                     referenceDate: referenceDate
                 )
             }
+        }
+
+        if settings.budgetAlerts {
+            requests += try budgetOverspendRequests(referenceDate: referenceDate)
         }
 
         if settings.weeklySummary {
@@ -288,6 +294,55 @@ final class NotificationScheduler: NotificationScheduling, @unchecked Sendable {
         )
     }
 
+    /// One alert per already-overspent budget, fired the same day. Only overspent budgets
+    /// qualify — warning on every budget that merely ticks past its pace would fire
+    /// constantly and train people to swipe the alerts away.
+    private func budgetOverspendRequests(referenceDate: Date) throws -> [UNNotificationRequest] {
+        let budgets = try repositories.budgets.all().filter { $0.status == .active }
+        guard !budgets.isEmpty else {
+            return []
+        }
+
+        let categoryNames = try Dictionary(
+            repositories.categories.all().map { ($0.id, $0.name) },
+            uniquingKeysWith: { first, _ in first }
+        )
+
+        return try budgets.compactMap { budget in
+            let cycle = BudgetPeriodCalculator.cycle(for: budget.period, containing: referenceDate, calendar: calendar)
+            let transactions = try repositories.transactions.transactions(from: cycle.start, to: cycle.end)
+            let progress = BudgetProgressCalculator.progress(
+                budget: budget,
+                transactions: transactions,
+                referenceDate: referenceDate,
+                calendar: calendar
+            )
+
+            guard progress.isOverspent else {
+                return nil
+            }
+
+            let name = categoryNames[budget.categoryID] ?? "Budget"
+            guard let fireDate = calendar.date(
+                bySettingHour: Self.notificationHour,
+                minute: 0,
+                second: 0,
+                of: referenceDate
+            ) else {
+                return nil
+            }
+
+            return UNNotificationRequest(
+                identifier: "\(SiftNotificationKind.budgetOverspend.identifierPrefix)\(budget.id)",
+                content: contentBuilder.budgetOverspendContent(categoryName: name, progress: progress),
+                trigger: UNCalendarNotificationTrigger(
+                    dateMatching: calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate),
+                    repeats: false
+                )
+            )
+        }
+    }
+
     private func weeklySummaryRequest(
         subscriptions: [Subscription],
         priceChanges: [PriceChange],
@@ -298,7 +353,7 @@ final class NotificationScheduler: NotificationScheduling, @unchecked Sendable {
         let summary = WeeklyNotificationSummary(
             monthlyTotal: monthlyTotal,
             activeSubscriptionCount: subscriptions.count,
-            recentPriceChangeCount: priceChanges.filter { $0.changedAt >= weekCutoff }.count
+            recentPriceChangeCount: priceChanges.count(where: { $0.changedAt >= weekCutoff })
         )
 
         var components = DateComponents()
@@ -352,7 +407,7 @@ final class NotificationScheduler: NotificationScheduling, @unchecked Sendable {
             switch kind {
             case .weeklySummary:
                 identifier == kind.identifierPrefix
-            case .renewal, .priceChange, .trialEnding, .unusedNudge:
+            case .renewal, .priceChange, .trialEnding, .unusedNudge, .budgetOverspend:
                 identifier.hasPrefix(kind.identifierPrefix)
             }
         }

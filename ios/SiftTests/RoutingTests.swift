@@ -1,7 +1,7 @@
+@testable import Sift
 import SwiftUI
 import Testing
 import UIKit
-@testable import Sift
 
 @MainActor
 struct RoutingTests {
@@ -18,6 +18,8 @@ struct RoutingTests {
         #expect(ids.count == sheets.count)
         #expect(ids.contains("subscription-detail-\(SampleRouteID.subscription)"))
         #expect(ids.contains("cancellation-\(SampleRouteID.subscription)"))
+        #expect(ids.contains("manual-transaction-entry"))
+        #expect(ids.contains("transaction-detail-\(SampleRouteID.transaction)"))
     }
 
     @Test func routeDestinationsBuild() {
@@ -49,7 +51,7 @@ struct RoutingTests {
         }
     }
 
-    private func assertBuilds<V: View>(_ view: V) {
+    private func assertBuilds(_ view: some View) {
         let controller = UIHostingController(rootView: view)
         controller.loadViewIfNeeded()
 

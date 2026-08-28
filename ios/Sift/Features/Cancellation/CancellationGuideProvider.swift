@@ -1,6 +1,6 @@
 import Foundation
 
-struct CancellationGuide: Equatable, Sendable {
+struct CancellationGuide: Equatable {
     let merchantKey: MerchantKey
     let title: String
     let isGeneric: Bool
@@ -19,7 +19,7 @@ struct CancellationGuideProvider: CancellationGuideProviding {
         self.guides = guides
     }
 
-    func guide(for merchantKey: MerchantKey, merchantName: String) -> CancellationGuide {
+    func guide(for merchantKey: MerchantKey, merchantName _: String) -> CancellationGuide {
         if let guide = guides[merchantKey] {
             return guide
         }

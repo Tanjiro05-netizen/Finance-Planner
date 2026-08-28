@@ -1,7 +1,7 @@
 import Foundation
+@testable import Sift
 import Testing
 import UserNotifications
-@testable import Sift
 
 @MainActor
 struct NotificationContentBuilderTests {
@@ -9,7 +9,7 @@ struct NotificationContentBuilderTests {
         let subscription = notificationTestSubscription(
             id: "sub-streamline",
             name: "Streamline+",
-            amount: .usd(1_549),
+            amount: .usd(1549),
             cadence: .monthly,
             nextRenewal: notificationTestDate(2026, 7, 5)
         )
@@ -26,8 +26,8 @@ struct NotificationContentBuilderTests {
             id: "price-streamline",
             userID: SeedData.defaultUserID,
             subscriptionID: "sub-streamline",
-            oldAmount: .usd(1_199),
-            newAmount: .usd(1_549),
+            oldAmount: .usd(1199),
+            newAmount: .usd(1549),
             changedAt: notificationTestDate(2026, 7, 1)
         )
         let subscription = notificationTestSubscription(id: "sub-streamline", name: "Streamline+")
@@ -41,7 +41,7 @@ struct NotificationContentBuilderTests {
 
     @Test func weeklySummaryPayloadRoutesHome() {
         let summary = WeeklyNotificationSummary(
-            monthlyTotal: .usd(6_248),
+            monthlyTotal: .usd(6248),
             activeSubscriptionCount: 4,
             recentPriceChangeCount: 1
         )
@@ -71,7 +71,7 @@ func notificationTestSubscription(
         name: name,
         merchantKey: MerchantKey(name),
         monogramLetter: String(name.prefix(1)),
-        tileColorToken: .gold,
+        tileColorToken: .inkSoft,
         amount: amount,
         cadence: cadence,
         nextRenewal: nextRenewal,

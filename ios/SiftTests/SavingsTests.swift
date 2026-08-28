@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import Sift
+import Testing
 
 @MainActor
 struct SavingsTests {
@@ -50,6 +50,6 @@ struct SavingsTests {
             subscriptions: snapshot.subscriptions
         )
 
-        #expect(savings == Money.usd(28_176))
+        #expect(savings == Money.usd(28176))
     }
 }

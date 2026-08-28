@@ -9,6 +9,7 @@ protocol SubscriptionRepository: AnyObject, Sendable {
     @MainActor func deleteAll() throws
     @MainActor func monthlyTotal() throws -> Money
     @MainActor func upcomingRenewals(limit: Int) throws -> [Subscription]
+    @MainActor func upcomingRenewals(from startDate: Date, to endDate: Date) throws -> [Subscription]
     @MainActor func unused(referenceDate: Date, staleAfterDays: Int) throws -> [Subscription]
     @MainActor func byCategory() throws -> [SubscriptionCategoryGroup]
     @MainActor func potentialSavings(referenceDate: Date, staleAfterDays: Int) throws -> Money
@@ -40,13 +41,97 @@ protocol AccountRepository: AnyObject, Sendable {
     @MainActor func deleteAll() throws
 }
 
+extension AccountRepository {
+    /// Spendable cash across linked deposit accounts. Credit/liability accounts are
+    /// excluded (a card balance is money owed, not money to spend). Returns nil only when
+    /// no account reports any balance at all (FinanceKit unauthorized or not yet synced);
+    /// a partial sum is returned when some accounts have balances and others don't.
+    @MainActor func totalBalance() throws -> Money? {
+        // LinkedAccount.type is an unstructured String today ("Checking"/"Credit"); this is
+        // a string-match heuristic until type is promoted to a proper enum.
+        let balances = try all()
+            .filter { !$0.type.localizedCaseInsensitiveContains("credit") }
+            .compactMap(\.currentBalance)
+        guard !balances.isEmpty else {
+            return nil
+        }
+        return try? Money.sum(balances)
+    }
+}
+
+protocol RecurringIncomeRepository: AnyObject, Sendable {
+    @MainActor func all() throws -> [RecurringIncome]
+    @MainActor func recurringIncome(id: String) throws -> RecurringIncome?
+    @MainActor func insert(_ income: RecurringIncome) throws
+    @MainActor func update(_ income: RecurringIncome) throws
+    @MainActor func delete(id: String) throws
+    @MainActor func deleteAll() throws
+    @MainActor func nextExpectedIncome(after referenceDate: Date) throws -> RecurringIncome?
+}
+
+protocol BillRepository: AnyObject, Sendable {
+    @MainActor func all() throws -> [Bill]
+    @MainActor func bill(id: String) throws -> Bill?
+    @MainActor func insert(_ bill: Bill) throws
+    @MainActor func update(_ bill: Bill) throws
+    @MainActor func delete(id: String) throws
+    @MainActor func deleteAll() throws
+    @MainActor func upcomingBills(from startDate: Date, to endDate: Date) throws -> [Bill]
+}
+
+protocol BudgetRepository: AnyObject, Sendable {
+    @MainActor func all() throws -> [Budget]
+    @MainActor func budget(id: String) throws -> Budget?
+    /// The active budget for a category, if one exists. A category has at most one.
+    @MainActor func budget(forCategory categoryID: String) throws -> Budget?
+    @MainActor func insert(_ budget: Budget) throws
+    @MainActor func update(_ budget: Budget) throws
+    @MainActor func delete(id: String) throws
+    @MainActor func deleteAll() throws
+}
+
+protocol CategoryRuleRepository: AnyObject, Sendable {
+    /// Always in evaluation order, so no caller has to remember to sort.
+    @MainActor func all() throws -> [CategoryRule]
+    @MainActor func rule(id: String) throws -> CategoryRule?
+    @MainActor func insert(_ rule: CategoryRule) throws
+    @MainActor func update(_ rule: CategoryRule) throws
+    @MainActor func delete(id: String) throws
+    /// Rewrites `order` from array position in one save, so a drag can't leave the list
+    /// with duplicate or gapped orders.
+    @MainActor func reorder(ids: [String]) throws
+    @MainActor func deleteAll() throws
+}
+
+/// Covers both `Goal` and `GoalContribution`. A contribution is never reached except through
+/// its goal, so a second repository would add ceremony without adding a seam — and keeping
+/// `deleteAll()` responsible for both is what keeps `wipeLocalData()` honest.
+protocol GoalRepository: AnyObject, Sendable {
+    @MainActor func all() throws -> [Goal]
+    @MainActor func goal(id: String) throws -> Goal?
+    @MainActor func insert(_ goal: Goal) throws
+    @MainActor func update(_ goal: Goal) throws
+    @MainActor func delete(id: String) throws
+    @MainActor func deleteAll() throws
+    @MainActor func contributions(forGoal goalID: String) throws -> [GoalContribution]
+    @MainActor func addContribution(_ contribution: GoalContribution) throws
+    @MainActor func deleteContribution(id: String) throws
+}
+
 protocol TransactionRepository: AnyObject, Sendable {
     @MainActor func all() throws -> [Transaction]
     @MainActor func recent(limit: Int) throws -> [Transaction]
     @MainActor func transactions(for accountID: String) throws -> [Transaction]
+    @MainActor func transactions(from startDate: Date, to endDate: Date) throws -> [Transaction]
+    @MainActor func transaction(id: String) throws -> Transaction?
     @MainActor func insert(_ transaction: Transaction) throws
     @MainActor func upsert(_ transaction: Transaction) throws
+    @MainActor func update(_ transaction: Transaction) throws
+    @MainActor func delete(id: String) throws
     @MainActor func deleteAll() throws
+    @MainActor func totalSpend(from startDate: Date, to endDate: Date) throws -> Money
+    @MainActor func totalIncome(from startDate: Date, to endDate: Date) throws -> Money
+    @MainActor func byCategory(from startDate: Date, to endDate: Date) throws -> [TransactionCategoryGroup]
 }
 
 protocol CancellationRepository: AnyObject, Sendable {

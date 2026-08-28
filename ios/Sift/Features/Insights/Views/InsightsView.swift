@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 
 struct InsightsView: View {
@@ -8,27 +9,33 @@ struct InsightsView: View {
         repositories: RepositoryContainer = .mock(),
         apiClient: any SiftAPIClient = MockSiftAPIClient(),
         detectionService: any DetectionServing = MockDetectionService(),
+        incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(),
         notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
-        referenceDateProvider: @escaping () -> Date = { Date() }
+        referenceDateProvider: @escaping () -> Date = { Date() },
+        featureFlags: SiftFeatureFlags = .launchDefault,
+        insightNarrator: any InsightNarrating = MockInsightNarrator()
     ) {
         let refresher = DefaultSubscriptionRefreshService(
             apiClient: apiClient,
             detectionService: detectionService,
             repositories: repositories,
+            incomeDetectionService: incomeDetectionService,
             notificationScheduler: notificationScheduler
         )
         _viewModel = State(initialValue: InsightsViewModel(
             repositories: repositories,
             detectionService: detectionService,
             refresher: refresher,
-            referenceDateProvider: referenceDateProvider
+            referenceDateProvider: referenceDateProvider,
+            featureFlags: featureFlags,
+            narrator: insightNarrator
         ))
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.xl) {
-                ScreenHeader(title: "Insights", eyebrow: "SAVINGS")
+                ScreenHeader(title: "Insights")
                     .accessibilityIdentifier("insights-title")
 
                 content
@@ -37,10 +44,15 @@ struct InsightsView: View {
             .padding(.top, Spacing.xl)
             .padding(.bottom, 84)
         }
-        .background(Palette.bone)
+        .background(Palette.ground)
         .navigationTitle("Insights")
         .refreshable { await viewModel.refresh() }
-        .task { await viewModel.load() }
+        .task {
+            await viewModel.load()
+            // Sequenced after load, not alongside it: narration reads the comparison and
+            // movers that load() produces, and the figures must not wait on generation.
+            await viewModel.narrateInsights()
+        }
         .onChange(of: appModel.sheet) { _, newValue in
             if newValue == nil {
                 Task {
@@ -70,9 +82,12 @@ struct InsightsView: View {
                 systemImage: SiftIcon.insights
             )
         } else {
-            InsightsContentView(viewModel: viewModel) {
-                appModel.push(.savingsBreakdown, in: .insights)
-            }
+            InsightsContentView(
+                viewModel: viewModel,
+                openSavings: { appModel.push(.savingsBreakdown, in: .insights) },
+                openGoals: { appModel.push(.goals, in: .insights) },
+                openBudgets: { appModel.push(.budgets, in: .insights) }
+            )
         }
     }
 }
@@ -80,10 +95,20 @@ struct InsightsView: View {
 private struct InsightsContentView: View {
     let viewModel: InsightsViewModel
     let openSavings: () -> Void
+    let openGoals: () -> Void
+    let openBudgets: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
             SavingsHeroCard(viewModel: viewModel)
+
+            NarrationSection(
+                notes: viewModel.insightNotes,
+                isNarrating: viewModel.isNarrating,
+                failureMessage: viewModel.narrationMessage,
+                unavailableMessage: viewModel.narrationUnavailableMessage
+            )
+
             CategorySpendCard(
                 rows: viewModel.categorySpend,
                 maxSpend: viewModel.maxCategorySpend
@@ -91,10 +116,101 @@ private struct InsightsContentView: View {
             PriceChangesSection(rows: viewModel.priceChangeRows)
             TrialEndingSection(rows: viewModel.trialEndingRows)
 
+            if viewModel.showsSpendReports {
+                SpendReportSections(
+                    monthlySpend: viewModel.monthlySpend,
+                    maxMonthlySpend: viewModel.maxMonthlySpend,
+                    comparison: viewModel.spendComparison,
+                    movers: viewModel.topMovers
+                )
+            }
+
             SecondaryButton(title: "View savings") {
                 openSavings()
             }
+
+            if viewModel.showsBudgetsEntry {
+                SecondaryButton(title: "Budgets") {
+                    openBudgets()
+                }
+                .accessibilityIdentifier("insights-budgets-button")
+            }
+
+            if viewModel.showsGoalsEntry {
+                SecondaryButton(title: "Savings goals") {
+                    openGoals()
+                }
+                .accessibilityIdentifier("insights-goals-button")
+            }
         }
+    }
+}
+
+/// Written observations from the on-device model, and the several ways there can be none.
+///
+/// Renders nothing at all when narration is off — the flag being off, or the model being
+/// unavailable with no message, must leave Insights looking exactly as it did before.
+private struct NarrationSection: View {
+    let notes: [InsightNote]
+    let isNarrating: Bool
+    let failureMessage: String?
+    let unavailableMessage: String?
+
+    var body: some View {
+        if let unavailableMessage {
+            SiftSection {
+                sectionTitle
+                Text(unavailableMessage)
+                    .font(.siftBody)
+                    .foregroundStyle(Palette.inkSoft)
+            }
+            .accessibilityIdentifier("insights-narration-unavailable")
+        } else if isNarrating {
+            SiftSection {
+                sectionTitle
+                Text("Reading your numbers…")
+                    .font(.siftBody)
+                    .foregroundStyle(Palette.inkSoft)
+            }
+            .accessibilityIdentifier("insights-narration-loading")
+        } else if let failureMessage {
+            SiftSection {
+                sectionTitle
+                Text(failureMessage)
+                    .font(.siftBody)
+                    .foregroundStyle(Palette.inkSoft)
+            }
+            .accessibilityIdentifier("insights-narration-failed")
+        } else if !notes.isEmpty {
+            SiftSection {
+                sectionTitle
+
+                ForEach(notes) { note in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(note.headline)
+                            .font(.bodyEmphasis)
+                            .foregroundStyle(Palette.ink)
+                        Text(note.detail)
+                            .font(.siftBody)
+                            .foregroundStyle(Palette.inkSoft)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                // Said plainly rather than buried in a settings screen: people should know
+                // where the words came from, and that the figures did not.
+                Text("Written on your iPhone. Your financial data never leaves the device.")
+                    .font(.siftLabel)
+                    .foregroundStyle(Palette.inkFaint)
+            }
+            .accessibilityIdentifier("insights-narration")
+        }
+    }
+
+    private var sectionTitle: some View {
+        Text("What sift noticed")
+            .font(.siftLabel)
+            .foregroundStyle(Palette.inkFaint)
     }
 }
 
@@ -102,16 +218,16 @@ private struct SavingsHeroCard: View {
     let viewModel: InsightsViewModel
 
     var body: some View {
-        SiftCard {
-            Text("POTENTIAL SAVINGS")
+        SiftSection {
+            Text("Potential savings")
                 .font(.siftLabel)
-                .foregroundStyle(Palette.goldDeep)
+                .foregroundStyle(Palette.accent)
 
             MoneyText(
                 value: "\(viewModel.potentialSavings.formatted(showZeroFraction: false))/mo",
-                size: 50,
-                color: Palette.goldDeep,
-                secondaryColor: Palette.gold
+                role: .primary,
+                color: Palette.accent,
+                secondaryColor: Palette.accent
             )
             .minimumScaleFactor(0.72)
             .accessibilityLabel("Potential savings, \(viewModel.potentialSavings.formatted()) per month")
@@ -128,8 +244,8 @@ private struct CategorySpendCard: View {
     let maxSpend: Money
 
     var body: some View {
-        SiftCard {
-            Text("CATEGORY SPEND")
+        SiftSection {
+            Text("Category spend")
                 .font(.siftLabel)
                 .foregroundStyle(Palette.inkFaint)
 
@@ -138,13 +254,35 @@ private struct CategorySpendCard: View {
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
             } else {
-                VStack(spacing: Spacing.md) {
-                    ForEach(rows) { row in
-                        CategorySpendBar(row: row, maxSpend: maxSpend)
+                Chart(rows) { row in
+                    BarMark(
+                        x: .value("Spend", dollars(row.total)),
+                        y: .value("Category", row.name)
+                    )
+                    .foregroundStyle(Palette.accent)
+                    .cornerRadius(6)
+                    .annotation(position: .trailing, alignment: .leading, spacing: 6) {
+                        Text(row.total.formatted())
+                            .font(.system(.caption, design: .default).weight(.semibold))
+                            .foregroundStyle(Palette.ink)
+                            .monospacedDigit()
                     }
+                    .accessibilityLabel(row.name)
+                    .accessibilityValue("\(row.total.formatted()) per month")
                 }
+                .chartXAxis(.hidden)
+                .chartXScale(domain: 0 ... domainMax)
+                .frame(height: CGFloat(rows.count) * 44 + 8)
             }
         }
+    }
+
+    private func dollars(_ money: Money) -> Double {
+        Double(money.amountMinor) / 100
+    }
+
+    private var domainMax: Double {
+        max(1, dollars(maxSpend) * 1.18)
     }
 }
 
@@ -162,7 +300,7 @@ private struct CategorySpendBar: View {
                 Spacer()
 
                 Text(row.total.formatted())
-                    .font(.custom(SiftFontPostScriptName.frauncesSemiBold.rawValue, size: 16, relativeTo: .body))
+                    .font(.system(.body, design: .default).weight(.semibold))
                     .foregroundStyle(Palette.ink)
                     .monospacedDigit()
             }
@@ -170,10 +308,10 @@ private struct CategorySpendBar: View {
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Palette.sand)
+                        .fill(Palette.surfaceSunken)
 
                     Capsule()
-                        .fill(Palette.gold)
+                        .fill(Palette.accent)
                         .frame(width: proxy.size.width * widthRatio)
                 }
             }
@@ -196,24 +334,20 @@ private struct PriceChangesSection: View {
     let rows: [PriceChangeAlertRow]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("PRICE CHANGES")
-                .font(.siftLabel)
-                .foregroundStyle(Palette.inkFaint)
-
-            if rows.isEmpty {
+        if rows.isEmpty {
+            SiftSection(header: "Price changes") {
                 Text("No price changes detected.")
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
-            } else {
-                ForEach(rows) { row in
-                    AlertRow(
-                        icon: row.isIncrease ? SiftIcon.arrowUp : SiftIcon.arrowDown,
-                        title: row.subscriptionName,
-                        detail: row.detail,
-                        warns: row.isIncrease
-                    )
-                }
+            }
+        } else {
+            SiftRowSection(header: "Price changes", data: rows, id: \.id) { row in
+                AlertRow(
+                    icon: row.isIncrease ? SiftIcon.arrowUp : SiftIcon.arrowDown,
+                    title: row.subscriptionName,
+                    detail: row.detail,
+                    warns: row.isIncrease
+                )
             }
         }
     }
@@ -223,24 +357,20 @@ private struct TrialEndingSection: View {
     let rows: [TrialEndingAlertRow]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("TRIAL ENDING")
-                .font(.siftLabel)
-                .foregroundStyle(Palette.inkFaint)
-
-            if rows.isEmpty {
+        if rows.isEmpty {
+            SiftSection(header: "Trial ending") {
                 Text("No trials are ending soon.")
                     .font(.siftBody)
                     .foregroundStyle(Palette.inkSoft)
-            } else {
-                ForEach(rows) { row in
-                    AlertRow(
-                        icon: SiftIcon.calendar,
-                        title: row.subscriptionName,
-                        detail: row.detail,
-                        warns: false
-                    )
-                }
+            }
+        } else {
+            SiftRowSection(header: "Trial ending", data: rows, id: \.id) { row in
+                AlertRow(
+                    icon: SiftIcon.calendar,
+                    title: row.subscriptionName,
+                    detail: row.detail,
+                    warns: false
+                )
             }
         }
     }
@@ -256,13 +386,9 @@ private struct AlertRow: View {
         HStack(spacing: Spacing.md) {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(warns ? Palette.clay : Palette.goldDeep)
+                .foregroundStyle(warns ? Palette.negative : Palette.accent)
                 .frame(width: 36, height: 36)
-                .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Radius.tile, style: .continuous)
-                        .stroke(Palette.line, lineWidth: 1)
-                )
+                .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.tile, style: .continuous))
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -271,38 +397,34 @@ private struct AlertRow: View {
                     .foregroundStyle(Palette.ink)
                 Text(detail)
                     .font(.siftBody)
-                    .foregroundStyle(warns ? Palette.clay : Palette.inkSoft)
+                    .foregroundStyle(warns ? Palette.negative : Palette.inkSoft)
             }
 
             Spacer()
         }
-        .padding(Spacing.md)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: Radius.row, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Radius.row, style: .continuous)
-                .stroke(Palette.line, lineWidth: 1)
-        )
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 
 private struct InsightsLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.xl) {
-            SiftCard {
-                Text("POTENTIAL SAVINGS")
+            SiftSection {
+                Text("Potential savings")
                     .font(.siftLabel)
-                MoneyText(value: "$000/mo", size: 50)
+                MoneyText(value: "$000/mo", role: .primary)
                 Text("$0/yr if unused subscriptions are cancelled.")
                     .font(.siftBody)
             }
 
-            SiftCard {
-                Text("CATEGORY SPEND")
+            SiftSection {
+                Text("Category spend")
                     .font(.siftLabel)
-                ForEach(0..<4, id: \.self) { _ in
+                ForEach(0 ..< 4, id: \.self) { _ in
                     CategorySpendBar(
-                        row: CategorySpend(id: UUID().uuidString, name: "Category", total: .usd(10_000)),
-                        maxSpend: .usd(10_000)
+                        row: CategorySpend(id: UUID().uuidString, name: "Category", total: .usd(10000)),
+                        maxSpend: .usd(10000)
                     )
                 }
             }

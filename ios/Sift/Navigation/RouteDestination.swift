@@ -7,6 +7,8 @@ enum RouteDestination {
         switch route {
         case .settings:
             SettingsView()
+        case .cashFlowForecast:
+            CashFlowForecastRouteView()
         }
     }
 
@@ -14,7 +16,7 @@ enum RouteDestination {
     @ViewBuilder
     static func subscriptions(_ route: SubscriptionsRoute) -> some View {
         switch route {
-        case .detail(let id):
+        case let .detail(id):
             SubscriptionDetailRouteView(subscriptionID: id)
         }
     }
@@ -25,6 +27,10 @@ enum RouteDestination {
         switch route {
         case .savingsBreakdown:
             SavingsBreakdownView()
+        case .budgets:
+            BudgetsRouteView()
+        case .goals:
+            GoalsRouteView()
         }
     }
 
@@ -40,7 +46,7 @@ enum RouteDestination {
         analyticsRecorder: any AnalyticsRecording = NoopAnalyticsRecorder()
     ) -> some View {
         switch sheet {
-        case .subscriptionDetail(let id):
+        case let .subscriptionDetail(id):
             DetailSheetView(
                 subscriptionID: id,
                 repositories: repositories,
@@ -48,7 +54,7 @@ enum RouteDestination {
                 detectionService: detectionService,
                 notificationScheduler: notificationScheduler
             )
-        case .cancellation(let subscriptionID):
+        case let .cancellation(subscriptionID):
             CancelFlowSheetView(
                 subscriptionID: subscriptionID,
                 repositories: repositories,
@@ -63,6 +69,24 @@ enum RouteDestination {
                 apiClient: apiClient,
                 notificationScheduler: notificationScheduler
             )
+        case .manualTransactionEntry:
+            ManualTransactionEntrySheetView(repositories: repositories)
+        case let .transactionDetail(id):
+            TransactionDetailSheetView(transactionID: id)
+        case let .budgetEditor(budgetID):
+            BudgetEditorSheetView(budgetID: budgetID, repositories: repositories)
+        case .affordabilityCheck:
+            AffordabilityCheckSheetView(repositories: repositories)
+        case let .goalEditor(goalID):
+            GoalEditorSheetView(goalID: goalID, repositories: repositories)
+        case let .categoryRuleEditor(ruleID):
+            CategoryRuleEditorSheetView(ruleID: ruleID, repositories: repositories)
+        case let .goalContribution(goalID):
+            GoalContributionSheetView(goalID: goalID, repositories: repositories)
+        case let .billEditor(billID):
+            BillEditorSheetView(billID: billID, repositories: repositories)
+        case let .incomeEditor(incomeID):
+            IncomeEditorSheetView(incomeID: incomeID, repositories: repositories)
         }
     }
 }

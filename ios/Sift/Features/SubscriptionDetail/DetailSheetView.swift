@@ -12,6 +12,7 @@ struct DetailSheetView: View {
         repositories: RepositoryContainer = .mock(),
         apiClient: any SiftAPIClient = MockSiftAPIClient(),
         detectionService: any DetectionServing = MockDetectionService(),
+        incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(),
         notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
         referenceDateProvider: @escaping () -> Date = { Date() }
     ) {
@@ -20,6 +21,7 @@ struct DetailSheetView: View {
             apiClient: apiClient,
             detectionService: detectionService,
             repositories: repositories,
+            incomeDetectionService: incomeDetectionService,
             notificationScheduler: notificationScheduler
         )
         _viewModel = State(initialValue: SubscriptionDetailViewModel(
@@ -34,7 +36,7 @@ struct DetailSheetView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.xl) {
-                    ScreenHeader(title: viewModel.title, eyebrow: "DETAIL")
+                    ScreenHeader(title: viewModel.title)
                         .accessibilityIdentifier("detail-sheet-title")
 
                     content
@@ -43,7 +45,7 @@ struct DetailSheetView: View {
                 .padding(.top, Spacing.xl)
                 .padding(.bottom, 104)
             }
-            .background(Palette.bone)
+            .background(Palette.ground)
             .navigationTitle(viewModel.title)
             .refreshable { await viewModel.refresh() }
             .task(id: subscriptionID) { viewModel.load() }
@@ -129,7 +131,7 @@ private struct DetailHeaderCard: View {
     let paymentMeta: String
 
     var body: some View {
-        SiftCard {
+        SiftSection {
             HStack(spacing: Spacing.md) {
                 MonogramTile(
                     letter: subscription.monogramLetter,
@@ -190,9 +192,9 @@ private struct ChargeHistorySection: View {
     let maxAmount: Money
 
     var body: some View {
-        SiftCard {
+        SiftSection {
             HStack {
-                Text("CHARGE HISTORY")
+                Text("Charge history")
                     .font(.siftLabel)
                     .foregroundStyle(Palette.inkFaint)
 
@@ -223,7 +225,7 @@ private struct ChargeHistoryChart: View {
             ForEach(points) { point in
                 VStack(spacing: Spacing.sm) {
                     RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .fill(Palette.gold)
+                        .fill(Palette.accent)
                         .frame(height: barHeight(for: point))
                         .accessibilityLabel("\(point.date.formatted(.dateTime.month(.abbreviated).day())), \(point.amount.formatted())")
 
@@ -252,7 +254,7 @@ private struct ChargeHistoryChart: View {
 private struct DetailLoadingView: View {
     var body: some View {
         VStack(spacing: Spacing.xl) {
-            SiftCard {
+            SiftSection {
                 HStack {
                     MonogramTile(letter: "S", color: Palette.inkFaint, size: 52)
                     VStack(alignment: .leading) {

@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct SiftApp: App {
@@ -10,6 +10,7 @@ struct SiftApp: App {
     private let apiClient: any SiftAPIClient
     private let plaidLinkPresenter: any PlaidLinkPresenting
     private let detectionService: any DetectionServing
+    private let incomeDetectionService: any IncomeDetectionServing
     private let notificationAuthorizer: any NotificationAuthorizing
     private let notificationScheduler: any NotificationScheduling
     private let notificationRouter: NotificationRouter
@@ -17,6 +18,11 @@ struct SiftApp: App {
     private let tokenStore: any TokenStoring
     private let featureFlags: SiftFeatureFlags
     private let analyticsRecorder: any AnalyticsRecording
+    private let biometricAuthenticator: any BiometricAuthenticating
+    private let insightNarrator: any InsightNarrating
+    private let insightConversation: any InsightConversing
+    private let appLockEnabled: Bool
+    private let backgroundRefreshController: BackgroundRefreshController?
 
     init() {
         let launchOptions = SiftLaunchOptions.current
@@ -39,7 +45,12 @@ struct SiftApp: App {
             stateStore.setComplete(true)
         }
 
-        let container = try! SiftModelContainerFactory.makeContainer(inMemory: launchOptions.useMockServices)
+        let container: ModelContainer
+        do {
+            container = try SiftModelContainerFactory.makeContainer(inMemory: launchOptions.useMockServices)
+        } catch {
+            fatalError("Failed to create the SwiftData model container: \(error)")
+        }
         modelContainer = container
         onboardingStateStore = stateStore
         tokenStore = authTokenStore
@@ -78,19 +89,49 @@ struct SiftApp: App {
             apiClient = mockAPIClient
             plaidLinkPresenter = MockPlaidLinkPresenter()
             detectionService = MockDetectionService()
+            incomeDetectionService = MockIncomeDetectionService()
             notificationAuthorizer = MockNotificationAuthorizer()
+            biometricAuthenticator = MockBiometricAuthenticator(available: false)
+            appLockEnabled = false
+            // Mock launches (UI tests, previews) must never reach the on-device model:
+            // it's unavailable on CI anyway, and its output isn't deterministic.
+            insightNarrator = MockInsightNarrator(availabilityResult: .unavailable(.notSupported))
+            insightConversation = MockInsightConversation(availabilityResult: .unavailable(.notSupported))
         } else {
             configuredRepositories = RepositoryContainer.live(modelContext: container.mainContext)
             let financeStore: any FinancialDataStore = FinanceKitStore()
             apiClient = FinanceKitAPIClient(store: financeStore)
             plaidLinkPresenter = FinanceKitLinkPresenter(store: financeStore)
             detectionService = LiveDetectionService(modelContainer: container)
+            incomeDetectionService = LiveIncomeDetectionService(modelContainer: container)
             notificationAuthorizer = UserNotificationAuthorizer()
+            biometricAuthenticator = LocalAuthenticationGate()
+            appLockEnabled = AppLockPreference().isEnabled
+            insightNarrator = FoundationModelsNarrator()
+            insightConversation = FoundationModelsConversation()
         }
 
         repositories = configuredRepositories
         notificationScheduler = NotificationScheduler(repositories: configuredRepositories)
         notificationRouter = NotificationRouter(center: .current())
+
+        if launchOptions.useMockServices {
+            backgroundRefreshController = nil
+        } else {
+            let refreshService = DefaultSubscriptionRefreshService(
+                apiClient: apiClient,
+                detectionService: detectionService,
+                repositories: configuredRepositories,
+                incomeDetectionService: incomeDetectionService,
+                notificationScheduler: notificationScheduler
+            )
+            let controller = BackgroundRefreshController { [refreshService] in
+                _ = try? await refreshService.refresh()
+            }
+            controller.register()
+            backgroundRefreshController = controller
+        }
+
         _appModel = State(initialValue: AppModel(isOnboardingComplete: stateStore.isComplete()))
     }
 
@@ -101,6 +142,7 @@ struct SiftApp: App {
                 .environment(\.repositories, repositories)
                 .environment(\.apiClient, apiClient)
                 .environment(\.detectionService, detectionService)
+                .environment(\.incomeDetectionService, incomeDetectionService)
                 .environment(\.notificationAuthorizer, notificationAuthorizer)
                 .environment(\.notificationScheduler, notificationScheduler)
                 .environment(\.notificationRouter, notificationRouter)
@@ -109,7 +151,12 @@ struct SiftApp: App {
                 .environment(\.plaidLinkPresenter, plaidLinkPresenter)
                 .environment(\.featureFlags, featureFlags)
                 .environment(\.analyticsRecorder, analyticsRecorder)
+                .environment(\.biometricAuthenticator, biometricAuthenticator)
+                .environment(\.appLockEnabled, appLockEnabled)
+                .environment(\.insightNarrator, insightNarrator)
+                .environment(\.insightConversation, insightConversation)
                 .modelContainer(modelContainer)
+                .task { backgroundRefreshController?.schedule() }
         }
     }
 }

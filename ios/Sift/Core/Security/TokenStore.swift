@@ -118,3 +118,41 @@ private extension NSLock {
         return try body()
     }
 }
+
+/// Device-owner authentication used to gate access to balances and transactions.
+protocol BiometricAuthenticating: Sendable {
+    /// Whether Face ID, Touch ID, or a device passcode can be evaluated.
+    func canAuthenticate() -> Bool
+    /// Prompts the person; succeeds via biometrics or the device passcode fallback.
+    func authenticate(reason: String) async -> Bool
+}
+
+struct MockBiometricAuthenticator: BiometricAuthenticating {
+    var available = true
+    var succeeds = true
+
+    func canAuthenticate() -> Bool {
+        available
+    }
+
+    func authenticate(reason _: String) async -> Bool {
+        succeeds
+    }
+}
+
+/// Persisted preference for requiring authentication when Sift opens. Opt-in by default.
+struct AppLockPreference {
+    // UserDefaults is thread-safe but not marked Sendable.
+    private nonisolated(unsafe) let defaults: UserDefaults
+    private let key = "sift.appLock.enabled"
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    /// Opt-in until a Settings toggle exists to turn it off; the gate itself is fully wired.
+    var isEnabled: Bool {
+        get { defaults.object(forKey: key) as? Bool ?? false }
+        nonmutating set { defaults.set(newValue, forKey: key) }
+    }
+}

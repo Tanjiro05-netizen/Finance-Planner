@@ -1,9 +1,10 @@
 import Foundation
 
-struct SubscriptionRefreshResult: Equatable, Sendable {
+struct SubscriptionRefreshResult: Equatable {
     let synced: TransactionSyncResponse
     let importedTransactionCount: Int
     let detectionResult: DetectionResult
+    var incomeDetectionResult: IncomeDetectionResult = .empty
 }
 
 protocol SubscriptionRefreshing: Sendable {
@@ -21,33 +22,54 @@ extension SubscriptionRefreshing {
 final class DefaultSubscriptionRefreshService: SubscriptionRefreshing, @unchecked Sendable {
     private let apiClient: any SiftAPIClient
     private let detectionService: any DetectionServing
+    private let incomeDetectionService: any IncomeDetectionServing
     private let notificationScheduler: any NotificationScheduling
     private let repositories: RepositoryContainer
+    private let userID: String
 
     init(
         apiClient: any SiftAPIClient,
         detectionService: any DetectionServing,
         repositories: RepositoryContainer,
-        notificationScheduler: any NotificationScheduling = NoopNotificationScheduler()
+        incomeDetectionService: any IncomeDetectionServing = MockIncomeDetectionService(detections: []),
+        notificationScheduler: any NotificationScheduling = NoopNotificationScheduler(),
+        userID: String = SeedData.defaultUserID
     ) {
         self.apiClient = apiClient
         self.detectionService = detectionService
+        self.incomeDetectionService = incomeDetectionService
         self.repositories = repositories
         self.notificationScheduler = notificationScheduler
+        self.userID = userID
     }
 
     @MainActor
     func refresh(referenceDate: Date) async throws -> SubscriptionRefreshResult {
         let synced = try await apiClient.syncTransactions()
         let importedCount = try await importSyncedTransactions()
+        try await importAccounts()
         let result = try await detectionService.recompute(referenceDate: referenceDate)
+        let incomeResult = try await incomeDetectionService.recompute(referenceDate: referenceDate)
         try await notificationScheduler.reconcile(referenceDate: referenceDate)
 
         return SubscriptionRefreshResult(
             synced: synced,
             importedTransactionCount: importedCount,
-            detectionResult: result
+            detectionResult: result,
+            incomeDetectionResult: incomeResult
         )
+    }
+
+    @MainActor
+    private func importAccounts() async throws {
+        let accounts = try await apiClient.listAccounts().map {
+            LinkedAccount(remote: $0, userID: userID)
+        }
+        // Skip when empty so a transient unauthorized state can't wipe stored accounts.
+        guard !accounts.isEmpty else {
+            return
+        }
+        try repositories.accounts.replaceAll(with: accounts)
     }
 
     private func importSyncedTransactions() async throws -> Int {
@@ -79,17 +101,21 @@ final class DefaultSubscriptionRefreshService: SubscriptionRefreshing, @unchecke
 
     @MainActor
     private func upsert(record: RemoteTransaction, merchantKey: MerchantKey) throws {
-        try repositories.transactions.upsert(Transaction(
-            id: record.id,
-            userID: record.userId,
-            accountID: record.accountId,
-            merchantRaw: record.merchantName,
-            merchantKey: merchantKey,
-            amount: Money(amountMinor: record.amountMinor, currency: record.isoCurrency),
-            date: record.date,
-            pending: record.pending,
-            categoryHint: record.category
-        ))
+        let transaction = Transaction(remote: record, merchantKey: merchantKey, source: .financeKit)
+        if transaction.direction == .credit {
+            let priorDebits = try repositories.transactions.transactions(for: transaction.accountID)
+                .filter { $0.direction == .debit }
+            transaction.kind = TransactionClassifier.refine(
+                kind: transaction.kind,
+                direction: transaction.direction,
+                merchantKey: transaction.merchantKey,
+                accountID: transaction.accountID,
+                amount: transaction.amount,
+                date: transaction.date,
+                priorDebits: priorDebits
+            )
+        }
+        try repositories.transactions.upsert(transaction)
     }
 }
 

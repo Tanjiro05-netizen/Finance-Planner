@@ -26,7 +26,7 @@ struct GlassSurfaceModifier: ViewModifier {
                 )
                 .overlay(alignment: .top) {
                     RoundedRectangle(cornerRadius: radius, style: .continuous)
-                        .stroke(Palette.card.opacity(0.62), lineWidth: 1)
+                        .stroke(Palette.surface.opacity(0.62), lineWidth: 1)
                         .blendMode(.screen)
                         .allowsHitTesting(false)
                 }
@@ -38,8 +38,8 @@ struct GlassSurfaceModifier: ViewModifier {
                 .shadow(
                     color: Elevation.control.color,
                     radius: Elevation.control.radius,
-                    x: Elevation.control.x,
-                    y: Elevation.control.y
+                    x: Elevation.control.offsetX,
+                    y: Elevation.control.offsetY
                 )
         } else {
             fallback(content)
@@ -48,16 +48,12 @@ struct GlassSurfaceModifier: ViewModifier {
 
     private func fallback(_ content: Content) -> some View {
         content
-            .background(Palette.card, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .stroke(Palette.line, lineWidth: 1)
-            )
+            .background(Palette.surface, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
             .shadow(
                 color: Elevation.control.color,
                 radius: Elevation.control.radius,
-                x: Elevation.control.x,
-                y: Elevation.control.y
+                x: Elevation.control.offsetX,
+                y: Elevation.control.offsetY
             )
     }
 }
@@ -84,7 +80,7 @@ private struct SpecularSheen: View {
                 LinearGradient(
                     colors: [
                         .clear,
-                        Palette.card.opacity(0.55),
+                        Palette.surface.opacity(0.55),
                         .clear,
                     ],
                     startPoint: .top,

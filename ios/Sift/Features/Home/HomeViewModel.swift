@@ -24,6 +24,7 @@ struct DashboardTimelineMark: Identifiable, Equatable {
 final class HomeViewModel {
     private let repositories: RepositoryContainer
     private let refresher: any SubscriptionRefreshing
+    private let featureFlags: SiftFeatureFlags
     private let referenceDateProvider: () -> Date
     private var nudgeDismissedSubscriptionIDs = Set<String>()
 
@@ -40,15 +41,28 @@ final class HomeViewModel {
     var timelineMarks: [DashboardTimelineMark] = []
     var timelineMonthLabel = ""
     var trend = DashboardTrend(text: "No change", direction: .neutral)
+    var safeToSpend: SafeToSpendOutcome?
+    /// Budgets that are spending ahead of pace, surfaced as a nudge on Home.
+    var overPaceBudgets: [BudgetRowModel] = []
 
     init(
         repositories: RepositoryContainer,
         refresher: any SubscriptionRefreshing,
+        featureFlags: SiftFeatureFlags = .launchDefault,
         referenceDateProvider: @escaping () -> Date = { Date() }
     ) {
         self.repositories = repositories
         self.refresher = refresher
+        self.featureFlags = featureFlags
         self.referenceDateProvider = referenceDateProvider
+    }
+
+    var showsSafeToSpend: Bool {
+        featureFlags.ledgerEnabled
+    }
+
+    var showsBudgetNudge: Bool {
+        featureFlags.budgetsEnabled && !overPaceBudgets.isEmpty
     }
 
     var isEmpty: Bool {
@@ -59,9 +73,9 @@ final class HomeViewModel {
         let hour = Calendar.current.component(.hour, from: referenceDateProvider())
 
         switch hour {
-        case 0..<12:
+        case 0 ..< 12:
             return "Good morning"
-        case 12..<17:
+        case 12 ..< 17:
             return "Good afternoon"
         default:
             return "Good evening"
@@ -135,10 +149,29 @@ final class HomeViewModel {
             let timeline = makeTimeline(from: subscriptions)
             timelineMarks = timeline.marks
             timelineMonthLabel = timeline.monthLabel
+            safeToSpend = showsSafeToSpend ? try computeSafeToSpend() : nil
+            overPaceBudgets = featureFlags.budgetsEnabled ? try computeOverPaceBudgets() : []
             errorMessage = nil
         } catch {
             errorMessage = userFacingMessage(for: error)
         }
+    }
+
+    private func computeSafeToSpend() throws -> SafeToSpendOutcome {
+        try SafeToSpendProvider.outcome(repositories: repositories, today: referenceDateProvider())
+    }
+
+    /// Reuses `BudgetsViewModel` rather than re-deriving progress here, so Home and the
+    /// budgets screen can never disagree about whether a budget is over pace.
+    private func computeOverPaceBudgets() throws -> [BudgetRowModel] {
+        let budgets = BudgetsViewModel(repositories: repositories, referenceDateProvider: referenceDateProvider)
+        budgets.load()
+
+        if let errorMessage = budgets.errorMessage {
+            throw SiftError.persistence(errorMessage)
+        }
+
+        return budgets.overPaceRows
     }
 
     private func countRenewalsThisWeek(in subscriptions: [Subscription]) -> Int {
@@ -146,13 +179,13 @@ final class HomeViewModel {
         let start = calendar.startOfDay(for: referenceDateProvider())
         let end = calendar.date(byAdding: .day, value: 7, to: start) ?? start
 
-        return subscriptions.filter { subscription in
+        return subscriptions.count(where: { subscription in
             guard let nextRenewal = subscription.nextRenewal else {
                 return false
             }
 
             return nextRenewal >= start && nextRenewal < end
-        }.count
+        })
     }
 
     private func makeTimeline(from subscriptions: [Subscription]) -> (marks: [DashboardTimelineMark], monthLabel: String) {
@@ -215,7 +248,7 @@ final class HomeViewModel {
 
         if delta.amountMinor < 0 {
             return DashboardTrend(
-                text: "Down \((Money(amountMinor: abs(delta.amountMinor), currency: delta.currency)).formatted())",
+                text: "Down \(Money(amountMinor: abs(delta.amountMinor), currency: delta.currency).formatted())",
                 direction: .down
             )
         }

@@ -18,27 +18,22 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSFinancialDataUsageDescription</key>
 	<string>Sift reads your Apple Card, Apple Cash, and Apple Pay transactions on your device to find recurring subscriptions. Your data never leaves your iPhone.</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.sift.app.refresh</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Fraunces-Variable.ttf</string>
-		<string>Fraunces-Regular.ttf</string>
-		<string>Fraunces-SemiBold.ttf</string>
-		<string>Fraunces-Bold.ttf</string>
-		<string>PlusJakartaSans-Variable.ttf</string>
-		<string>PlusJakartaSans-Regular.ttf</string>
-		<string>PlusJakartaSans-Medium.ttf</string>
-		<string>PlusJakartaSans-SemiBold.ttf</string>
-		<string>PlusJakartaSans-Bold.ttf</string>
-		<string>IBMPlexMono-Regular.ttf</string>
-		<string>IBMPlexMono-Medium.ttf</string>
-		<string>IBMPlexMono-SemiBold.ttf</string>
-		<string>IBMPlexMono-Bold.ttf</string>
-	</array>
 </dict>
 </plist>

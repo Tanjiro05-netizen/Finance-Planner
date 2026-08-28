@@ -1,0 +1,263 @@
+import Foundation
+
+/// One already-computed figure, as a label and a formatted value.
+///
+/// Money arrives pre-formatted deliberately. The model is asked to *phrase* these, never to
+/// compute with them: language models are unreliable at arithmetic and this app already
+/// holds exact figures from tested calculators. A string can be echoed; it can't be
+/// silently miscalculated.
+struct InsightFactLine: Equatable, Sendable {
+    let label: String
+    let value: String
+}
+
+/// Everything the narrator is allowed to see.
+///
+/// Aggregates only. No merchant names, no individual charges, no account identifiers, no
+/// dates of specific transactions. That is a privacy decision first — nothing that could
+/// identify a payee enters the context window — and a quality one second, since a short
+/// prompt of derived figures produces better output than a dump of rows.
+struct InsightFacts: Equatable, Sendable {
+    var lines: [InsightFactLine]
+
+    init(lines: [InsightFactLine] = []) {
+        self.lines = lines
+    }
+
+    var isEmpty: Bool {
+        lines.isEmpty
+    }
+}
+
+/// A budget, reduced to what the narrator needs.
+///
+/// Declared here rather than reusing `BudgetRowModel` because that type lives in
+/// `Features/Budgets` — `Core/` must not depend on a feature module. The view model maps
+/// its rows into these.
+struct BudgetFactInput: Equatable, Sendable {
+    let categoryName: String
+    let progress: BudgetProgress
+}
+
+/// A goal, reduced to what the narrator needs. Same layering reason as `BudgetFactInput`.
+struct GoalFactInput: Equatable, Sendable {
+    let name: String
+    let targetAmount: Money
+    let outcome: GoalOutcome
+}
+
+/// Builds `InsightFacts` from the output of the deterministic layer.
+///
+/// Pure and framework-free: it takes values the calculators already produced rather than
+/// reading repositories itself, which is what keeps it fully unit-testable and keeps the
+/// redaction guarantee checkable in a test.
+enum InsightPromptBuilder {
+    /// Category names are the one caller-supplied string that reaches the prompt, and they
+    /// come from the user's own category list rather than from transaction descriptions.
+    /// Anything longer than this is truncated rather than trusted.
+    static let maximumCategoryNameLength = 40
+
+    /// Budgets and goals are per-person and unbounded — someone can create as many as they
+    /// like — but the on-device model's context window is a fixed 4096 tokens shared across
+    /// the instructions, this prompt, *and* the response. Left uncapped, the people who use
+    /// the app most are the ones whose narration silently stops working, which is backwards.
+    ///
+    /// `topMovers` already caps itself, so only these two need it here.
+    static let maximumBudgetLines = 4
+    static let maximumGoalLines = 3
+
+    static func facts(
+        safeToSpend: SafeToSpendResult?,
+        comparison: SpendComparison?,
+        movers: [CategoryMover],
+        budgets: [BudgetFactInput],
+        goals: [GoalFactInput]
+    ) -> InsightFacts {
+        var lines: [InsightFactLine] = []
+
+        if let safeToSpend {
+            lines.append(InsightFactLine(
+                label: "Safe to spend per day",
+                value: safeToSpend.dailyAmount.formatted()
+            ))
+            lines.append(InsightFactLine(
+                label: "Available before the next payday, after known bills",
+                value: safeToSpend.netAvailable.formatted()
+            ))
+        }
+
+        // `SpendReportBuilder.comparison` always returns a value, zeroed when there is no
+        // ledger. Passing "you spent $0.00, versus $0.00" invites the model to narrate
+        // nothing at some length, so a comparison with no spend on either side is dropped.
+        if let comparison, comparison.currentTotal.amountMinor > 0 || comparison.previousTotal.amountMinor > 0 {
+            let window = comparison.isPartialMonth
+                ? "first \(comparison.dayCount) days of each month"
+                : "full month"
+            lines.append(InsightFactLine(
+                label: "Spent this month (\(window))",
+                value: comparison.currentTotal.formatted()
+            ))
+            lines.append(InsightFactLine(
+                label: "Spent over the same stretch last month",
+                value: comparison.previousTotal.formatted()
+            ))
+        }
+
+        for mover in movers {
+            let direction = mover.isIncrease ? "up" : "down"
+            let magnitude = Money(
+                amountMinor: abs(mover.delta.amountMinor),
+                currency: mover.delta.currency
+            )
+            lines.append(InsightFactLine(
+                label: "\(safeName(mover.categoryName)) spending \(direction)",
+                value: "\(magnitude.formatted()) (\(mover.previous.formatted()) to \(mover.current.formatted()))"
+            ))
+        }
+
+        for budget in mostWorthMentioning(budgets) {
+            lines.append(InsightFactLine(
+                label: "\(safeName(budget.categoryName)) budget, \(paceText(budget.progress.pace))",
+                value: "\(budget.progress.spent.formatted()) of \(budget.progress.budgeted.formatted())"
+            ))
+        }
+
+        for goal in mostWorthMentioning(goals) {
+            lines.append(InsightFactLine(
+                label: "Goal: \(safeName(goal.name)) (\(outcomeText(goal.outcome)))",
+                value: "\(goal.outcome.saved.formatted()) of \(goal.targetAmount.formatted()) saved"
+            ))
+        }
+
+        return InsightFacts(lines: lines)
+    }
+
+    /// The budgets most worth a sentence, capped for the context window.
+    ///
+    /// Sorted before truncating so the cut falls on the budgets nobody needs told about: a
+    /// budget running over pace is the one thing here a person can still act on this month,
+    /// and one comfortably under pace is the least interesting line in the sheet. `sorted`
+    /// is guaranteed stable in Swift, so equal-priority budgets keep the caller's order.
+    private static func mostWorthMentioning(_ budgets: [BudgetFactInput]) -> [BudgetFactInput] {
+        guard budgets.count > maximumBudgetLines else {
+            return budgets
+        }
+
+        let ordered = budgets.sorted { priority($0.progress.pace) < priority($1.progress.pace) }
+        return Array(ordered.prefix(maximumBudgetLines))
+    }
+
+    private static func priority(_ pace: BudgetPace) -> Int {
+        switch pace {
+        case .over:
+            0
+        case .onTrack:
+            1
+        case .under:
+            2
+        }
+    }
+
+    /// Same idea for goals: something needing attention outranks something already settled.
+    /// A reached goal is worth celebrating once, not at the cost of a goal falling behind.
+    private static func mostWorthMentioning(_ goals: [GoalFactInput]) -> [GoalFactInput] {
+        guard goals.count > maximumGoalLines else {
+            return goals
+        }
+
+        let ordered = goals.sorted { priority($0.outcome) < priority($1.outcome) }
+        return Array(ordered.prefix(maximumGoalLines))
+    }
+
+    private static func priority(_ outcome: GoalOutcome) -> Int {
+        switch outcome {
+        case .overdue:
+            0
+        case .behind:
+            1
+        case .insufficientData:
+            2
+        case .onTrack:
+            3
+        case .ahead:
+            4
+        case .reached:
+            5
+        }
+    }
+
+    /// Spelled out here rather than reusing `BudgetPace.label` / `GoalOutcome.label`: those
+    /// live in `DesignSystem/Components` and are display tokens for pills. `Core/` must not
+    /// depend on the design system, and prompt wording should be free to change without
+    /// dragging the UI with it.
+    private static func paceText(_ pace: BudgetPace) -> String {
+        switch pace {
+        case .under:
+            "under pace"
+        case .onTrack:
+            "on pace"
+        case .over:
+            "over pace"
+        }
+    }
+
+    private static func outcomeText(_ outcome: GoalOutcome) -> String {
+        switch outcome {
+        case .reached:
+            "reached"
+        case .overdue:
+            "past its date"
+        case .insufficientData:
+            "no target date or monthly amount set"
+        case .onTrack:
+            "on track"
+        case .behind:
+            "behind"
+        case .ahead:
+            "ahead"
+        }
+    }
+
+    /// The prompt body: one figure per line, nothing else.
+    static func promptText(for facts: InsightFacts) -> String {
+        facts.lines
+            .map { "\($0.label): \($0.value)" }
+            .joined(separator: "\n")
+    }
+
+    /// Instructions are static and carry no user data, so they're safe to keep as a constant
+    /// and cheap to prewarm against.
+    ///
+    /// Assembled from paragraphs rather than written as one literal: a blank line inside a
+    /// multi-line string literal is something SwiftFormat's `indent` and `trailingSpace`
+    /// rules disagree about, and joining sidesteps it.
+    static let instructions = [
+        "You write short, calm observations about someone's personal finances.",
+        """
+        Every number you mention must be copied exactly from the figures you are given. \
+        Never calculate, estimate, combine, or round a number yourself — if a figure is \
+        not listed, do not state it.
+        """,
+        """
+        Lead with what is going well before what needs attention. Do not give investment \
+        advice, do not tell the person what to buy or sell, and do not moralise about \
+        their spending. Keep each observation to one or two sentences.
+        """,
+    ].joined(separator: "\n\n")
+
+    /// Category and goal names come from the user's own records. Truncated so an absurdly
+    /// long name can't crowd out the rest of the context window, and newline-stripped so a
+    /// name can't fake a new instruction line in the prompt.
+    private static func safeName(_ name: String) -> String {
+        let flattened = name
+            .replacingOccurrences(of: "\n", with: " ")
+            .replacingOccurrences(of: "\r", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard flattened.count > maximumCategoryNameLength else {
+            return flattened
+        }
+
+        return String(flattened.prefix(maximumCategoryNameLength))
+    }
+}

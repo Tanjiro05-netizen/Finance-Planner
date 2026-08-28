@@ -74,6 +74,18 @@ final class LiveSubscriptionRepository: SubscriptionRepository, @unchecked Senda
     }
 
     @MainActor
+    func upcomingRenewals(from startDate: Date, to endDate: Date) throws -> [Subscription] {
+        try all()
+            .filter { subscription in
+                guard subscription.status != .cancelled, let renewal = subscription.nextRenewal else {
+                    return false
+                }
+                return renewal >= startDate && renewal <= endDate
+            }
+            .sorted { ($0.nextRenewal ?? .distantFuture) < ($1.nextRenewal ?? .distantFuture) }
+    }
+
+    @MainActor
     func unused(referenceDate: Date, staleAfterDays: Int) throws -> [Subscription] {
         try unusedSubscriptions(from: all(), referenceDate: referenceDate, staleAfterDays: staleAfterDays)
     }
@@ -166,12 +178,31 @@ final class LiveTransactionRepository: TransactionRepository, @unchecked Sendabl
 
     @MainActor
     func recent(limit: Int) throws -> [Transaction] {
-        Array(try all().prefix(limit))
+        try Array(all().prefix(limit))
     }
 
     @MainActor
     func transactions(for accountID: String) throws -> [Transaction] {
         try all().filter { $0.accountID == accountID }
+    }
+
+    @MainActor
+    func transactions(from startDate: Date, to endDate: Date) throws -> [Transaction] {
+        let scopedUserID = userID
+        var descriptor = FetchDescriptor<Transaction>(
+            predicate: #Predicate { transaction in
+                transaction.userID == scopedUserID &&
+                    transaction.date >= startDate &&
+                    transaction.date <= endDate
+            }
+        )
+        descriptor.sortBy = [SortDescriptor(\.date, order: .reverse)]
+        return try context.fetch(descriptor)
+    }
+
+    @MainActor
+    func transaction(id: String) throws -> Transaction? {
+        try all().first { $0.id == id }
     }
 
     @MainActor
@@ -190,10 +221,36 @@ final class LiveTransactionRepository: TransactionRepository, @unchecked Sendabl
             existing.date = transaction.date
             existing.pending = transaction.pending
             existing.categoryHint = transaction.categoryHint
+            existing.merchantCategoryCode = transaction.merchantCategoryCode
+            existing.direction = transaction.direction
+            existing.kind = transaction.kind
+            existing.source = transaction.source
+            // categoryID/categoryManuallySet/note are left untouched: a re-sync from the
+            // source never carries a resolved category, so copying them here would wipe
+            // out whatever CategoryService or the person themselves already assigned.
         } else {
             context.insert(transaction)
         }
 
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ transaction: Transaction) throws {
+        guard transaction.userID == userID else {
+            throw SiftError.notFound("Transaction")
+        }
+
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let transaction = try transaction(id: id) else {
+            throw SiftError.notFound("Transaction")
+        }
+
+        context.delete(transaction)
         try context.save()
     }
 
@@ -203,6 +260,38 @@ final class LiveTransactionRepository: TransactionRepository, @unchecked Sendabl
             context.delete(transaction)
         }
         try context.save()
+    }
+
+    @MainActor
+    func totalSpend(from startDate: Date, to endDate: Date) throws -> Money {
+        let values = try transactions(from: startDate, to: endDate)
+            .filter { $0.direction == .debit }
+            .map(\.amount)
+        return try Money.sum(values)
+    }
+
+    @MainActor
+    func totalIncome(from startDate: Date, to endDate: Date) throws -> Money {
+        let values = try transactions(from: startDate, to: endDate)
+            .filter { $0.direction == .credit }
+            .map(\.amount)
+        return try Money.sum(values)
+    }
+
+    @MainActor
+    func byCategory(from startDate: Date, to endDate: Date) throws -> [TransactionCategoryGroup] {
+        let scoped = try transactions(from: startDate, to: endDate)
+        let categories = try fetchUserScoped(Category.self, in: context, userID: userID)
+        let namesByID = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.name) })
+
+        let grouped = Dictionary(grouping: scoped, by: \.categoryID)
+        return grouped.map { categoryID, transactions in
+            TransactionCategoryGroup(
+                categoryID: categoryID,
+                categoryName: categoryID.flatMap { namesByID[$0] } ?? "Uncategorized",
+                transactions: transactions
+            )
+        }
     }
 }
 
@@ -437,9 +526,283 @@ final class LiveSettingsRepository: SettingsRepository, @unchecked Sendable {
     }
 }
 
+final class LiveRecurringIncomeRepository: RecurringIncomeRepository, @unchecked Sendable {
+    private let context: ModelContext
+    private let userID: String
+
+    init(modelContext: ModelContext, userID: String = SeedData.defaultUserID) {
+        context = modelContext
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [RecurringIncome] {
+        try fetchUserScoped(RecurringIncome.self, in: context, userID: userID)
+            .sorted { $0.sourceName.localizedStandardCompare($1.sourceName) == .orderedAscending }
+    }
+
+    @MainActor
+    func recurringIncome(id: String) throws -> RecurringIncome? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ income: RecurringIncome) throws {
+        context.insert(income)
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ income: RecurringIncome) throws {
+        guard income.userID == userID else {
+            throw SiftError.notFound("Recurring income")
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let income = try recurringIncome(id: id) else {
+            throw SiftError.notFound("Recurring income")
+        }
+        context.delete(income)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        for income in try all() {
+            context.delete(income)
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func nextExpectedIncome(after referenceDate: Date) throws -> RecurringIncome? {
+        try all()
+            .filter { income in
+                guard income.status == .active, let expected = income.nextExpected else {
+                    return false
+                }
+                return expected >= referenceDate
+            }
+            .min { ($0.nextExpected ?? .distantFuture) < ($1.nextExpected ?? .distantFuture) }
+    }
+}
+
+final class LiveBillRepository: BillRepository, @unchecked Sendable {
+    private let context: ModelContext
+    private let userID: String
+
+    init(modelContext: ModelContext, userID: String = SeedData.defaultUserID) {
+        context = modelContext
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [Bill] {
+        try fetchUserScoped(Bill.self, in: context, userID: userID)
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+
+    @MainActor
+    func bill(id: String) throws -> Bill? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ bill: Bill) throws {
+        context.insert(bill)
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ bill: Bill) throws {
+        guard bill.userID == userID else {
+            throw SiftError.notFound("Bill")
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let bill = try bill(id: id) else {
+            throw SiftError.notFound("Bill")
+        }
+        context.delete(bill)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        for bill in try all() {
+            context.delete(bill)
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func upcomingBills(from startDate: Date, to endDate: Date) throws -> [Bill] {
+        try all()
+            .filter { bill in
+                guard bill.status == .active, let due = bill.nextDue else {
+                    return false
+                }
+                return due >= startDate && due <= endDate
+            }
+            .sorted { ($0.nextDue ?? .distantFuture) < ($1.nextDue ?? .distantFuture) }
+    }
+}
+
+final class LiveBudgetRepository: BudgetRepository, @unchecked Sendable {
+    private let context: ModelContext
+    private let userID: String
+
+    init(modelContext: ModelContext, userID: String = SeedData.defaultUserID) {
+        context = modelContext
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [Budget] {
+        try fetchUserScoped(Budget.self, in: context, userID: userID)
+            .sorted { $0.categoryID.localizedStandardCompare($1.categoryID) == .orderedAscending }
+    }
+
+    @MainActor
+    func budget(id: String) throws -> Budget? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func budget(forCategory categoryID: String) throws -> Budget? {
+        try all().first { $0.categoryID == categoryID && $0.status == .active }
+    }
+
+    @MainActor
+    func insert(_ budget: Budget) throws {
+        context.insert(budget)
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ budget: Budget) throws {
+        guard budget.userID == userID else {
+            throw SiftError.notFound("Budget")
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let budget = try budget(id: id) else {
+            throw SiftError.notFound("Budget")
+        }
+        context.delete(budget)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        for budget in try all() {
+            context.delete(budget)
+        }
+        try context.save()
+    }
+}
+
+final class LiveGoalRepository: GoalRepository, @unchecked Sendable {
+    private let context: ModelContext
+    private let userID: String
+
+    init(modelContext: ModelContext, userID: String = SeedData.defaultUserID) {
+        context = modelContext
+        self.userID = userID
+    }
+
+    @MainActor
+    func all() throws -> [Goal] {
+        try fetchUserScoped(Goal.self, in: context, userID: userID)
+            .sorted { $0.createdAt > $1.createdAt }
+    }
+
+    @MainActor
+    func goal(id: String) throws -> Goal? {
+        try all().first { $0.id == id }
+    }
+
+    @MainActor
+    func insert(_ goal: Goal) throws {
+        context.insert(goal)
+        try context.save()
+    }
+
+    @MainActor
+    func update(_ goal: Goal) throws {
+        guard goal.userID == userID else {
+            throw SiftError.notFound("Goal")
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func delete(id: String) throws {
+        guard let goal = try goal(id: id) else {
+            throw SiftError.notFound("Goal")
+        }
+
+        // Contributions are owned by the goal, so they go with it. Leaving them behind would
+        // strand rows that nothing can ever reach or delete.
+        for contribution in try contributions(forGoal: id) {
+            context.delete(contribution)
+        }
+
+        context.delete(goal)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteAll() throws {
+        for contribution in try allContributions() {
+            context.delete(contribution)
+        }
+        for goal in try all() {
+            context.delete(goal)
+        }
+        try context.save()
+    }
+
+    @MainActor
+    func contributions(forGoal goalID: String) throws -> [GoalContribution] {
+        try allContributions()
+            .filter { $0.goalID == goalID }
+            .sorted { $0.date > $1.date }
+    }
+
+    @MainActor
+    func addContribution(_ contribution: GoalContribution) throws {
+        context.insert(contribution)
+        try context.save()
+    }
+
+    @MainActor
+    func deleteContribution(id: String) throws {
+        guard let contribution = try allContributions().first(where: { $0.id == id }) else {
+            throw SiftError.notFound("Contribution")
+        }
+        context.delete(contribution)
+        try context.save()
+    }
+
+    @MainActor
+    private func allContributions() throws -> [GoalContribution] {
+        try fetchUserScoped(GoalContribution.self, in: context, userID: userID)
+    }
+}
+
 @MainActor
-private func fetchUserScoped<Model: PersistentModel>(
-    _ model: Model.Type,
+func fetchUserScoped<Model: PersistentModel>(
+    _: Model.Type,
     in context: ModelContext,
     userID: String
 ) throws -> [Model] {
@@ -460,6 +823,16 @@ private func fetchUserScoped<Model: PersistentModel>(
             priceChange.userID == userID
         case let settings as AlertSettings:
             settings.userID == userID
+        case let income as RecurringIncome:
+            income.userID == userID
+        case let bill as Bill:
+            bill.userID == userID
+        case let budget as Budget:
+            budget.userID == userID
+        case let goal as Goal:
+            goal.userID == userID
+        case let contribution as GoalContribution:
+            contribution.userID == userID
         default:
             false
         }

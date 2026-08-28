@@ -1,9 +1,13 @@
-enum AppTab: String, CaseIterable, Identifiable, Hashable, Sendable {
+enum AppTab: String, CaseIterable, Identifiable, Hashable {
     case home
     case subscriptions
     case insights
+    case transactions
+    case assistant
 
-    var id: Self { self }
+    var id: Self {
+        self
+    }
 
     var title: String {
         switch self {
@@ -13,6 +17,10 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable, Sendable {
             "Subscriptions"
         case .insights:
             "Insights"
+        case .transactions:
+            "Transactions"
+        case .assistant:
+            "Ask"
         }
     }
 
@@ -24,22 +32,29 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable, Sendable {
             isSelected ? "rectangle.stack.fill" : SiftIcon.subscriptions
         case .insights:
             isSelected ? "chart.bar.fill" : SiftIcon.insights
+        case .transactions:
+            isSelected ? "list.bullet.rectangle.fill" : SiftIcon.transactions
+        case .assistant:
+            isSelected ? "sparkles" : SiftIcon.assistant
         }
     }
 }
 
-enum HomeRoute: Hashable, CaseIterable, Sendable {
+enum HomeRoute: Hashable, CaseIterable {
     case settings
+    case cashFlowForecast
 
     var title: String {
         switch self {
         case .settings:
             "Settings"
+        case .cashFlowForecast:
+            "Cash Flow"
         }
     }
 }
 
-enum SubscriptionsRoute: Hashable, Sendable {
+enum SubscriptionsRoute: Hashable {
     case detail(id: String)
 
     static var samples: [Self] {
@@ -47,30 +62,68 @@ enum SubscriptionsRoute: Hashable, Sendable {
     }
 }
 
-enum InsightsRoute: Hashable, CaseIterable, Sendable {
+enum InsightsRoute: Hashable, CaseIterable {
     case savingsBreakdown
+    case budgets
+    case goals
 
     var title: String {
         switch self {
         case .savingsBreakdown:
             "Savings"
+        case .budgets:
+            "Budgets"
+        case .goals:
+            "Goals"
         }
     }
 }
 
-enum AppSheet: Hashable, Identifiable, Sendable {
+enum AppSheet: Hashable, Identifiable {
     case subscriptionDetail(id: String)
     case cancellation(subscriptionID: String)
     case cancellationRequests
+    case manualTransactionEntry
+    case transactionDetail(id: String)
+    /// nil creates a new budget; a value edits the existing one.
+    case budgetEditor(budgetID: String?)
+    case affordabilityCheck
+    /// nil creates a new goal; a value edits the existing one.
+    case goalEditor(goalID: String?)
+    case goalContribution(goalID: String)
+    /// nil creates a new bill; a value edits the existing one.
+    case billEditor(billID: String?)
+    /// nil creates new income; a value edits the existing one.
+    case incomeEditor(incomeID: String?)
+    /// nil creates a new categorisation rule; a value edits the existing one.
+    case categoryRuleEditor(ruleID: String?)
 
     var id: String {
         switch self {
-        case .subscriptionDetail(let id):
+        case let .subscriptionDetail(id):
             "subscription-detail-\(id)"
-        case .cancellation(let subscriptionID):
+        case let .cancellation(subscriptionID):
             "cancellation-\(subscriptionID)"
         case .cancellationRequests:
             "cancellation-requests"
+        case .manualTransactionEntry:
+            "manual-transaction-entry"
+        case let .transactionDetail(id):
+            "transaction-detail-\(id)"
+        case let .budgetEditor(budgetID):
+            "budget-editor-\(budgetID ?? "new")"
+        case .affordabilityCheck:
+            "affordability-check"
+        case let .goalEditor(goalID):
+            "goal-editor-\(goalID ?? "new")"
+        case let .goalContribution(goalID):
+            "goal-contribution-\(goalID)"
+        case let .billEditor(billID):
+            "bill-editor-\(billID ?? "new")"
+        case let .incomeEditor(incomeID):
+            "income-editor-\(incomeID ?? "new")"
+        case let .categoryRuleEditor(ruleID):
+            "category-rule-editor-\(ruleID ?? "new")"
         }
     }
 
@@ -79,19 +132,36 @@ enum AppSheet: Hashable, Identifiable, Sendable {
             .subscriptionDetail(id: SampleRouteID.subscription),
             .cancellation(subscriptionID: SampleRouteID.subscription),
             .cancellationRequests,
+            .manualTransactionEntry,
+            .transactionDetail(id: SampleRouteID.transaction),
+            .budgetEditor(budgetID: nil),
+            .budgetEditor(budgetID: SampleRouteID.budget),
+            .affordabilityCheck,
+            .goalEditor(goalID: nil),
+            .goalEditor(goalID: SampleRouteID.goal),
+            .goalContribution(goalID: SampleRouteID.goal),
+            .billEditor(billID: nil),
+            .incomeEditor(incomeID: nil),
+            .categoryRuleEditor(ruleID: nil),
         ]
     }
 }
 
-enum DeepLink: Hashable, Sendable {
+enum DeepLink: Hashable {
     case home
     case subscriptions
     case insights
+    case transactions
     case settings
     case subscriptionDetail(id: String)
     case cancellation(subscriptionID: String)
+    case budgets
+    case goals
 }
 
 enum SampleRouteID {
     static let subscription = SeedData.ID.streamline
+    static let transaction = SeedData.ID.streamlineTransaction
+    static let budget = SeedData.ID.groceriesBudget
+    static let goal = SeedData.ID.emergencyGoal
 }

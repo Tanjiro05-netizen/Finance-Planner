@@ -1,7 +1,7 @@
+@testable import Sift
 import SwiftUI
 import Testing
 import UIKit
-@testable import Sift
 
 @MainActor
 struct RootRenderTests {
@@ -9,6 +9,18 @@ struct RootRenderTests {
         let controller = UIHostingController(
             rootView: RootView()
                 .environment(AppModel())
+        )
+
+        controller.loadViewIfNeeded()
+
+        #expect(controller.view != nil)
+    }
+
+    @Test func rootViewBuildsWithLedgerTabEnabled() {
+        let controller = UIHostingController(
+            rootView: RootView()
+                .environment(AppModel(isOnboardingComplete: true))
+                .environment(\.featureFlags, SiftFeatureFlags(conciergeEnabled: false, ledgerEnabled: true))
         )
 
         controller.loadViewIfNeeded()
