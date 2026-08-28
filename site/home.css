@@ -1,0 +1,208 @@
+/* Landing-page-only rules. styles.css supplies the shared tokens (colors, base type,
+   footer) so the legal pages and this one read as one site; this file adds the layout
+   the plain legal pages don't need: a header, a hero, and a feature list.
+
+   Typography: Shippori Mincho B1 -- a mincho revival with visible brush-stroke
+   weight -- carries the headline and the statement line, the two places this page
+   is allowed a voice. Everything else stays in the system stack the legal pages
+   already use, so paragraphs stay fast and plain and the display face reads as a
+   deliberate accent rather than a house font. */
+
+:root {
+  --display: "Shippori Mincho B1", "Hiragino Mincho ProN", serif;
+}
+
+body.home {
+  padding: 0 1.25rem 5rem;
+}
+
+.home-header {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wordmark {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.home-header nav a {
+  margin-left: 1.25rem;
+  margin-right: 0;
+  font-size: 0.9rem;
+}
+
+.hero {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 4.5rem 0 3rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* A single line of vertical type beside the headline -- tategaki, the traditional
+   top-to-bottom Japanese reading direction -- carries the app's own name for what it
+   does, not a decorative kanji chosen for looks. Hidden entirely on narrow screens,
+   where there isn't room for it to breathe. */
+.tategaki {
+  writing-mode: vertical-rl;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: 0.3em;
+  color: var(--gold-deep);
+  padding-top: 0.2rem;
+  animation: rise 0.7s ease-out 0.1s both;
+}
+
+.tategaki .gloss {
+  writing-mode: horizontal-tb;
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 0.7rem;
+  letter-spacing: 0;
+  color: var(--ink-faint);
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 0.9rem;
+}
+
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 4.8vw, 3rem);
+  line-height: 1.2;
+  margin: 0 0 1.1rem;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  animation: rise 0.7s ease-out 0.15s both;
+}
+
+.hero .lede {
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  max-width: 32rem;
+  margin: 0 0 1.75rem;
+  animation: rise 0.7s ease-out 0.25s both;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.7rem 1.3rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.95rem;
+  background: var(--card);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  animation: rise 0.7s ease-out 0.35s both;
+}
+
+.cta:hover {
+  border-color: var(--gold-deep);
+  transform: translateX(2px);
+}
+
+.cta:focus-visible,
+.home-header nav a:focus-visible,
+footer a:focus-visible {
+  outline: 2px solid var(--gold-deep);
+  outline-offset: 3px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tategaki,
+  .hero h1,
+  .hero .lede,
+  .cta {
+    animation: none;
+  }
+}
+
+.icon-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  display: block;
+  margin: 2.5rem auto 0;
+}
+
+/* The one full-width, oversized moment on the page -- a lot of quiet space around a
+   single sentence, rather than a row of feature cards competing for attention. */
+.statement {
+  max-width: 34rem;
+  margin: 2rem auto;
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+}
+
+.statement p {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 3vw, 1.7rem);
+  line-height: 1.45;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+
+.features {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 3.5rem 0 1rem;
+  display: grid;
+  gap: 2.25rem;
+}
+
+.feature dt {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 0.35rem;
+}
+
+.feature dd {
+  margin: 0;
+  color: var(--ink-soft);
+  max-width: 34rem;
+}
+
+@media (max-width: 30rem) {
+  .tategaki {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}

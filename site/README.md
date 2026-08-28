@@ -1,10 +1,14 @@
-# Sift legal pages
+# Sift site
 
-Two static pages that must be live and reachable **before** external TestFlight review —
-App Review checks the privacy policy URL and rejects builds where it 404s.
+`index.html` is the marketing/home page — it also serves as the "Website" field on
+Apple's [FinanceKit entitlement request](https://developer.apple.com/contact/request/financekit),
+which wants a real, findable site behind the request. `privacy/` and `terms/` are the two
+legal pages that must be live and reachable **before** external TestFlight review — App
+Review checks the privacy policy URL and rejects builds where it 404s.
 
 Published at:
 
+- <https://tanjiro05-netizen.github.io/Finance-Planner/>
 - <https://tanjiro05-netizen.github.io/Finance-Planner/privacy/>
 - <https://tanjiro05-netizen.github.io/Finance-Planner/terms/>
 
@@ -44,6 +48,19 @@ touches it, and can be run manually from the Actions tab.
 
 Source must be **GitHub Actions** because branch deploys only offer the repository root or
 `/docs`, and `/docs` here holds internal phase notes that should not be on the public web.
+
+## The home page
+
+`index.html` + `home.css` share `styles.css`'s color tokens with the legal pages (same
+ink/bone/gold palette as the app icon) so the whole site reads as one product, but it's
+the one page that loads a web font — Shippori Mincho B1, from Google Fonts, used only for
+the headline and the pull-quote statement line. Everything else stays in the system font
+stack the legal pages use, so that's a deliberate, scoped exception, not drift.
+
+The vertical line of type beside the headline (`篩`, *furui* — "a sieve; to sift") is a
+real word, not decorative kanji: `writing-mode: vertical-rl` renders it top-to-bottom,
+the traditional Japanese reading direction, as a small aside rather than a page-wide
+motif.
 
 ## Why the layout looks like this
 
